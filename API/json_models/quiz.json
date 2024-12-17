@@ -1,0 +1,31 @@
+{
+  "name": {
+    "title": "Nome",
+    "description": "",
+    "label": "Primeiro Nome",
+    "email": "Nome",
+    "type": "string"
+  },
+  "phone": {
+    "title": "WhatsApp",
+    "description": "",
+    "label": "DDD + WhatsApp",
+    "email": "DDD + WhatsApp",
+    "type": "string"
+  },
+  "agree": {
+    "title": "Concorda c/ os termos?",
+    "description": "",
+    "label": "Concorda c/ os termos?",
+    "email": "Concordou",
+    "type": "string",
+    "options": {
+      "Sim": {
+        "url": "Sim"
+      },
+      "Não": {
+        "url": "Não"
+      }
+    }
+  }
+}

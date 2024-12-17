@@ -1,0 +1,117 @@
+@host = http://localhost:3000
+
+
+# @name register
+POST {{host}}/user HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "José",
+    "email": "joseaugustholi3@gmail.com",
+    "phone": "34991718593",
+    "passwd": "1234",
+    "confirmPasswd": "1234"
+}
+
+###
+
+//resend
+get {{host}}/resend HTTP/1.1
+Authorization: {{token}}
+
+###
+
+//login
+# @name login
+POST {{host}}/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "joseaugustholi@gmail.com", 
+    "passwd": "1234"
+}
+
+###
+
+//refresh token
+POST {{host}}/refresh HTTP/1.1
+Content-Type: application/json
+
+{
+    "refreshToken": "{{refreshToken}}"
+}
+
+###
+
+@token = {{login.response.body.$.token}}
+@refreshToken = {{login.response.body.$.refreshToken}}
+
+//get users
+GET {{host}}/user HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+    "take": 200,
+    "my": true
+}
+
+###
+
+
+//update user
+PUT {{host}}/user HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+    "id": "67609e7434d17eda53edc373",
+    "name": "Paulo",
+    "email": "paulo2@gmail.com",
+    "phone": "3491718593"
+}
+
+###
+
+//veri:fy code
+POST {{host}}/verify HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+    "emailVerificationCode": "719433"
+}
+
+###
+
+//recovery passwd
+POST {{host}}/recovery HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "joseaugustholi@gmail.com"
+}
+
+###
+
+//verify recovery code
+POST {{host}}/verify-recovery-code HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "joseaugustholi@gmail.com",
+    "passwdRecoveryCode": "892763"
+}
+
+###
+
+//delete user
+
+DELETE {{host}}/user HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+        "passwd": "1234"
+}
+
