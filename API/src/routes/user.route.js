@@ -13,6 +13,7 @@ import emailControllers from "../controllers/email.controllers.js";
 
 //só para gerar o código de verificação
 import verificationMiddlewares from "../middlewares/verification.middlewares.js";
+import { access } from "fs";
 
 const users = Router();
 
@@ -23,41 +24,71 @@ function resolver(handlerFn) {
   };
 }
 
-//register a new user
+users.get(
+  "/user",
+  resolver(authMiddlewares.verifyToken),
+  resolver(userMiddlewares.validateId),
+  resolver(userControllers.getUserbyQuery)
+);
+
+users.get(
+  "/users",
+  resolver(authMiddlewares.verifyToken),
+  resolver(userMiddlewares.validateId),
+  resolver(userControllers.getUserbyQuery)
+);
+
+users.get(
+  "/users/:id",
+  resolver(authMiddlewares.verifyToken),
+  resolver(userMiddlewares.validateId),
+  resolver(userControllers.getUserbyQuery)
+);
+
 users.post(
   "/user",
   resolver(userMiddlewares.validateStringParams),
-  resolver(userMiddlewares.validateRegister),
-  resolver(userControllers.createNewUser),
+  resolver(userMiddlewares.validateRegisterParams),
+  resolver(userControllers.registerNewUser),
   resolver(verificationMiddlewares.generateVerificationCode),
   resolver(emailControllers.sendVerificationCode),
   resolver(authControllers.auth)
 );
 
-//update user
 users.put(
   "/user",
-  resolver(userMiddlewares.validateStringParams),
-  resolver(authMiddlewares.accessControl),
-  resolver(userMiddlewares.userPrivileges),
+  resolver(authMiddlewares.verifyToken),
   resolver(userMiddlewares.validateUpdateParams),
   resolver(userControllers.updateUser)
 );
 
-//delete user
-users.delete(
-  "/user",
-  resolver(userMiddlewares.validateStringParams),
-  resolver(authMiddlewares.accessControl),
-  resolver(userMiddlewares.validatePasswd),
-  resolver(userControllers.deleteUser)
+users.put(
+  "/user/:id",
+  resolver(authMiddlewares.verifyToken),
+  resolver(userMiddlewares.validateUpdateParams),
+  resolver(userControllers.updateUser)
 );
 
-//get user data
-users.get(
+users.delete(
   "/user",
-  resolver(authMiddlewares.accessControl),
-  resolver(userControllers.getUserbyID)
+  resolver(authMiddlewares.verifyToken),
+  resolver(userMiddlewares.validateDeleteId),
+  resolver(userMiddlewares.validatePasswdDelete),
+  resolver(userControllers.deleteUserbyQuery)
+);
+
+users.delete(
+  "/users/:id",
+  resolver(authMiddlewares.verifyToken),
+  resolver(userMiddlewares.validateDeleteId),
+  resolver(userControllers.deleteUserbyQuery)
+);
+
+users.delete(
+  "/users",
+  resolver(authMiddlewares.verifyToken),
+  resolver(userMiddlewares.validateDeleteId),
+  resolver(userControllers.deleteUserbyQuery)
 );
 
 export default users;

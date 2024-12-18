@@ -1,33 +1,38 @@
 //obrigatory for middlewares
+import { error } from "console";
 import prisma from "../controllers/db.controller.js";
-import crypt from "../crypt.js";
-import errors from "../errors.js";
+import crypt from "../core/crypt.js";
+import errors from "../errors/errors.js";
+
+import response from "../response/response.js";
+import fs from "fs";
 
 import { isValidObjectId } from "mongoose";
 
 async function validateStringParams(req, res, next) {
   Object.values(req.body).filter((param) => {
     if (typeof param != "string")
-      throw new errors.UserError("Campos devem ser do tipo string.");
+      throw new errors.UserError(response.invalidParam(param));
+    if (param.length > 256)
+      throw new errors.UserError(response.invalidParam(param));
   });
 
   next();
 }
 
 //verify login and send user id to next in req.id
-async function validateRegister(req, res, next) {
+async function validateRegisterParams(req, res, next) {
   let lostParams = [];
   //verify params
-  if (!req.body.email) lostParams.push("nome");
+  if (!req.body.name) lostParams.push("nome");
   if (!req.body.email) lostParams.push("email");
   if (!req.body.phone) lostParams.push("phone");
-  if (!req.body.email) lostParams.push("senha");
-  if (!req.body.email) lostParams.push("confirmação da senha");
+  if (!req.body.passwd) lostParams.push("senha");
+  if (!req.body.confirmPasswd) lostParams.push("confirmação da senha");
 
   //verify lost params and throw error
   if (lostParams.length > 0) {
-    let msg = "Campos obrigatórios: " + lostParams.join(", ");
-    throw new errors.UserError(msg);
+    throw new errors.UserError(response.obrigatoryParam(lostParams));
   }
 
   if (!isValidObjectId(req.body.support)) delete req.body.support;
@@ -40,17 +45,50 @@ async function validateRegister(req, res, next) {
 
   //verify if email exists
   if (findEmail) {
-    throw new errors.UserError("Email em uso.");
+    throw new errors.UserError(response.emailInUse());
   }
 
   //verify passwd length
-  if (req.body.passwd.length > 32 && req.body.passwd.length < 8) {
-    throw new errors.UserError("A senha deve ter entre 16 e 32 caracteres.");
+  if (req.body.passwd.length > 32 || req.body.passwd.length < 8) {
+    throw new errors.UserError(response.invalidPasswdLength(16, 32));
   }
 
   //verify passwd match
   if (req.body.passwd != req.body.confirmPasswd) {
-    throw new errors.UserError("As senhas não combinam.");
+    throw new errors.UserError(response.notMatchPasswd());
+  }
+
+  let quiz = JSON.parse(await fs.readFileSync("./json_models/quiz.json"));
+
+  req.registerData = {
+    name: req.body.name,
+    email: req.body.email,
+    phone: req.body.phone,
+    passwd: crypt.criptografar(req.body.passwd),
+    quiz: {
+      create: {
+        slug: "quiz",
+        steps: quiz.steps,
+      },
+    },
+  };
+
+  req.registerData.support = {};
+  req.registerData.support[process.env.ADMIN_EMAIL] = {
+    privilege: "SUPPORT",
+  };
+
+  //verificar parametro suporte
+  if (req.body.support) {
+    let findByEmail = prisma.user.findUnique({
+      where: { email: req.body.support },
+    });
+
+    if (findByEmail) {
+      req.registerData.support[req.body.support] = {
+        privilege: "SUPPORT",
+      };
+    }
   }
 
   next();
@@ -58,104 +96,118 @@ async function validateRegister(req, res, next) {
 
 //validate update params
 async function validateUpdateParams(req, res, next) {
-  let data = {};
-  req.updatedParams = {};
+  req.updateData = {};
+  req.where = { id: req.userData.id };
+  req.requiresPasswd = true;
+
+  //validar o id
+  if (req.params.id) {
+    let q = await prisma.user.findUnique({
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    let aproved = false;
+
+    if (req.userData.email in q.support) aproved = true;
+
+    if (req.userData.role == "ADMIN") aproved = true;
+
+    req.where = {
+      id: q.id,
+    };
+    req.requiresPasswd = false;
+  }
 
   //verify name
   if (req.body.name) {
-    //verify name length
-    if (req.body.name.length > 128)
-      throw new errors.UserError("Tamanho de nome máximo: 128 caracteres.");
-
-    req.updatedParams.name = req.body.name;
-    data.name = req.body.name;
+    req.updateData.name = req.body.name;
   }
 
   //validating email param
   if (req.body.email) {
     //verify email length
-    if (req.body.email.length > 128)
-      throw new errors.UserError("Tamanho de email máximo: 128 caracteres.");
-
-    req.updatedParams.email = req.body.email;
-    data.email = req.body.email;
-
+    req.updateData = req.body.email;
     //set emailVerified false in database
-    data.emailVerified = false;
+    req.updateData.emailVerified = false;
   }
 
-  if (req.body.phone) {
-    if (req.body.phone.length > 128)
-      throw new errors.UserError("Tamanho de celular máximo: 128 caracteres.");
+  if (req.body.phone) req.updateData = req.body.phone;
 
-    req.updatedParams.phone = req.body.phone;
-    data.phone = req.body.phone;
-  }
+  if (req.body.newPasswd)
+    req.updateData.passwd = crypt.criptografar(req.body.newPasswd);
 
-  if (isValidObjectId(req.body.support)) {
-    if (req.body.support.length > 24)
-      throw new errors.UserError(
-        "Campo support inválido: tamanho de id máximo 24 caracteres."
-      );
+  if (isValidObjectId(req.body.support)) req.updateData = req.body.support;
 
-    req.updatedParams.support = req.body.support;
-    data.support = req.body.support;
-  }
+  if (req.requiresPasswd) {
+    //validating Passwd params
+    if (req.body.newPasswd) {
+      //verify actual passwd
+      let { passwd } = req.body;
 
-  //validating Passwd params
-  if (req.body.newPasswd) {
-    //verify actual passwd
-    let { passwd } = req.body;
-    let lostParams = [];
+      if (!passwd)
+        throw new errors.UserError(response.obrigatoryParam("senha"));
 
-    if (req.requiresPasswd) {
-      if (!passwd) lostParams.push("senha");
+      //validate passwd
+      if (req.userData.passwd != crypt.criptografar(req.body.passwd))
+        throw new errors.UserError(response.incorrectPasswd());
 
-      if (lostParams.length > 0)
-        throw new errors.UserError(
-          "Campos obrigatórios: " + lostParams.join(", ")
-        );
+      if (req.body.passwd.length > 32 || req.body.passwd < 8)
+        throw new errors.UserError(response.invalidPasswdLength(16, 32));
     }
-
-    //data sent to next
-    data.passwd = req.body.newPasswd;
-
-    //validate new password length
-    if (data.passwd.length > 32 && data.passwd.length < 8)
-      throw new errors.UserError("A senha deve ter entre 8 e 32 caracteres");
-
-    req.updatedParams.passwd = "***************";
-    data.passwd = crypt.criptografar(req.body.newPasswd);
   }
 
-  if (Object.keys(data).length == 0)
+  if (Object.keys(req.updateData).length == 0)
     throw new errors.UserError("Pelo menos um campo obrigatório.");
 
-  req.body = data;
   next();
 }
 
 //validate password
-async function validatePasswd(req, res, next) {
-  let { passwd } = req.body;
+async function validatePasswdDelete(req, res, next) {
   let lostParams = [];
 
-  if (!passwd) lostParams.push("senha");
+  if (req.requiresPasswd) {
+    if (!req.body.passwd)
+      throw new errors.UserError(response.obrigatoryParam("passwd"));
 
-  if (lostParams.length > 0)
-    throw new errors.UserError("Campos obrigatórios: " + lostParams.join(", "));
+    let q = await prisma.user.findUnique({
+      where: {
+        id: req.id,
+      },
+    });
 
-  let q = await prisma.user.findUnique({
-    where: {
-      id: req.id,
-    },
-  });
+    if (crypt.criptografar(passwd) != q.passwd)
+      throw new errors.UserError(response.incorrectPasswd());
+  }
 
-  if (crypt.criptografar(passwd) != q.passwd)
-    throw new errors.UserError("Senha incorreta.");
+  next();
+}
 
-  req.userData = q;
+async function validateDelete(req, res, next) {
+  if (req.params.id) {
+    if (isValidObjectId(req.params.id))
+      throw new errors.UserError(response.userNotFound());
 
+    let q = await prisma.user.findUnique({ where: { id: req.params.id } });
+
+    if (!q.support[req.userData.email])
+      throw new errors.AuthError(response.unauthorizated());
+
+    req.dbQuery = {
+      where: {
+        id: req.params.id,
+      },
+    };
+  } else {
+    req.dbQuery = {
+      where: {
+        id: req.userData.id,
+      },
+    };
+    req.requiresPasswd = true;
+  }
   next();
 }
 
@@ -170,7 +222,7 @@ async function userPrivileges(req, res, next) {
 
       let aproved = false;
 
-      if (q.support == req.id && req.userData.role == "SUPPORT") aproved = true;
+      if (q.support[req.id].privilege == "SUPPORT") aproved = true;
       if (req.userData.role == "ADMIN") aproved = true;
 
       if (!aproved) throw new errors.AuthError("Não autorizado.");
@@ -189,10 +241,45 @@ async function userPrivileges(req, res, next) {
   }
 }
 
+async function validateId(req, res, next) {
+  req.dbQuery = {
+    where: { id: req.userData.id },
+  };
+
+  if (req.path.split("/")[1] == "users") {
+    if (req.params.id) {
+      if (!isValidObjectId(req.params.id))
+        throw new errors.UserError(response.userNotFound());
+      req.dbQuery.where = { id: req.params.id };
+    } else req.dbQuery.where = {};
+  }
+
+  next();
+}
+
+async function validateDeleteId(req, res, next) {
+  req.dbQuery = {
+    where: { id: req.userData.id },
+  };
+
+  if (req.path.split("/")[1] == "users") {
+    if (req.params.id) {
+      if (!isValidObjectId(req.params.id))
+        throw new errors.UserError(response.userNotFound());
+      req.deleteId = req.params.id;
+    } else throw new errors.UserError(response.userNotFound());
+  }
+
+  next();
+}
+
 export default {
-  validateRegister,
+  validateRegisterParams,
   validateUpdateParams,
-  validatePasswd,
+  validatePasswdDelete,
   validateStringParams,
   userPrivileges,
+  validateId,
+  validateDeleteId,
+  validateDelete,
 };

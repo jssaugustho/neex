@@ -1,7 +1,7 @@
 //obrigatory for middlewares
 import prisma from "../controllers/db.controller.js";
-import crypt from "../crypt.js";
-import errors from "../errors.js";
+import crypt from "../core/crypt.js";
+import errors from "../errors/errors.js";
 
 //optional
 import { randomInt } from "crypto";

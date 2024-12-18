@@ -1,6 +1,8 @@
 //obrigatory for middlewares
 import prisma from "../controllers/db.controller.js";
-import errors from "../errors.js";
+import errors from "../errors/errors.js";
+
+import crypt from "../core/crypt.js";
 import { isValidObjectId } from "mongoose";
 
 async function getLeadOwner(req, res, next) {
@@ -137,9 +139,25 @@ async function validateLeadFilter(req, res, next) {
   next();
 }
 
+async function validateDelete(req, res, next) {
+  if (!req.existentData) throw new errors.UserError("Lead não encontrado.");
+
+  if (req.existentData.id != req.id) {
+    if (req.id in req.existentData.support) {
+      if (!req.body.passwd)
+        throw new errors.UserError("Campo obrigatório: senha");
+
+      if (crypt.criptografar(req.body.passwd) != req.existentData.passwd)
+        throw new errors.UserError("Senha inválida.");
+    }
+    throw new errors.AuthError("Não autorizado;");
+  }
+}
+
 export default {
   getLeadOwner,
   getQuiz,
   validateLeadRegister,
   validateLeadFilter,
+  validateDelete,
 };

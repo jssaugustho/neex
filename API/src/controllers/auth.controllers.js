@@ -1,4 +1,5 @@
 //obrigatory for controllers
+import response from "../response/response.js";
 import prisma from "./db.controller.js";
 
 //optional
@@ -6,7 +7,7 @@ import jwt from "jsonwebtoken";
 
 //auth user, register and send token
 async function auth(req, res, next) {
-  let userId = req.id;
+  let userId = req.userData.id;
 
   //sign token
   let token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -54,7 +55,7 @@ async function auth(req, res, next) {
   //retornar tokens
   return res.status(200).send({
     status: "Ok",
-    message: "Autenticado com sucesso.",
+    message: response.succesAuth(),
     token: "bearer " + token,
     refreshToken,
   });

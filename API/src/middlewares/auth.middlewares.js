@@ -1,10 +1,11 @@
 //obrigatory for middlewares
 import prisma from "../controllers/db.controller.js";
-import crypt from "../crypt.js";
-import errors from "../errors.js";
+import crypt from "../core/crypt.js";
+import errors from "../errors/errors.js";
 
 //optional
 import jwt, { decode } from "jsonwebtoken";
+import response from "../response/response.js";
 
 //verify login and send user id to next in req.id
 async function validateLogin(req, res, next) {
@@ -21,10 +22,8 @@ async function validateLogin(req, res, next) {
     lostParams.push("senha");
   }
 
-  let p = lostParams.length > 1 ? "Campos obrigatórios" : "Campo obrigatório";
-
   if (lostParams.length > 0) {
-    throw new errors.UserError(p + ": " + lostParams.join(", "));
+    throw new errors.UserError(response.obrigatoryParam(lostParams));
   }
 
   //find user in  db by email
@@ -36,7 +35,7 @@ async function validateLogin(req, res, next) {
 
   //verify if email exists
   if (!q) {
-    throw new errors.UserError("Email não existe");
+    throw new errors.UserError(response.emailNotExists());
   }
 
   //encrypt received passwd
@@ -44,11 +43,11 @@ async function validateLogin(req, res, next) {
 
   //verify if is correctly passwd
   if (q.passwd != encryptedInPasswd) {
-    throw new errors.AuthError("Senha incorreta.");
+    throw new errors.AuthError(response.incorrectPasswd());
   }
 
-  //send id param to next
-  req.id = q.id;
+  //send userData to next
+  req.userData = q;
 
   next();
 }
@@ -92,10 +91,10 @@ async function validateRefreshToken(req, res, next) {
 }
 
 //verify active token and send id to next in req.id
-async function accessControl(req, res, next) {
+async function verifyToken(req, res, next) {
   //verify if header exists
   if (!req.headers["authorization"]) {
-    throw new errors.AuthError("Necessita de autenticação.");
+    throw new errors.AuthError(response.needAuth());
   }
 
   //get token
@@ -107,25 +106,26 @@ async function accessControl(req, res, next) {
 
     let m = !err ? null : err.message;
 
-    if (m == "jwt malformed")
-      throw new errors.AuthError("Erro na autenticação.");
+    if (m == "jwt malformed") throw new errors.AuthError(response.authError());
 
-    if (m == "jwt expired") throw new errors.AuthError("Token expirado.");
+    if (m == "jwt expired") throw new errors.AuthError(response.expiredToken());
 
     //verify if sign fail
-    if (!decoded) throw new errors.AuthError("Token inválido.");
+    if (!decoded) throw new errors.AuthError(response.invalidToken());
 
-    req.id = decoded.id;
+    req.userId = decoded.id;
   });
 
   const userData = await prisma.user.findUnique({
     where: {
-      id: req.id,
+      id: req.userId,
     },
   });
 
+  delete req.userId;
+
   if (!userData) {
-    throw new errors.UserError("Erro na autenticação.");
+    throw new errors.UserError(response.authError());
   }
 
   req.userData = userData;
@@ -143,6 +143,6 @@ async function isEmailVerified(req, res, next) {
 export default {
   validateLogin,
   validateRefreshToken,
-  accessControl,
+  verifyToken,
   isEmailVerified,
 };

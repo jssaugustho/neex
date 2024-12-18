@@ -1,9 +1,10 @@
 //obrigatory for middlewares
 import prisma from "../controllers/db.controller.js";
-import errors from "../errors.js";
+import errors from "../errors/errors.js";
 
 //optional
 import { randomInt } from "crypto";
+import response from "../response/response.js";
 
 //verify if parameters are strings
 async function validateStringParams(req, res, next) {
@@ -74,7 +75,7 @@ async function generateVerificationCode(req, res, next) {
   //verify if exists another code
   let q = await prisma.VerificationCode.findUnique({
     where: {
-      userId: req.id,
+      userId: req.userData.id,
     },
   });
 
@@ -91,9 +92,7 @@ async function generateVerificationCode(req, res, next) {
     if (timeout.getTime() > now.getTime()) {
       let secondAwait = (timeout.getTime() - now.getTime()) / 1000;
 
-      throw new errors.UserError(
-        "Aguarde: " + secondAwait + " segundos para tentar novamente."
-      );
+      throw new errors.UserError(response.waitVerificationCode());
     }
 
     //update a existent code
@@ -106,7 +105,7 @@ async function generateVerificationCode(req, res, next) {
         expiresOn,
         user: {
           connect: {
-            id: req.id,
+            id: req.userData.id,
           },
         },
       },
@@ -119,7 +118,7 @@ async function generateVerificationCode(req, res, next) {
         expiresOn,
         user: {
           connect: {
-            id: req.id,
+            id: req.userData.id,
           },
         },
       },

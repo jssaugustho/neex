@@ -4,127 +4,66 @@ import fs from "fs";
 import prisma from "./db.controller.js";
 
 //optional
-import crypt from "../crypt.js";
+import crypt from "../core/crypt.js";
+import response from "../response/response.js";
 
-async function createNewUser(req, res, next) {
-  //get params
-  let { name, email, passwd, phone } = req.body;
-
-  //encrypt passwd
-  passwd = crypt.criptografar(passwd);
-
-  let quiz = await fs.readFileSync("json_models/quiz.json", "utf-8");
-
-  let data = {
-    name,
-    email,
-    phone,
-    passwd,
-    quiz: {
-      create: {
-        slug: "quiz",
-        quiz: JSON.parse(quiz),
-        destiny:
-          "https://wa.me/" +
-          phone +
-          "?text=" +
-          encodeURI(
-            "Olá, gostaria de saber mais sobre as sessões de terapia online."
-          ),
-      },
-    },
-  };
-
-  if (req.body.support) data.support = req.body.support;
-
-  //create register in database
+async function registerNewUser(req, res, next) {
   let created = await prisma.user.create({
-    data,
+    data: req.registerData,
   });
 
-  //send id to next
-  req.id = created.id;
-
-  //send userdata * next functions depends this
+  //salvar na variavel userdata
   req.userData = created;
 
   next();
 }
 
 async function updateUser(req, res, next) {
-  let data = req.body;
-
   let update = await prisma.user.update({
-    where: {
-      id: req.updateUserId,
-    },
-    data,
+    where: req.where,
+    data: req.updateData,
   });
 
-  if (data.phone) {
-    let q = await prisma.quiz.findMany({
-      where: {
-        userId: req.updateUserId,
-      },
-    });
-
-    if (q)
-      await prisma.quiz.updateMany({
-        where: {
-          user: {
-            id: req.updateUserId,
-          },
-        },
-        data: {
-          destiny:
-            "https://wa.me/" +
-            data.phone +
-            "?text=" +
-            encodeURI(
-              "Olá, gostaria de saber mais sobre as sessões de terapia online."
-            ),
-        },
-      });
-  }
+  if (req.updateData.passwd) req.updateData.passwd = "********";
 
   return res.status(201).send({
     status: "Ok",
-    message: "Usuário atualizado com sucesso.",
-    updatedParams: req.updatedParams,
+    message: response.succesUserUpdate(),
+    updatedParams: req.updateData,
   });
 }
 
-async function deleteUser(req, res, next) {
+async function deleteUserbyQuery(req, res, next) {
   //delete refresh tokens in db
   let deleteToken = await prisma.token.deleteMany({
-    where: { userId: req.id },
+    where: { userId: req.deleteId },
   });
 
   //delete emil verification codes in db
   let deleteCodes = await prisma.verificationCode.deleteMany({
-    where: { userId: req.id },
+    where: { userId: req.deleteId },
   });
 
   //delete emil verification codes in db
   let deleteLeads = await prisma.lead.deleteMany({
-    where: { userId: req.id },
+    where: { userId: req.deleteId },
   });
 
   //delete transactions in db
   let deleteTransactions = await prisma.transactions.deleteMany({
-    where: { userId: req.id },
+    where: { userId: req.deleteId },
   });
 
   let deleteSteps = await prisma.step.deleteMany({
-    where: { userId: req.id },
+    where: { userId: req.deleteId },
   });
 
   let deleteQuiz = await prisma.quiz.deleteMany({
-    where: { userId: req.id },
+    where: { userId: req.deleteId },
   });
 
   //delete user
-  let deleteUser = await prisma.user.delete({ where: { id: req.id } });
+  let deleteUser = await prisma.user.delete({ where: { id: req.deleteId } });
 
   //response
   return res.status(201).send({
@@ -133,85 +72,37 @@ async function deleteUser(req, res, next) {
   });
 }
 
-async function getUserbyID(req, res, next) {
-  //get user id
-  let id = req.id;
+async function getUserbyQuery(req, res, next) {
+  let f = await prisma.user.findMany(req.dbQuery);
 
-  let f = {};
-  let msg = "";
+  let p = f.map((r) => {
+    r.passwd = "********";
+    return r;
+  });
 
-  if (req.userData.role == "ADMIN") {
-    let query = {
-      orderBy: {
-        createdAt: "desc",
-      },
-    };
+  let filtered = p;
 
-    if (req.body.take) query.take = req.body.take;
-
-    if (typeof req.body.take != "number") query.take = 100;
-
-    //db query
-    let q = await prisma.user.findMany(query);
-
-    f = q.map((user) => {
-      user.passwd = "******************";
-
-      return user;
+  if (req.userData.role != "ADMIN" && req.path != "/user")
+    filtered = f.filter((p) => {
+      return req.userData.email in p.support;
     });
 
-    msg = f.length + " usuários encontrados.";
-  }
-
-  if (req.userData.role == "SUPPORT") {
-    let query = {
-      orderBy: {
-        createdAt: "desc",
-      },
-    };
-
-    query.where = {
-      OR: [{ support: req.userData.id }, { id: req.userData.id }],
-    };
-
-    if (req.body.take) query.take = req.body.take;
-
-    if (typeof req.body.take != "number") query.take = 100;
-
-    //db query
-    let q = await prisma.user.findMany(query);
-
-    f = q.map((user) => {
-      user.passwd = "******************";
-
-      return user;
+  if (req.userData.role == "ADMIN")
+    filtered = f.filter((p) => {
+      return req.userData.email in p.support || req.userData.id != p.id;
     });
-
-    msg = f.length + " usuários encontrados.";
-  }
-
-  if ((req.userData.role == "USER") | req.body.my) {
-    //db query
-    f = await prisma.user.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    msg = "Usuário " + req.id + " encontrado.";
-  }
 
   //response
   return res.status(200).send({
     status: "Ok",
-    message: msg,
-    data: f,
+    message: response.userFound(Object.keys(filtered).length),
+    data: filtered,
   });
 }
 
 export default {
-  getUserbyID,
-  createNewUser,
+  getUserbyQuery,
+  registerNewUser,
   updateUser,
-  deleteUser,
+  deleteUserbyQuery,
 };

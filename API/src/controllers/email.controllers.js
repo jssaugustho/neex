@@ -1,11 +1,11 @@
 //optional
 import nodemailer from "nodemailer";
-import errors from "../errors.js";
+import errors from "../errors/errors.js";
 
 const transporter = await nodemailer.createTransport({
-  host: "smtp.hostinger.com",
-  port: 465,
-  secure: true,
+  host: process.env.SMTP_HOST,
+  port: new Number(process.env.SMTP_PORT),
+  secure: new Boolean(process.env.SMTP_SECURE),
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWD,
@@ -18,7 +18,10 @@ async function sendVerificationCode(req, res, next) {
     from: "Lux CRM © <joseaugustho@luxdigitalassessoria.com.br>",
     to: req.userData.email,
     subject: "Lux CRM © - Código de verificação de e-mail",
-    text: "Código de verificação do email: " + req.emailVerificationCode,
+    html:
+      "<p>Código de verificação do email: <b>" +
+      req.emailVerificationCode +
+      "</b><br/><br/>Não compartilhe esse código com ninguém.</p>",
   };
 
   //send email

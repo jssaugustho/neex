@@ -41,4 +41,10 @@ leads.get(
   resolver(leadControllers.getLeadsAndFilter)
 );
 
+leads.delete(
+  "/leads",
+  resolver(authMiddlewares.accessControl),
+  resolver(leadMiddlewares.getLeadOwner)
+);
+
 export default leads;

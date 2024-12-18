@@ -7,13 +7,13 @@ import verificationRoute from "./src/routes/verification.route.js";
 import authRoute from "./src/routes/auth.route.js";
 import recoveryRoute from "./src/routes/passwdRecovery.route.js";
 
-//tratamento de erros
-import errors from "./src/errors.js";
-
 class App {
   constructor() {
     //iniciar express
     this.app = express();
+
+    //fingerprint
+    this.app.disable("x-powered-by");
 
     //usar json
     this.app.use(express.json());
