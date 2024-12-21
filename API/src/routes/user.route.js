@@ -35,6 +35,7 @@ users.get(
   "/users",
   resolver(authMiddlewares.verifyToken),
   resolver(userMiddlewares.validateId),
+  resolver(userMiddlewares.validateSortBy),
   resolver(userControllers.getUserbyQuery)
 );
 

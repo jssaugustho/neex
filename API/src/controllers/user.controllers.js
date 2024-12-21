@@ -96,6 +96,7 @@ async function getUserbyQuery(req, res, next) {
   return res.status(200).send({
     status: "Ok",
     message: response.userFound(Object.keys(filtered).length),
+    query: req.dbQuery,
     data: filtered,
   });
 }

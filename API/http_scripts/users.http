@@ -21,14 +21,14 @@ Content-Type: application/json
 
 {
     "email": "joseaugustholi@gmail.com",
-    "passwd": "12345678"
+    "passwd": "123456789"
 }
 
 ###
 
 @token = {{login.response.body.$.token}}
 
-PUT {{host}}/user/6761f569c850d470f7d72b12 HTTP/1.1
+PUT {{host}}/user/67633372218f0fc25898f635 HTTP/1.1
 Content-Type: application/json
 Authorization: {{token}}
 
@@ -41,13 +41,13 @@ Authorization: {{token}}
 ###
 
 //get own user
-GET {{host}}/users HTTP/1.1
+GET {{host}}/users?orderBy=updatedAt&sort=desc HTTP/1.1
 Content-Type: application/json
 Authorization: {{token}}
 
 ###
 
 #get by id
-DELETE {{host}}/users/
+DELETE {{host}}/users
 Content-Type: application/json
 Authorization: {{token}}

@@ -243,6 +243,9 @@ async function userPrivileges(req, res, next) {
 
 async function validateId(req, res, next) {
   req.dbQuery = {
+    orderBy: {
+      updatedAt: "desc",
+    },
     where: { id: req.userData.id },
   };
 
@@ -253,6 +256,21 @@ async function validateId(req, res, next) {
       req.dbQuery.where = { id: req.params.id };
     } else req.dbQuery.where = {};
   }
+
+  next();
+}
+
+async function validateSortBy(req, res, next) {
+  let aproved = { updatedAt: true, createdAt: true };
+  let aprovedSort = { asc: true, desc: true };
+  let sort = "desc";
+
+  console.log(req.query.sort in aprovedSort);
+
+  if (req.query.sort in aprovedSort) sort = req.query.sort;
+
+  if (req.query.orderBy in aproved)
+    req.dbQuery.orderBy[req.query.orderBy] = sort;
 
   next();
 }
@@ -282,4 +300,5 @@ export default {
   validateId,
   validateDeleteId,
   validateDelete,
+  validateSortBy,
 };
