@@ -243,9 +243,6 @@ async function userPrivileges(req, res, next) {
 
 async function validateId(req, res, next) {
   req.dbQuery = {
-    orderBy: {
-      updatedAt: "desc",
-    },
     where: { id: req.userData.id },
   };
 
@@ -265,12 +262,22 @@ async function validateSortBy(req, res, next) {
   let aprovedSort = { asc: true, desc: true };
   let sort = "desc";
 
-  console.log(req.query.sort in aprovedSort);
-
   if (req.query.sort in aprovedSort) sort = req.query.sort;
 
-  if (req.query.orderBy in aproved)
+  req.dbQuery.orderBy = {
+    updatedAt: sort,
+  };
+
+  if (req.query.orderBy in aproved) {
+    req.dbQuery.orderBy = {};
     req.dbQuery.orderBy[req.query.orderBy] = sort;
+  }
+
+  if (req.query.take >= 0)
+    req.dbQuery.take = new Number(req.query.take).valueOf();
+
+  if (req.query.skip >= 0)
+    req.dbQuery.skip = new Number(req.query.skip).valueOf();
 
   next();
 }

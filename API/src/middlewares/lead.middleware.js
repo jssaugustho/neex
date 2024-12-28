@@ -4,34 +4,24 @@ import errors from "../errors/errors.js";
 
 import crypt from "../core/crypt.js";
 import { isValidObjectId } from "mongoose";
+import response from "../response/response.js";
 
-async function getLeadOwner(req, res, next) {
-  req.ownerId = req.id;
-
-  if (req.body.id) {
-    if (!isValidObjectId(req.body.id))
-      throw new errors.UserError("Id inválido");
-
-    req.existentData = await prisma.lead.findUnique({
-      where: {
-        id: req.body.id,
-      },
-    });
-
-    if (req.existentData) {
-      req.ownerId = req.existentData.userId;
-    } else {
-      throw new errors.UserError("Lead não encontrado.");
-    }
-
-    req.update = true;
-  }
+async function validateStringParams(req, res, next) {
+  Object.values(req.body).filter((param) => {
+    if (typeof param != "string")
+      throw new errors.UserError(response.invalidParam(param));
+    if (param.length > 256)
+      throw new errors.UserError(response.invalidParam(param));
+  });
 
   next();
 }
 
 async function getQuiz(req, res, next) {
   //buscar qual o quiz a partir da slug informada na url
+  if (!isValidObjectId(req.params.id))
+    throw new errors.UserError(response.invalidParam("User ID"));
+
   let q = await prisma.quiz.findFirst({
     where: {
       AND: [
@@ -39,14 +29,14 @@ async function getQuiz(req, res, next) {
           slug: req.params.slug,
         },
         {
-          userId: req.ownerId,
+          userId: req.params.id,
         },
       ],
     },
   });
 
   //verifica se quiz existe
-  if (!q) throw new errors.UserError("Quiz não encontrado.");
+  if (!q) throw new errors.UserError(response.quizNotFound());
 
   req.quiz = q;
 
@@ -55,109 +45,184 @@ async function getQuiz(req, res, next) {
 
 async function validateLeadRegister(req, res, next) {
   //definir modelo do leadData
-  req.leadData = {
-    quizData: {},
-  };
+  req.leadData = {};
 
-  let aproved = false;
-
-  //verificar se lead pertence ao user que chamou
-  if (req.id == req.ownerId) aproved = true;
-
-  req.leadOwner = await prisma.user.findUnique({
-    where: { id: req.ownerId },
-  });
-
-  //verifica se user que chamou tem permissão de suporte
-  if (req.leadOwner.support == req.id && req.userData.role == "SUPPORT")
-    aproved = true;
-
-  if (req.userData.role == "ADMIN") aproved = true;
-
-  if (!aproved) throw new errors.AuthError("Não autorizado.");
-
-  if (!req.body.quizData)
-    throw new errors.UserError("Campo obrigatório: quizData");
+  if (Object.keys(req.body).length < 1)
+    throw new errors.UserError(response.requiresOne());
 
   //converter objeto em array com os parametros
-  let params = Object.keys(req.body.quizData);
+  let params = Object.keys(req.body);
 
   //validar parametros do lead de acordo com o quiz
-  req.validParams = params.map((p) => {
+  params.map((p) => {
     // se parametro existe no quiz
-    if (req.quiz.quiz[p]) {
+    if (req.quiz.steps.steps[p]) {
       //se o tipo do parametro está de acordo com o definido quiz
-      if (req.quiz.quiz[p].type != typeof req.body.quizData[p])
-        throw new errors.UserError("Tipo do campo inválido: " + p);
+      if (req.quiz.steps.steps[p].type != typeof req.body[p])
+        throw new errors.UserError(response.invalidType());
 
-      if (req.quiz.quiz[p].options) {
-        if (!(req.body.quizData[p] in req.quiz.quiz[p].options)) {
-          console.log(req.quiz.quiz[p]);
-          throw new errors.UserError("Resposta do campo inválida: " + p);
+      if (req.quiz.steps.steps[p].options) {
+        if (!(req.body[p] in req.quiz.steps.steps[p].options)) {
+          throw new errors.UserError(response.invalidOption(p));
         }
       }
 
       //salva os parametros dentro do leadData
-      req.leadData.quizData[p] = req.body.quizData[p];
+      req.leadData[p] = req.body[p];
     }
   });
 
   //se nenhum parametro é valido
-  if (Object.keys(req.leadData.quizData).length == 0)
-    throw new errors.UserError("Requer pelo menos um campo.");
+  if (Object.keys(req.leadData).length == 0)
+    throw new errors.UserError(response.requiresOne());
 
   next();
 }
 
-async function validateLeadFilter(req, res, next) {
-  let { maxQuantity } = req.body;
+async function validateLeadUpdate(req, res, next) {
+  req.dbQuery.data = { quizData: {} };
 
-  let query = {
-    orderBy: { updatedAt: "desc" },
-  };
+  if (Object.keys(req.body).length < 1)
+    throw new errors.UserError(response.requiresOne());
 
-  if (!maxQuantity) maxQuantity = 50;
+  //converter objeto em array com os parametros
+  let params = Object.keys(req.body);
 
-  if (typeof maxQuantity != "number")
-    throw new errors.UserError("Campo maxQuantity deve ser um número.");
+  //validar parametros do lead de acordo com o quiz
+  params.map((p) => {
+    // se parametro existe no quiz
+    if (req.quiz.steps.steps[p]) {
+      //se o tipo do parametro está de acordo com o definido quiz
+      if (req.quiz.steps.steps[p].type != typeof req.body[p])
+        throw new errors.UserError(response.invalidType());
 
-  if ((req.userData.role == "ADMIN") & !req.body.my) delete query.where;
+      if (req.quiz.steps.steps[p].options) {
+        if (!(req.body[p] in req.quiz.steps.steps[p].options)) {
+          console.log(req.quiz.steps.steps[p]);
+          throw new errors.UserError(response.invalidOption(p));
+        }
+      }
 
-  if ((req.userData.role == "SUPPORT") & !req.body.my) {
-    query.where = {
-      support: req.userId,
+      if (p == "phone") req.emailNotification = "CONTATO CADASTRADO";
+      //salva os parametros dentro do leadData
+      req.dbQuery.data.quizData[p] = req.body[p];
+    }
+  });
+
+  if (Object.keys(req.dbQuery.data).length < 1)
+    throw new errors.UserError(response.requiresOne());
+
+  next();
+}
+
+async function validateLeadId(req, res, next) {
+  if (req.params.leadId) {
+    if (!isValidObjectId(req.params.leadId))
+      throw new errors.UserError(response.invalidParam("Lead ID"));
+
+    let q = await prisma.lead.findUnique({
+      where: {
+        id: req.params.leadId,
+      },
+    });
+
+    if (!q) throw new errors.UserError(response.leadNotFound());
+
+    req.dbQuery = {
+      where: {
+        id: req.params.leadId,
+      },
     };
   }
 
-  if ((req.userData.role == "USER") | req.body.my)
-    query.where = { userId: req.id };
+  next();
+}
 
-  query.take = maxQuantity;
+async function validateQuery(req, res, next) {
+  req.dbQuery = {
+    where: {},
+  };
+  if (req.params.id) {
+    if (!isValidObjectId(req.params.id))
+      throw new errors.UserError(response.invalidParam("User ID"));
+    let user = await prisma.user.findUnique({ where: { id: req.params.id } });
 
-  req.dbQuery = query;
+    if (!user) throw new errors.UserError(response.userNotFound());
+
+    req.leadOwner = user;
+
+    req.dbQuery.where.userId = req.params.id;
+
+    if (req.params.slug) {
+      let quiz = await prisma.quiz.findFirst({
+        where: { userId: req.params.id, slug: req.params.slug },
+      });
+
+      if (!quiz) throw new errors.UserError(response.quizNotFound());
+
+      req.dbQuery.where.quizId = quiz.id;
+      if (req.params.leadId) {
+        if (!isValidObjectId(req.params.leadId))
+          throw new errors.UserError(response.invalidParam("Lead ID"));
+
+        let lead = await prisma.lead.findUnique({
+          where: { id: req.params.leadId },
+        });
+
+        if (!lead) throw new errors.UserError(response.leadNotFound());
+
+        req.dbQuery.where.id = req.params.leadId;
+      }
+    }
+  }
+  next();
+}
+
+async function validateSortBy(req, res, next) {
+  let aproved = { updatedAt: true, createdAt: true };
+  let aprovedSort = { asc: true, desc: true };
+  let sort = "desc";
+
+  if (req.query.sort in aprovedSort) sort = req.query.sort;
+
+  req.dbQuery.orderBy = {
+    updatedAt: sort,
+  };
+
+  if (req.query.orderBy in aproved) {
+    req.dbQuery.orderBy = {};
+    req.dbQuery.orderBy[req.query.orderBy] = sort;
+  }
+
+  if (req.query.take >= 0)
+    req.dbQuery.take = new Number(req.query.take).valueOf();
+
+  if (req.query.skip >= 0)
+    req.dbQuery.skip = new Number(req.query.skip).valueOf();
 
   next();
 }
 
-async function validateDelete(req, res, next) {
-  if (!req.existentData) throw new errors.UserError("Lead não encontrado.");
+async function verifyDelete(req, res, next) {
+  let required = [];
 
-  if (req.existentData.id != req.id) {
-    if (req.id in req.existentData.support) {
-      if (!req.body.passwd)
-        throw new errors.UserError("Campo obrigatório: senha");
+  if (!req.params.id) required.push("User ID");
+  if (!req.params.slug) required.push("Quiz slug");
+  if (!req.params.leadId) required.push("Lead ID");
 
-      if (crypt.criptografar(req.body.passwd) != req.existentData.passwd)
-        throw new errors.UserError("Senha inválida.");
-    }
-    throw new errors.AuthError("Não autorizado;");
-  }
+  if (!(req.userData.email in req.leadOwner.support))
+    throw new errors.AuthError(response.unauthorizated());
+
+  next();
 }
 
 export default {
-  getLeadOwner,
-  getQuiz,
   validateLeadRegister,
-  validateLeadFilter,
-  validateDelete,
+  validateSortBy,
+  validateLeadId,
+  validateStringParams,
+  validateLeadUpdate,
+  getQuiz,
+  validateQuery,
+  verifyDelete,
 };

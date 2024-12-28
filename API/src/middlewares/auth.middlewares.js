@@ -135,7 +135,7 @@ async function verifyToken(req, res, next) {
 
 async function isEmailVerified(req, res, next) {
   if (!req.userData.emailVerified)
-    throw new errors.UserError("Verifique o seu email.");
+    throw new errors.UserError(response.verifyYourEmail());
 
   next();
 }

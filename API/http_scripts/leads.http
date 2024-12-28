@@ -7,7 +7,7 @@ Content-Type: application/json
 
 {
     "email": "joseaugustholi@gmail.com", 
-    "passwd": "1234"
+    "passwd": "123456789"
 }
 
 ###
@@ -15,18 +15,41 @@ Content-Type: application/json
 @token = {{login.response.body.$.token}}
 @refreshToken = {{login.response.body.$.refreshToken}}
 
-POST {{host}}/leads/quiz  HTTP/1.1
+POST {{host}}/leads/67633372218f0fc25898f635/quiz HTTP/1.1
 Content-Type: application/json
 Authorization: {{token}}
 
 {
-    "quizData": {
-    }
+    "name": "Felscon"
 }
 
 ###
 
-GET {{host}}/leads HTTP/1.1
+GET {{host}}/leads/67633372218f0fc25898f635/quiz/ HTTP/1.1
 Content-Type: application/json
 Authorization: {{token}}
 
+###
+
+
+PUT  {{host}}/leads/67633372218f0fc25898f635/quiz/6769eedc0e3b6c59d4bac5f5  HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+    "name": "Pedro",
+    "phone": "332323233"
+}
+
+###
+
+DELETE  {{host}}/leads/67633372218f0fc25898f635/quiz/6769e574887ff9e7a06a9a85  HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+    "name": "Pedro",
+    "phone": "332323233"
+}
+
+###

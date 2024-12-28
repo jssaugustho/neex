@@ -2,6 +2,8 @@
 import nodemailer from "nodemailer";
 import errors from "../errors/errors.js";
 
+import prisma from "./db.controller.js";
+
 const transporter = await nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: new Number(process.env.SMTP_PORT),
@@ -80,24 +82,57 @@ async function sendPasswdRecoveryConfirmation(req, res, next) {
 }
 
 async function sendLeadNotification(req, res, next) {
-  let html = Object.keys(req.leadData.quizData).map((param) => {
-    return req.quiz.quiz[param].email + ": " + req.leadData.quizData[param];
-  });
+  if (req.emailNotification) {
+    let userData = await prisma.user.findUnique({
+      where: { id: req.params.id },
+    });
+    //user data em html
+    let html = Object.keys(req.leadData).map((param) => {
+      return req.quiz.steps.steps[param].title + ": " + req.leadData[param];
+    });
 
-  html.push("Entre no CRM para ver mais.");
+    html.push("Entre no CRM para ver mais.");
 
-  if (req.leadNotification) {
-    let message = {
+    let userMessage = {
       from: "Lux CRM © <joseaugustho@luxdigitalassessoria.com.br>",
-      to: req.userData.email,
-      subject: "[NEW LEAD] " + req.leadData.quizData.name,
+      to: userData.email,
+      subject: "[LEAD] [" + req.emailNotification + "] " + req.leadData.name,
       html: html.join("<br/>"),
     };
 
-    //send email
-    let email = transporter.sendMail(message, (err, info) => {
-      if (err) throw new errors.InternalServerError(err);
+    Object.keys(userData.support).map(async (email) => {
+      let q = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (q.emailNotification) {
+        let supportMessage = {
+          from: "Lux CRM © <joseaugustho@luxdigitalassessoria.com.br>",
+          to: email,
+          subject:
+            "[LEAD] [" +
+            req.emailNotification +
+            "] [" +
+            userData.email +
+            "] " +
+            req.leadData.name,
+          html: html.join("<br/>"),
+        };
+
+        //send email to support
+        transporter.sendMail(supportMessage, (err, info) => {
+          if (err) throw new errors.InternalServerError(err);
+        });
+      }
     });
+
+    //send email to user
+    if (userData.emailNotification)
+      transporter.sendMail(userMessage, (err, info) => {
+        if (err) throw new errors.InternalServerError(err);
+      });
   }
 
   next();

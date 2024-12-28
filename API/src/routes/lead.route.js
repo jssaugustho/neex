@@ -21,30 +21,74 @@ function resolver(handlerFn) {
 
 //cria leads
 leads.post(
-  "/leads/:slug",
-  resolver(authMiddlewares.accessControl),
-  resolver(authMiddlewares.isEmailVerified),
-  resolver(leadMiddlewares.getLeadOwner),
+  "/leads/:id/:slug",
   resolver(leadMiddlewares.getQuiz),
+  resolver(leadMiddlewares.validateStringParams),
   resolver(leadMiddlewares.validateLeadRegister),
   resolver(leadControllers.registerLead),
   resolver(emailControllers.sendLeadNotification),
-  resolver(leadControllers.responseLeadCreated)
+  resolver(leadControllers.responseLead)
+);
+
+leads.put(
+  "/leads/:id/:slug/:leadId",
+  resolver(leadMiddlewares.getQuiz),
+  resolver(leadMiddlewares.validateLeadId),
+  resolver(leadMiddlewares.validateStringParams),
+  resolver(leadMiddlewares.validateLeadUpdate),
+  resolver(leadControllers.updateLead),
+  resolver(emailControllers.sendLeadNotification),
+  resolver(leadControllers.responseLead)
 );
 
 //rota que lista os leads: sort by: updatedAt
 leads.get(
   "/leads",
-  resolver(authMiddlewares.accessControl),
+  resolver(authMiddlewares.verifyToken),
   resolver(authMiddlewares.isEmailVerified),
-  resolver(leadMiddlewares.validateLeadFilter),
-  resolver(leadControllers.getLeadsAndFilter)
+  resolver(leadMiddlewares.validateQuery),
+  resolver(leadMiddlewares.validateSortBy),
+  resolver(leadControllers.getLeadsbyQuery),
+  resolver(leadControllers.responseGetLeads)
+);
+
+leads.get(
+  "/leads/:id",
+  resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.isEmailVerified),
+  resolver(leadMiddlewares.validateQuery),
+  resolver(leadMiddlewares.validateSortBy),
+  resolver(leadControllers.getLeadsbyQuery),
+  resolver(leadControllers.responseGetLeads)
+);
+
+leads.get(
+  "/leads/:id/:slug",
+  resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.isEmailVerified),
+  resolver(leadMiddlewares.validateQuery),
+  resolver(leadMiddlewares.validateSortBy),
+  resolver(leadControllers.getLeadsbyQuery),
+  resolver(leadControllers.responseGetLeads)
+);
+
+leads.get(
+  "/leads/:id/:slug/:leadId",
+  resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.isEmailVerified),
+  resolver(leadMiddlewares.validateQuery),
+  resolver(leadMiddlewares.validateSortBy),
+  resolver(leadControllers.getLeadsbyQuery),
+  resolver(leadControllers.responseGetLeads)
 );
 
 leads.delete(
-  "/leads",
-  resolver(authMiddlewares.accessControl),
-  resolver(leadMiddlewares.getLeadOwner)
+  "/leads/:id/:slug/:leadId",
+  resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.isEmailVerified),
+  resolver(leadMiddlewares.validateQuery),
+  resolver(leadMiddlewares.verifyDelete),
+  resolver(leadControllers.deleteLead)
 );
 
 export default leads;

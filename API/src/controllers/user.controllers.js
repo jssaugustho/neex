@@ -75,21 +75,19 @@ async function deleteUserbyQuery(req, res, next) {
 async function getUserbyQuery(req, res, next) {
   let f = await prisma.user.findMany(req.dbQuery);
 
-  let p = f.map((r) => {
+  let filtered = f.map((r) => {
     r.passwd = "********";
     return r;
   });
 
-  let filtered = p;
-
   if (req.userData.role != "ADMIN" && req.path != "/user")
     filtered = f.filter((p) => {
-      return req.userData.email in p.support;
+      return req.userData.email in p.support && req.userData.email != p.email;
     });
 
   if (req.userData.role == "ADMIN")
     filtered = f.filter((p) => {
-      return req.userData.email in p.support || req.userData.id != p.id;
+      return req.userData.id != p.id;
     });
 
   //response

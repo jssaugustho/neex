@@ -60,8 +60,39 @@ class Response {
     if (n == 0) return "Nenhum usuário encontrado.";
     else return "1 usuário encontrado.";
   }
+  leadFound(n) {
+    if (n > 1) return n + " leads encontrados.";
+    if (n == 0) return "Nenhum lead encontrado.";
+    else return "Lead encontrado.";
+  }
   userNotFound(n) {
     return "Usuário não encontrado.";
+  }
+  verifyYourEmail() {
+    return "Verifique o seu email.";
+  }
+  quizNotFound() {
+    return "Quiz não encontrado.";
+  }
+  invalidType(param) {
+    if (typeof param == "object" && param.length > 1)
+      return "Tipo dos campos inválidos: " + param.join(", ");
+    else return "Campo inválido: " + param;
+  }
+  requiresOne() {
+    return "Requer pelo menos um campo.";
+  }
+  invalidOption(p) {
+    return "Opção inválida: " + p;
+  }
+  leadNotFound() {
+    return "Lead não encontrado.";
+  }
+  succesLeadUpdate() {
+    return "Lead atualizado com sucesso.";
+  }
+  succesLeadDelete() {
+    return "Lead excluído com sucesso.";
   }
 }
 

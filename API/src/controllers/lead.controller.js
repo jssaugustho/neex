@@ -1,84 +1,144 @@
 //obrigatory for controllers
+import { get } from "http";
+import response from "../response/response.js";
 import prisma from "./db.controller.js";
 
 async function registerLead(req, res, next) {
-  //buscar leadData
-  let data = req.leadData;
-
-  //relacionar lead com o usuário
-  let userConnect = {
-    connect: {
-      id: req.ownerId,
+  req.registerData = {
+    user: {
+      connect: {
+        id: req.params.id,
+      },
     },
+    quiz: {
+      connect: {
+        id: req.quiz.id,
+      },
+    },
+    quizData: req.leadData,
   };
 
-  data.user = userConnect;
+  //query para criar
+  let created = await prisma.lead.create({
+    data: req.registerData,
+  });
 
-  //relacionar lead com o quiz
-  let quizConnect = {
-    connect: {
-      id: req.quiz.id,
-    },
+  //enviar notificação de novo lead
+  req.emailNotification = "INICIOU CADASTRO";
+
+  //retornar mensagem com o id criado
+  req.msg = {
+    status: "Ok",
+    message: "Lead cadastrado.",
+    leadId: created.id,
   };
-
-  data.quiz = quizConnect;
-
-  //criar ou atualizar lead
-  if (req.update) {
-    //setar o id
-    let id = req.existentData.id;
-
-    //deletar o id dos dados do lead
-    delete data.id;
-
-    //query para atualizar
-    await prisma.lead.update({
-      where: { id },
-      data,
-    });
-
-    //retornar msg
-    req.msg = {
-      status: "Ok",
-      message: "Lead atualizado.",
-      params: data.quizData,
-    };
-  } else {
-    //query para criar
-    let created = await prisma.lead.create({
-      data,
-    });
-
-    //enviar notificação de novo lead
-    req.leadNotification = true;
-
-    //retornar mensagem com o id criado
-    req.msg = {
-      status: "Ok",
-      message: "Lead cadastrado.",
-      leadId: created.id,
-    };
-  }
 
   next();
 }
 
-async function getLeadsAndFilter(req, res, next) {
-  let q = await prisma.lead.findMany(req.dbQuery);
+async function getLeadsbyQuery(req, res, next) {
+  let f = await prisma.lead.findMany(req.dbQuery);
+
+  let filtered = [];
+
+  if (req.userData.role == "ADMIN") {
+    filtered = f.filter((p) => {
+      return p.userId != req.userData.id;
+    });
+    //response
+    req.msg = {
+      status: "Ok",
+      message: response.leadFound(Object.keys(filtered).length),
+      query: req.dbQuery,
+      data: filtered,
+    };
+    next();
+  }
+
+  filtered = f.filter((p) => {
+    return req.userData.email in p.support;
+  });
+
+  req.msg = {
+    status: "Ok",
+    message: response.leadFound(Object.keys(filtered).length),
+    query: req.dbQuery,
+    data: filtered,
+  };
+  next();
+}
+
+async function getAllLeads(req, res, next) {
+  let f = await prisma.lead.findMany({ where: {} });
+
+  let filtered = [];
+
+  if (req.userData.role == "ADMIN") {
+    filtered = f.filter((p) => {
+      return p.userId != req.userData.id;
+    });
+    //response
+    req.msg = {
+      status: "Ok",
+      message: response.leadFound(Object.keys(filtered).length),
+      query: req.dbQuery,
+      data: filtered,
+    };
+    next();
+  }
+
+  filtered = f.filter((p) => {
+    return req.userData.email in p.support;
+  });
+
+  req.msg = {
+    status: "Ok",
+    message: response.leadFound(Object.keys(filtered).length),
+    query: req.dbQuery,
+    data: filtered,
+  };
+
+  next();
+}
+
+async function responseGetLeads(req, res, next) {
+  return res.status(200).send(req.msg);
+}
+
+async function updateLead(req, res, next) {
+  let q = await prisma.lead.update(req.dbQuery);
+
+  req.msg = {
+    status: "Ok",
+    msg: response.succesLeadUpdate(),
+    data: q,
+  };
+
+  req.leadData = q.quizData;
+
+  next();
+}
+
+async function responseLead(req, res, next) {
+  return res.status(201).send(req.msg);
+}
+
+async function deleteLead(req, res) {
+  let q = await prisma.lead.delete(req.dbQuery);
 
   return res.status(200).send({
     status: "Ok",
-    msg: Object.keys(q).length + " leads encontrados",
-    data: q,
+    msg: response.succesLeadDelete(),
+    deleted: q,
   });
-}
-
-async function responseLeadCreated(req, res, next) {
-  return res.status(201).send(req.msg);
 }
 
 export default {
   registerLead,
-  getLeadsAndFilter,
-  responseLeadCreated,
+  getLeadsbyQuery,
+  responseLead,
+  responseGetLeads,
+  updateLead,
+  deleteLead,
+  getAllLeads,
 };
