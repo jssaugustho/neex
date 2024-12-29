@@ -1,4 +1,5 @@
-@host = http://localhost:3000
+@host = https://dev.luxdigitalassessoria.com.br
+# @host = http://localhost:3000
 
 
 # @name register
@@ -7,7 +8,7 @@ Content-Type: application/json
 
 {
     "name": "José Augustho",
-    "email": "joseaugustholi2@gmail.com",
+    "email": "joseaugustholi57@gmail.com",
     "phone": "3491718593",
     "passwd": "12345678",
     "confirmPasswd": "12345678"
@@ -48,6 +49,6 @@ Authorization: {{token}}
 ###
 
 #get by id
-GET {{host}}/users/67630f17f9b1fefd415695b1
+GET {{host}}/users/
 Content-Type: application/json
 Authorization: {{token}}
