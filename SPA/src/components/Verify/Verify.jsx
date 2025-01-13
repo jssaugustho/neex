@@ -104,6 +104,7 @@ function Verify() {
     } else {
       setMsg(null);
       setError(null);
+      setChangeEmail(false);
     }
   }
 
