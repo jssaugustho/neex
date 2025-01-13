@@ -1,10 +1,7 @@
 import App from "./App.js";
 
-import cors from "cors";
-
 process.env.TZ = "AMERICA/SAO_PAULO";
 
-App.use(cors());
 App.listen(3000, console.log("Listening http://localhost:3000/"));
 
 //   .createServer(

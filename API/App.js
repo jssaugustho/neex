@@ -6,11 +6,15 @@ import leadRoute from "./src/routes/lead.route.js";
 import verificationRoute from "./src/routes/verification.route.js";
 import authRoute from "./src/routes/auth.route.js";
 import recoveryRoute from "./src/routes/passwdRecovery.route.js";
+import errors from "./src/errors/errors.js";
+import cors from "cors";
 
 class App {
   constructor() {
     //iniciar express
     this.app = express();
+
+    this.app.use(cors());
 
     //fingerprint
     this.app.disable("x-powered-by");
@@ -30,7 +34,7 @@ class App {
     this.app.use(recoveryRoute);
 
     //tratamento de erros
-    // this.app.use(errors.response);
+    this.app.use(errors.response);
   }
 }
 
