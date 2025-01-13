@@ -1,20 +1,18 @@
 import express from "express";
-
+import cors from "cors";
 // rotas
 import userRoute from "./src/routes/user.route.js";
 import leadRoute from "./src/routes/lead.route.js";
 import verificationRoute from "./src/routes/verification.route.js";
 import authRoute from "./src/routes/auth.route.js";
 import recoveryRoute from "./src/routes/passwdRecovery.route.js";
+
 import errors from "./src/errors/errors.js";
-import cors from "cors";
 
 class App {
   constructor() {
     //iniciar express
     this.app = express();
-
-    this.app.use(cors());
 
     //fingerprint
     this.app.disable("x-powered-by");
@@ -26,6 +24,14 @@ class App {
     this.routes();
   }
   routes() {
+    const corsOptions = {
+      origin: "http://localhost:5173",
+
+      optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+    };
+
+    this.app.use(cors(corsOptions));
+
     //rotas
     this.app.use(userRoute);
     this.app.use(leadRoute);

@@ -25,6 +25,15 @@ class AuthError extends Error {
   status = 401;
 }
 
+class TokenError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "TokenError";
+    this.message = message;
+  }
+  status = 401;
+}
+
 function response(err, req, res, next) {
   if (err.status) {
     return res.status(err.status).send({
@@ -45,5 +54,6 @@ export default {
   UserError,
   InternalServerError,
   AuthError,
+  TokenError,
   response,
 };

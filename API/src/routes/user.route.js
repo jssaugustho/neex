@@ -13,7 +13,6 @@ import emailControllers from "../controllers/email.controllers.js";
 
 //só para gerar o código de verificação
 import verificationMiddlewares from "../middlewares/verification.middlewares.js";
-import { access } from "fs";
 
 const users = Router();
 

@@ -28,7 +28,7 @@ Content-Type: application/json
 
 {
     "email": "joseaugustholi@gmail.com", 
-    "passwd": "1234"
+    "passwd": "8*Caracteres"
 }
 
 ###
@@ -81,6 +81,13 @@ Content-Type: application/json
 {
     "emailVerificationCode": "719433"
 }
+
+###
+
+//resend code
+GET {{host}}/resend HTTP/1.1
+Authorization: {{token}}
+
 
 ###
 

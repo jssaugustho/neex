@@ -23,7 +23,7 @@ function resolver(handlerFn) {
 verify.post(
   "/verify",
   resolver(verificationMiddlewares.validateStringParams),
-  resolver(authMiddlewares.accessControl),
+  resolver(authMiddlewares.verifyToken),
   resolver(verificationMiddlewares.validateVerifyEmailCode),
   resolver(verificationControllers.setEmailVerified),
   resolver(emailControllers.sendEmailVerifiedNotification)
@@ -33,7 +33,7 @@ verify.post(
 verify.get(
   "/resend",
   resolver(verificationMiddlewares.validateStringParams),
-  resolver(authMiddlewares.accessControl),
+  resolver(authMiddlewares.verifyToken),
   resolver(verificationMiddlewares.validateResend),
   resolver(verificationMiddlewares.generateVerificationCode),
   resolver(emailControllers.sendVerificationCode),

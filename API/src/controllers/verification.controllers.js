@@ -2,7 +2,7 @@
 import prisma from "./db.controller.js";
 
 async function setEmailVerified(req, res, next) {
-  let id = req.id;
+  let id = req.userData.id;
 
   //update user
   let update = await prisma.user.update({

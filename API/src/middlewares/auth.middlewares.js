@@ -43,7 +43,7 @@ async function validateLogin(req, res, next) {
 
   //verify if is correctly passwd
   if (q.passwd != encryptedInPasswd) {
-    throw new errors.AuthError(response.incorrectPasswd());
+    throw new errors.UserError(response.incorrectPasswd());
   }
 
   //send userData to next
@@ -78,11 +78,15 @@ async function validateRefreshToken(req, res, next) {
 
   //verify if token is in database
   if (!find) {
-    throw new errors.AuthError("refreshToken expirado.");
+    throw new errors.AuthError(response.expiredToken());
   }
 
+  let user = await prisma.user.findUnique({ where: { id: payload.id } });
+
+  if (!user) throw new errors.AuthError(response.userNotFound());
+
   //send userdata to next
-  req.userData = payload;
+  req.userData = user;
 
   //send id param to next
   req.id = payload.id;
@@ -106,12 +110,14 @@ async function verifyToken(req, res, next) {
 
     let m = !err ? null : err.message;
 
-    if (m == "jwt malformed") throw new errors.AuthError(response.authError());
+    if (m == "jwt malformed")
+      throw new errors.TokenError(response.invalidToken());
 
-    if (m == "jwt expired") throw new errors.AuthError(response.expiredToken());
+    if (m == "jwt expired")
+      throw new errors.TokenError(response.expiredToken());
 
     //verify if sign fail
-    if (!decoded) throw new errors.AuthError(response.invalidToken());
+    if (!decoded) throw new errors.TokenError(response.invalidToken());
 
     req.userId = decoded.id;
   });
@@ -125,7 +131,7 @@ async function verifyToken(req, res, next) {
   delete req.userId;
 
   if (!userData) {
-    throw new errors.UserError(response.authError());
+    throw new errors.TokenError(response.invalidToken());
   }
 
   req.userData = userData;

@@ -25,17 +25,36 @@ async function validateRegisterParams(req, res, next) {
   let lostParams = [];
   //verify params
   if (!req.body.name) lostParams.push("nome");
+  if (!req.body.lastName) lostParams.push("sobrenome");
   if (!req.body.email) lostParams.push("email");
   if (!req.body.phone) lostParams.push("phone");
   if (!req.body.passwd) lostParams.push("senha");
-  if (!req.body.confirmPasswd) lostParams.push("confirmação da senha");
+  if (!req.body.agree) lostParams.push("concorda");
 
   //verify lost params and throw error
   if (lostParams.length > 0) {
     throw new errors.UserError(response.obrigatoryParam(lostParams));
   }
 
+  //valida agree
+  let concorda = false;
+
+  if (req.body.agree == "sim") {
+    concorda = true;
+  } else if ((req.body.agree = "não")) {
+    concorda = false;
+  }
+
+  if (!concorda) throw new errors.UserError(response.notAgree());
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(req.body.email))
+    throw new errors.UserError(response.invalidParam("Email"));
+
+  //valida email de suporte
   if (!isValidObjectId(req.body.support)) delete req.body.support;
+
   //query user data
   let findEmail = await prisma.user.findUnique({
     where: {
@@ -53,18 +72,21 @@ async function validateRegisterParams(req, res, next) {
     throw new errors.UserError(response.invalidPasswdLength(16, 32));
   }
 
-  //verify passwd match
-  if (req.body.passwd != req.body.confirmPasswd) {
-    throw new errors.UserError(response.notMatchPasswd());
-  }
+  //verify passwd sec with regex
+  let validate = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*(),.?":{}|<>]).+$/;
+
+  if (!validate.test(req.body.passwd))
+    throw new errors.UserError("Senha fraca.");
 
   let quiz = JSON.parse(await fs.readFileSync("./json_models/quiz.json"));
 
   req.registerData = {
     name: req.body.name,
+    lastName: req.body.lastName,
     email: req.body.email,
     phone: req.body.phone,
     passwd: crypt.criptografar(req.body.passwd),
+    agree: concorda,
     quiz: {
       create: {
         slug: "quiz",
@@ -127,8 +149,13 @@ async function validateUpdateParams(req, res, next) {
 
   //validating email param
   if (req.body.email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(req.body.email))
+      throw new errors.UserError(response.invalidParam("Email"));
+
     //verify email length
-    req.updateData = req.body.email;
+    req.updateData.email = req.body.email;
     //set emailVerified false in database
     req.updateData.emailVerified = false;
   }

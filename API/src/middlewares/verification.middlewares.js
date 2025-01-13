@@ -20,24 +20,26 @@ async function validateStringParams(req, res, next) {
 async function validateVerifyEmailCode(req, res, next) {
   let { emailVerificationCode } = req.body;
 
-  //verify required param
-  if (!emailVerificationCode)
-    throw new errors.UserError("Código de verificação do email obrigatório.");
-
-  //query verification code
-  let q = await prisma.VerificationCode.findUnique({
-    where: {
-      userId: req.id,
-    },
-  });
-
   //verfy if is verfied
   if (req.userData.emailVerified)
     throw new errors.UserError("Email já verificado.");
 
+  //verify required param
+  if (!emailVerificationCode)
+    throw new errors.UserError("Código de verificação de email obrigatório.");
+
+  //query verification code
+  let q = await prisma.VerificationCode.findUnique({
+    where: {
+      userId: req.userData.id,
+    },
+  });
+
+  if (!q) throw new errors.UserError("Código inválido.");
+
   //verify code length
   if (emailVerificationCode.length != 6) {
-    throw new errors.UserError("O código de verificação deve ter 6 números.");
+    throw new errors.UserError("O código de verificação deve ter 6 dígitos.");
   }
 
   //verify if code is equal the real
@@ -56,7 +58,7 @@ async function validateVerifyEmailCode(req, res, next) {
   //delete codes
   await prisma.VerificationCode.delete({
     where: {
-      userId: req.id,
+      userId: req.userData.id,
     },
   });
 
@@ -98,7 +100,7 @@ async function generateVerificationCode(req, res, next) {
     //update a existent code
     generate = await prisma.VerificationCode.update({
       where: {
-        userId: req.id,
+        userId: req.userData.id,
       },
       data: {
         code,

@@ -11,12 +11,12 @@ async function auth(req, res, next) {
 
   //sign token
   let token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: 1 * 60 * 20, //20 minutos
+    expiresIn: 1 * 20, //20 segundos
   });
 
   //sign refresh token with randon bytes
   let refreshToken = jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: 1 * 60 * 60, //1 hora
+    expiresIn: 1 * 60 * 60 * 48, //48 horas
   });
 
   //verify if exists another token in db
@@ -52,12 +52,15 @@ async function auth(req, res, next) {
     });
   }
 
+  req.userData.passwd = "*******************";
+
   //retornar tokens
   return res.status(200).send({
     status: "Ok",
     message: response.succesAuth(),
     token: "bearer " + token,
     refreshToken,
+    data: req.userData,
   });
 }
 

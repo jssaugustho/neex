@@ -5,9 +5,7 @@ class Response {
   }
   //parametro obrigatório
   obrigatoryParam(param) {
-    if (typeof param == "object" && param.length > 1)
-      return "Campos obrigatórios: " + param.join(", ");
-    else return "Campo obrigatório: " + param;
+    return "Preencha todos os campos obrigatórios.";
   }
   //email em uso
   emailInUse() {
@@ -23,7 +21,7 @@ class Response {
   }
   //aguarde para enviar código de verificação novamente.
   waitVerificationCode() {
-    return "Aguarde 1 minuto e tente enviar o código novamente.";
+    return "Reenvie novamente em 1 minuto.";
   }
   succesAuth() {
     return "Autenticado com sucesso.";
@@ -47,7 +45,7 @@ class Response {
     return "Usuário atualizado com sucesso.";
   }
   emailNotExists() {
-    return "Email não existe.";
+    return "Usuário não encontrado.";
   }
   incorrectPasswd() {
     return "Senha incorreta.";
@@ -93,6 +91,9 @@ class Response {
   }
   succesLeadDelete() {
     return "Lead excluído com sucesso.";
+  }
+  notAgree() {
+    return "Você deve concordar com os termos e condições.";
   }
 }
 
