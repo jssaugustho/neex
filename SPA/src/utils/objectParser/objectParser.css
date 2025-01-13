@@ -1,0 +1,15 @@
+.text {
+  text-align: center;
+  font-weight: 300;
+}
+
+.bold {
+  font-weight: 600;
+}
+
+.list {
+  list-style: none;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 16px;
+}

@@ -1,0 +1,37 @@
+function HideIcon() {
+  return (
+    <>
+      <svg
+        width="17"
+        height="17"
+        viewBox="0 0 25 25"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12.7672 22.7128C18.2901 22.7128 22.7672 18.2356 22.7672 12.7128C22.7672 7.18994 18.2901 2.71278 12.7672 2.71278C7.24436 2.71278 2.76721 7.18994 2.76721 12.7128C2.76721 18.2356 7.24436 22.7128 12.7672 22.7128Z"
+          stroke="var(--error-red)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M12.7672 8.71278V12.7128"
+          stroke="var(--error-red)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M12.7672 16.7128H12.7772"
+          stroke="var(--error-red)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </>
+  );
+}
+
+export default HideIcon;

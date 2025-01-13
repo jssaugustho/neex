@@ -1,3 +1,29 @@
+.light-theme {
+  --main-gradient: linear-gradient(88deg, #0f59b2 5.61%, #00ccf5 94.39%);
+  --primary-text-color: #00010b;
+  --accent-text-color: #0f59b2;
+  --common-text-color: #4b4a4a;
+  --sub-text-color: #6b6b6b;
+  --background-color: #e4e2e2;
+  --contrast-color: #f5f5f5;
+  --error-red: rgb(199, 37, 37);
+  --error-yellow: rgb(199, 134, 37);
+  --error-green: rgb(37, 199, 37);
+}
+
+.dark-theme {
+  --main-gradient: linear-gradient(45deg, #0f59b2 5.61%, #00ccf5 94.39%);
+  --primary-text-color: #f5f5f5;
+  --accent-text-color: #00ccf5;
+  --common-text-color: #d1d1d1;
+  --sub-text-color: #929292;
+  --background-color: #16171f;
+  --contrast-color: #212331;
+  --error-red: rgb(236, 78, 78);
+  --error-yellow: rgb(245, 166, 47);
+  --error-green: rgb(37, 199, 37);
+}
+
 * {
   font-family: "Montserrat", serif;
   font-weight: 600;
@@ -6,26 +32,28 @@
   box-sizing: border-box;
 }
 
-*:focus {
+input:focus {
   outline: none;
-  border: none;
-  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.2);
-  scale: 1.005;
 }
 
-p:focus,
-a:focus {
-  box-shadow: none;
-  text-decoration: underline;
+.accent-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  background-image: var(--main-gradient);
+  -webkit-text-fill-color: transparent;
 }
 
-.container {
-  background-color: #f5f5f5;
+.app {
+  transition: background 0.4s;
+  background-color: var(--background-color);
   width: 100vw;
-  height: 100vh;
+  height: 100%;
   display: inline-flex;
   flex-direction: column;
   gap: 0px;
   align-items: center;
   justify-content: top;
+  min-width: 320px;
+  color: var(--primary-text-color);
+  background: var(--background-color);
 }

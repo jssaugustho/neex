@@ -1,23 +1,24 @@
-import { Route, Routes } from "react-router";
+//REACT HOOKS
+import { useContext } from "react";
 
-import Home from "./pages/Home.jsx";
-
-import AuthLayout from "./pages/AuthLayout.jsx";
-import Login from "./pages/Login.jsx";
-import Register from "./pages/Register.jsx";
-
+//CSS GLOBAL
 import "./App.css";
 
+//ROTAS GLOBAIS DA APLICAÇÃ
+import AppRoutes from "./routes/AppRoutes.jsx";
+
+//THEME CONTEXT
+import ThemeContext from "./contexts/theme/theme.context.jsx";
+import { createBrowserRouter, RouterProvider } from "react-router";
+
+const router = createBrowserRouter(AppRoutes);
+
 function App() {
+  const themeData = useContext(ThemeContext);
+
   return (
-    <div className="container">
-      <Routes>
-        <Route index element={<Home />} />
-        <Route element={<AuthLayout />}>
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
-        </Route>
-      </Routes>
+    <div className={`app ${themeData.theme}`}>
+      <RouterProvider router={router} />
     </div>
   );
 }

@@ -1,0 +1,37 @@
+import "./AuthLayout.css";
+
+import { Outlet } from "react-router";
+
+import LightLogo from "../../assets/light-theme-logo.png";
+import DarkLogo from "../../assets/dark-theme-logo.png";
+
+import useAuth from "../../contexts/auth/auth.hook";
+import useTheme from "../../contexts/theme/theme.hook";
+
+import PreLoader from "../../components/PreLoader/PreLoader";
+
+export default function AuthLayout() {
+  const { signed, user } = useAuth();
+  const { theme } = useTheme();
+
+  return (
+    <>
+      <div className="auth-container">
+        {signed && user.emailVerified ? <PreLoader hide={true} /> : null}
+        <div>
+          <div className="content-container">
+            <img
+              className="logo"
+              src={theme == "light-theme" ? LightLogo : DarkLogo}
+              alt="Lux CRM ©"
+            />
+            <Outlet />
+          </div>
+        </div>
+        <div className="right">
+          <h1 className="title">Faça seu login.</h1>
+        </div>
+      </div>
+    </>
+  );
+}
