@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+<<<<<<< HEAD
     "build": "vite build && cp ./_redirects dist/_redirects",
+=======
+    "build": "vite build && cp ./netlify.toml dist/netlify.toml ",
+>>>>>>> development
     "lint": "eslint .",
     "preview": "vite preview"
   },
