@@ -25,9 +25,8 @@ class App {
   }
   routes() {
     const corsOptions = {
-      origin: "http://localhost:5173",
-
-      optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+      origin: ["http://localhost:5173", "https://luxcrm.space/"],
+      optionsSuccessStatus: 200,
     };
 
     this.app.use(cors(corsOptions));
