@@ -10,6 +10,7 @@ import AuthLayout from "../pages/AuthLayout/AuthLayout.jsx";
 const Register = lazy(() => import("../components/Register/Register.jsx"));
 const Login = lazy(() => import("../components/Login/Login.jsx"));
 const Verify = lazy(() => import("../components/Verify/Verify.jsx"));
+const Recovery = lazy(() => import("../components/Recovery/Recovery.jsx"));
 
 import ComponentLoader from "./ComponentLoader.jsx";
 import Loader from "../components/Loader/Loader.jsx";
@@ -48,6 +49,14 @@ const AppRoutes = [
             element: (
               <Suspense fallback={<Loader />}>
                 <Verify />
+              </Suspense>
+            ),
+          },
+          {
+            path: "recovery",
+            element: (
+              <Suspense fallback={<Loader />}>
+                <Recovery />
               </Suspense>
             ),
           },

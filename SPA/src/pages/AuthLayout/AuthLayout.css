@@ -41,12 +41,16 @@
   .auth-container {
     flex-direction: column;
   }
+  .logo {
+    min-width: 90%;
+  }
   .content-container {
-    padding: 0px 0px 64px 0px;
+    align-items: center;
+    height: fit-content;
+    justify-content: center;
   }
   .right {
     padding-top: 64px;
-    min-height: 60vh;
   }
 }
 
