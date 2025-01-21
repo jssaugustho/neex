@@ -157,6 +157,7 @@ function AuthProvider({ children }) {
         user,
         setUser,
         signed,
+        setSigned,
         nextStep,
         setNextStep,
         signIn,

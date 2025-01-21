@@ -44,9 +44,7 @@ async function generateVerificationCode(req, res, next) {
     if (timeout.getTime() > now.getTime()) {
       let secondAwait = (timeout.getTime() - now.getTime()) / 1000;
 
-      throw new errors.UserError(
-        "Aguarde: " + secondAwait + " segundos para tentar novamente."
-      );
+      throw new errors.UserError("Tente novamente em 1 minuto.");
     }
 
     //update a existent code

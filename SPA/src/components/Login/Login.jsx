@@ -170,9 +170,9 @@ export default function Login() {
                     <p className="remember-text">Lembrar</p>
                   </div>
                   <div className="recovery-passwd">
-                    <a href="#" rel="Esqueci minha senha">
+                    <NavLink to="/recovery" rel="Esqueci minha senha">
                       Esqueceu sua senha?
-                    </a>
+                    </NavLink>
                   </div>
                 </div>
               </div>

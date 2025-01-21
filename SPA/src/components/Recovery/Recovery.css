@@ -223,8 +223,20 @@
   display: inline-flex;
   flex-direction: row;
   align-items: start;
-  gap: 4px;
+  gap: 8px;
   align-self: stretch;
+}
+
+.back-icon {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  align-self: stretch;
+}
+.back-icon:hover {
+  text-decoration: underline;
 }
 
 .register-text {
@@ -244,7 +256,7 @@
   font-family: Montserrat;
   font-size: 14px;
   font-style: normal;
-  font-weight: 600;
+  font-weight: 400;
   line-height: normal;
   transition: 0.4s;
   cursor: pointer;

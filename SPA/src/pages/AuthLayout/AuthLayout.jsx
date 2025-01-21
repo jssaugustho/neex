@@ -1,6 +1,6 @@
 import "./AuthLayout.css";
 
-import { Outlet } from "react-router";
+import { NavLink, Outlet } from "react-router";
 
 import LightLogo from "../../assets/light-theme-logo.png";
 import DarkLogo from "../../assets/dark-theme-logo.png";
@@ -20,11 +20,13 @@ export default function AuthLayout() {
         {signed && user.emailVerified ? <PreLoader hide={true} /> : null}
         <div>
           <div className="content-container">
-            <img
-              className="logo"
-              src={theme == "light-theme" ? LightLogo : DarkLogo}
-              alt="Lux CRM ©"
-            />
+            <NavLink to="/login">
+              <img
+                className="logo"
+                src={theme == "light-theme" ? LightLogo : DarkLogo}
+                alt="Lux CRM ©"
+              />
+            </NavLink>
             <Outlet />
           </div>
         </div>

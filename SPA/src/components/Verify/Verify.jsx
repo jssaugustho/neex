@@ -21,6 +21,7 @@ function Verify() {
 
   const [error, setError] = useState(null);
   const [msg, setMsg] = useState(null);
+  const [ok, setOk] = useState(null);
 
   const [resendText, setResendText] = useState("Reenviar email");
   const [resendClassName, setResendClassName] = useState("register-cta");
@@ -37,11 +38,18 @@ function Verify() {
   function info(info, type) {
     if (type == "error") {
       setMsg(null);
+      setOk(null);
       setError(info);
     }
     if (type == "loading") {
       setError(null);
+      setOk(null);
       setMsg(info);
+    }
+    if (type == "ok") {
+      setError(null);
+      setMsg(null);
+      setOk(info);
     }
   }
 
@@ -110,6 +118,7 @@ function Verify() {
 
   async function handleClearEmail() {
     setChangeEmail(false);
+    setNewEmail(user.email);
     setMsg(null);
     setError(null);
   }
@@ -123,6 +132,7 @@ function Verify() {
         setError(null);
         setResendText("01:00");
         setTimeLeft(60);
+        info("Código enviado.", "ok");
       })
       .catch((e) => {
         if (show != "hide") {
@@ -259,6 +269,25 @@ function Verify() {
                         >
                           <ErrorIcon className="error-icon" />
                           <p className="error-text">{error}</p>
+                        </motion.div>
+                      )}
+                      {ok && (
+                        <motion.div
+                          className="msg-box"
+                          layoutId="ok-box"
+                          initial={{
+                            opacity: 0,
+                          }}
+                          animate={{
+                            opacity: 1,
+                          }}
+                          exit={{
+                            opacity: 0,
+                          }}
+                          transition={{ duration: 0.4 }}
+                        >
+                          <CheckIcon height={10} className="check-icon" />
+                          <p className="msg-text">{ok}</p>
                         </motion.div>
                       )}
                     </div>

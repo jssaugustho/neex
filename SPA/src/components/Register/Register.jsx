@@ -137,7 +137,7 @@ export default function Register() {
               <div className="inputs">
                 <div className="headline">
                   <h2>
-                    Registre-se no <span className="accent-text">CRM.</span>
+                    Cadastre-se no <span className="accent-text">CRM.</span>
                   </h2>
                   <div className="register">
                     <p className="register-text">
@@ -283,7 +283,7 @@ export default function Register() {
               </div>
               <div className="bg-button">
                 <button className="cta-button" type="submit">
-                  Fazer Login
+                  Criar Conta
                 </button>
               </div>
             </div>
