@@ -24,7 +24,6 @@ function Verify() {
   const [resendText, setResendText] = useState("Reenviar email");
   const [resendClassName, setResendClassName] = useState("cta-text");
   const [timeLeft, setTimeLeft] = useState(() => {
-    handleResendCode("hide");
     return -1;
   });
   const [wait, setWait] = useState(false);
@@ -157,6 +156,10 @@ function Verify() {
     let value = e.target.value.replace(/\D/g, ""); // Remove qualquer caractere não numérico
     setCode(value);
   }
+
+  useEffect(() => {
+    handleResendCode();
+  }, []);
 
   useEffect(() => {
     if (emailInput.current) emailInput.current.select();

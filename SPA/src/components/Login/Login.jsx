@@ -21,7 +21,7 @@ export default function Login() {
   const [remember, setRemember] = useState(false);
 
   const [error, setError] = useState(null);
-  const [msg, setMsg] = useState();
+  const [msg, setMsg] = useState(null);
 
   function info(info, type) {
     if (type == "error") {
@@ -82,39 +82,39 @@ export default function Login() {
                     </NavLink>
                   </p>
                 </div>
-                {msg && (
-                  <motion.div
-                    className="inline-flex-center mini-gap"
-                    layoutId="msg-box"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <MiniLoadSpinner className="msg-mini-spinner" />
-                    <p className="paragraph info-text">{msg}</p>
-                  </motion.div>
-                )}
-                {error && (
-                  <motion.div
-                    className="inline-flex-center mini-gap"
-                    layoutId="error-box"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <ErrorIcon className="error-icon" />
-                    <p className="paragraph error-text">{error}</p>
-                  </motion.div>
-                )}
               </div>
+              {msg && (
+                <motion.div
+                  className="inline-flex-center mini-gap"
+                  layoutId="msg-box"
+                  initial={{
+                    opacity: 0,
+                  }}
+                  animate={{
+                    opacity: 1,
+                  }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <MiniLoadSpinner className="msg-mini-spinner" />
+                  <p className="paragraph info-text">{msg}</p>
+                </motion.div>
+              )}
+              {error && (
+                <motion.div
+                  className="inline-flex-center mini-gap"
+                  layoutId="error-box"
+                  initial={{
+                    opacity: 0,
+                  }}
+                  animate={{
+                    opacity: 1,
+                  }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <ErrorIcon className="error-icon" />
+                  <p className="paragraph error-text">{error}</p>
+                </motion.div>
+              )}
               <div className="content-box mid-gap">
                 <div className="content-box small-gap">
                   <div className="content-box mini-gap align-left">
