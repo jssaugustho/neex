@@ -154,6 +154,14 @@ async function validateUpdateParams(req, res, next) {
     if (!emailRegex.test(req.body.email))
       throw new errors.UserError(response.invalidParam("Email"));
 
+    let q = await prisma.findUnique({
+      where: {
+        email: req.body.email,
+      },
+    });
+
+    if (q) throw new errors.UserError(response.emailInUse());
+
     //verify email length
     req.updateData.email = req.body.email;
     //set emailVerified false in database
