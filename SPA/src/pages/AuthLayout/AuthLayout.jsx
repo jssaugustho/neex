@@ -16,7 +16,7 @@ export default function AuthLayout() {
 
   return (
     <>
-      <div className="content-box flex-row-center">
+      <div className="flex-row-center">
         {signed && user.emailVerified ? <PreLoader hide={true} /> : null}
         <div className="column">
           <div className="mobile-breakpoint-box form-width content-box mid-gap align-left vertical-padding">
