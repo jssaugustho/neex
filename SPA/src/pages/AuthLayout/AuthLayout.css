@@ -3,6 +3,10 @@
   height: fit-content;
 }
 
+.logo {
+  margin-top: -16px;
+}
+
 @media (max-width: 1050px) {
   .form-width {
     width: 100%;
