@@ -93,7 +93,7 @@ body {
 
 .column {
   min-height: 100vh;
-
+  box-sizing: content-box;
   display: flex;
   flex-direction: column;
   flex: 1;
