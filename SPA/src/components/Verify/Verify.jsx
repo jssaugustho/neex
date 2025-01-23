@@ -1,5 +1,3 @@
-import "./Verify.css";
-
 import XIcon from "./../../assets/XIcon.jsx";
 import CheckIcon from "./../../assets/CheckIcon.jsx";
 
@@ -24,11 +22,12 @@ function Verify() {
   const [ok, setOk] = useState(null);
 
   const [resendText, setResendText] = useState("Reenviar email");
-  const [resendClassName, setResendClassName] = useState("register-cta");
+  const [resendClassName, setResendClassName] = useState("cta-text");
   const [timeLeft, setTimeLeft] = useState(() => {
     handleResendCode("hide");
     return -1;
   });
+  const [wait, setWait] = useState(false);
 
   const [changeEmail, setChangeEmail] = useState(false);
   const [newEmail, setNewEmail] = useState(user.email);
@@ -56,6 +55,7 @@ function Verify() {
   async function handleSubmit(e) {
     e.preventDefault();
     info("Verificando código...", "loading");
+    setWait(true);
 
     let emailVerificationCode = code;
 
@@ -74,6 +74,7 @@ function Verify() {
       })
       .catch((e) => {
         info(e.response.data.message, "error");
+        setWait(false);
       });
   }
 
@@ -124,28 +125,37 @@ function Verify() {
   }
 
   async function handleResendCode(show) {
-    info("Enviando código...", "loading");
-    api
-      .get("/resend")
-      .then(() => {
-        setMsg(null);
-        setError(null);
-        setResendText("01:00");
-        setTimeLeft(60);
-        info("Código enviado.", "ok");
-      })
-      .catch((e) => {
-        if (show != "hide") {
-          info(e.response.data.message, "error");
-          setMsg(null);
-        }
-        if (show == "hide") {
+    if (!wait) {
+      setWait(true);
+      info("Enviando código...", "loading");
+      api
+        .get("/resend")
+        .then(() => {
           setMsg(null);
           setError(null);
-        }
-        setResendText("01:00");
-        setTimeLeft(60);
-      });
+          setResendText("01:00");
+          setTimeLeft(60);
+          info("Código enviado no seu email.", "ok");
+        })
+        .catch((e) => {
+          if (show != "hide") {
+            info(e.response.data.message, "error");
+            setMsg(null);
+            setWait(false);
+          }
+          if (show == "hide") {
+            setMsg(null);
+            setError(null);
+          }
+          setResendText("01:00");
+          setTimeLeft(60);
+        });
+    }
+  }
+
+  function handleInputChange(e) {
+    let value = e.target.value.replace(/\D/g, ""); // Remove qualquer caractere não numérico
+    setCode(value);
   }
 
   useEffect(() => {
@@ -156,11 +166,12 @@ function Verify() {
   useEffect(() => {
     if (timeLeft < 0) {
       setResendText("Reenviar email");
-      setResendClassName("register-cta");
+      setResendClassName("cta-text");
+      setWait(false);
       return;
     }
 
-    setResendClassName("register-text");
+    setResendClassName(null);
 
     const timer = setInterval(() => {
       setTimeLeft((p) => p - 1);
@@ -179,7 +190,7 @@ function Verify() {
     } else {
       return (
         <motion.div
-          className="login-motion-div"
+          className="content-box"
           layoutId="Verify"
           initial={{
             opacity: 0,
@@ -192,31 +203,31 @@ function Verify() {
             duration: 0.4,
           }}
         >
-          <div className="login">
+          <div className="content-box mid-gap">
             <form method="post" onSubmit={handleSubmit}>
-              <div className="labels">
-                <div className="inputs">
-                  <div className="headline">
-                    <h2>Verifique o Seu Email</h2>
-                    <div className="emailChange">
+              <div className="content-box mid-gap">
+                <div className="content-box mid-gap">
+                  <div className="content-box small-gap">
+                    <h1 className="small-headline">Verifique o Seu Email</h1>
+                    <div className="content-box mini-gap">
                       {changeEmail ? (
-                        <div className="register changeEmailBox">
+                        <div className="inline-flex-center">
                           <input
                             ref={emailInput}
-                            className="newEmailInput"
+                            className="mini-text-input"
                             type="email"
                             value={newEmail}
                             onChange={(e) => setNewEmail(e.target.value)}
                           />
-                          <div className="changeBtns">
+                          <div className="fit-width-inline">
                             <button
-                              className="checkIcon changeBtn"
+                              className="invisible-btn"
                               onClick={handleChangeEmail}
                             >
                               <CheckIcon className="icon" />
                             </button>
                             <button
-                              className="XIcon changeBtn"
+                              className="invisible-btn"
                               onClick={handleClearEmail}
                             >
                               <XIcon className="icon" />
@@ -224,95 +235,101 @@ function Verify() {
                           </div>
                         </div>
                       ) : (
-                        <p className="sendedEmail">{user.email}</p>
+                        <p className="paragraph">{user.email}</p>
                       )}
-                      <div className="changeEmailCta">
-                        <div className="icon">
+                      <div className="inline-flex-center mini-gap">
+                        <div className="box">
                           <EditIcon />
                         </div>
                         <div
-                          className="change-a"
+                          className="paragraph cta-text"
                           onClick={handleChangeEmailClick}
                         >
                           Alterar email
                         </div>
                       </div>
                     </div>
-                    <div className="infobox">
-                      {msg && (
-                        <motion.div
-                          className="msg-box"
-                          layoutId="msg-box"
-                          initial={{
-                            opacity: 0,
-                          }}
-                          animate={{
-                            opacity: 1,
-                          }}
-                          transition={{ duration: 0.4 }}
-                        >
-                          <MiniLoadSpinner className="msg-mini-spinner" />
-                          <p className="msg-text">{msg}</p>
-                        </motion.div>
-                      )}
-                      {error && (
-                        <motion.div
-                          className="error-box"
-                          layoutId="error-box"
-                          initial={{
-                            opacity: 0,
-                          }}
-                          animate={{
-                            opacity: 1,
-                          }}
-                          transition={{ duration: 0.4 }}
-                        >
-                          <ErrorIcon className="error-icon" />
-                          <p className="error-text">{error}</p>
-                        </motion.div>
-                      )}
-                      {ok && (
-                        <motion.div
-                          className="msg-box"
-                          layoutId="ok-box"
-                          initial={{
-                            opacity: 0,
-                          }}
-                          animate={{
-                            opacity: 1,
-                          }}
-                          exit={{
-                            opacity: 0,
-                          }}
-                          transition={{ duration: 0.4 }}
-                        >
-                          <CheckIcon height={10} className="check-icon" />
-                          <p className="msg-text">{ok}</p>
-                        </motion.div>
-                      )}
-                    </div>
                   </div>
-                  <div className="label">
-                    <label htmlFor="email">
-                      Insira o código enviado no seu email:
-                    </label>
-                    <input
-                      className="text-input"
-                      type="text"
-                      placeholder="Código de 6 digitos"
-                      name="code"
-                      id="code"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                    />
-                  </div>
-                  <div className="register">
-                    <p className="register-text">Não recebeu o código?</p>
-                    <div
-                      onClick={handleResendCode}
-                      className={`${resendClassName}`}
+                  {msg && (
+                    <motion.div
+                      className="inline-flex-center mini-gap"
+                      layoutId="msg-box"
+                      initial={{
+                        opacity: 0,
+                      }}
+                      animate={{
+                        opacity: 1,
+                      }}
+                      exit={{
+                        opacity: 0,
+                      }}
+                      transition={{ duration: 0.4 }}
                     >
-                      {resendText}
+                      <MiniLoadSpinner className="msg-mini-spinner mini-gap" />
+                      <p className="paragraph">{msg}</p>
+                    </motion.div>
+                  )}
+                  {error && (
+                    <motion.div
+                      className="inline-flex-center mini-gap"
+                      layoutId="error-box"
+                      initial={{
+                        opacity: 0,
+                      }}
+                      animate={{
+                        opacity: 1,
+                      }}
+                      exit={{
+                        opacity: 0,
+                      }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <ErrorIcon className="error-icon" />
+                      <p className="paragraph">{error}</p>
+                    </motion.div>
+                  )}
+                  {ok && (
+                    <motion.div
+                      className="inline-flex-center mini-gap"
+                      layoutId="ok-box"
+                      initial={{
+                        opacity: 0,
+                      }}
+                      animate={{
+                        opacity: 1,
+                      }}
+                      exit={{
+                        opacity: 0,
+                      }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <CheckIcon height={10} className="check-icon" />
+                      <p className="paragraph">{ok}</p>
+                    </motion.div>
+                  )}
+                  <div className="content-box small-gap">
+                    <div className="content-box mini-gap">
+                      <label className="paragraph" htmlFor="email">
+                        Código:
+                      </label>
+                      <input
+                        className="text-input"
+                        type="text"
+                        placeholder="Código de 6 digitos"
+                        name="code"
+                        id="code"
+                        value={code}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="inline-flex-center micro-gap">
+                      <p className="paragraph">Não recebeu o código?</p>
+                      <div
+                        onClick={handleResendCode}
+                        className={`paragraph ${resendClassName}`}
+                      >
+                        {resendText}
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -1,10 +1,8 @@
-import "./Register.css";
+// import "./Register.css";
 
 import { Navigate, NavLink } from "react-router";
 
 import { motion } from "framer-motion";
-
-import Google from "../../assets/google.png";
 
 import ErrorIcon from "../../assets/ErrorIcon.jsx";
 
@@ -18,10 +16,9 @@ import useAuth from "../../contexts/auth/auth.hook.jsx";
 import MiniLoadSpinner from "../../assets/MiniLoadSpinner.jsx";
 import InternacionalPhoneInput from "../ui.components/InternacionalPhoneInput/InternacionalPhoneInput.jsx";
 import PasswdForceLevel from "../ui.components/PasswdForceLevel/PasswdForceLevel.jsx";
+import RegisterIcon from "../../assets/RegisterIcon.jsx";
 
 export default function Register() {
-  const showGoogleOAuth = false;
-
   const { signed, nextStep, signUp } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -79,10 +76,6 @@ export default function Register() {
       return setPasswdForce({ lost: lost, level: lost.length });
   }
 
-  function handleGoogleClick(e) {
-    e.preventDefault();
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -102,6 +95,7 @@ export default function Register() {
 
     //validar termos e condições
     let concorda = false;
+
     if (agree == "sim") concorda = true;
 
     if (!concorda) {
@@ -118,7 +112,7 @@ export default function Register() {
   } else {
     return (
       <motion.div
-        className="login-motion-div"
+        className="content-box"
         layoutId="Register"
         initial={{
           opacity: 0,
@@ -131,152 +125,150 @@ export default function Register() {
           duration: 0.4,
         }}
       >
-        <div className="login">
+        <div className="content-box">
           <form method="post" onSubmit={handleSubmit}>
-            <div className="labels">
-              <div className="inputs">
-                <div className="headline">
-                  <h2>
+            <div className="content-box mid-gap">
+              <div className="content-box mid-gap">
+                <div className="content-box small-gap">
+                  <h1 className="small-headline">
                     Cadastre-se no <span className="accent-text">CRM.</span>
-                  </h2>
-                  <div className="register">
-                    <p className="register-text">
+                  </h1>
+                  <div className="inline-flex-center mini-gap">
+                    <div className="box">
+                      <RegisterIcon />
+                    </div>
+                    <p className="paragraph">
                       Já tem uma conta?{" "}
-                      <NavLink className="register-cta" to="/login">
+                      <NavLink className="cta-text" to="/login">
                         Faça seu login
                       </NavLink>
                     </p>
                   </div>
-                  <div className="infobox">
-                    {msg && (
-                      <motion.div
-                        className="msg-box"
-                        layoutId="msg-box"
-                        initial={{
-                          opacity: 0,
-                        }}
-                        animate={{
-                          opacity: 1,
-                        }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        <MiniLoadSpinner className="msg-mini-spinner" />
-                        <p className="msg-text">{msg}</p>
-                      </motion.div>
-                    )}
-                    {error && (
-                      <motion.div
-                        className="error-box"
-                        layoutId="error-box"
-                        initial={{
-                          opacity: 0,
-                        }}
-                        animate={{
-                          opacity: 1,
-                        }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        <ErrorIcon className="error-icon" />
-                        <p className="error-text">{error}</p>
-                      </motion.div>
-                    )}
-                  </div>
                 </div>
-                {showGoogleOAuth ? (
-                  <>
-                    <div className="bg-button">
-                      <button className="google" onClick={handleGoogleClick}>
-                        <img src={Google} alt="" />
-                        Continuar com o Google
-                      </button>
-                    </div>
-                    <div className="divider">
-                      <hr />
-                      <span className="text">OU UTILIZE SEU EMAIL</span>
-                      <hr />
-                    </div>
-                  </>
-                ) : (
-                  <></>
+                {msg && (
+                  <motion.div
+                    className="inline-flex-center mini-gap"
+                    layoutId="msg-box"
+                    initial={{
+                      opacity: 0,
+                    }}
+                    animate={{
+                      opacity: 1,
+                    }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <MiniLoadSpinner className="msg-mini-spinner" />
+                    <p className="paragraph info-text">{msg}</p>
+                  </motion.div>
                 )}
-                <div className="label">
-                  <label htmlFor="name">Nome:</label>
-                  <div className="name-inputs">
+                {error && (
+                  <motion.div
+                    className="inline-flex-center mini-gap"
+                    layoutId="error-box"
+                    initial={{
+                      opacity: 0,
+                    }}
+                    animate={{
+                      opacity: 1,
+                    }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <ErrorIcon className="error-icon" />
+                    <p className="paragraph error-text">{error}</p>
+                  </motion.div>
+                )}
+                <div className="content-box small-gap">
+                  <div className="content-box mini-gap">
+                    <label className="paragraph" htmlFor="name">
+                      Nome:
+                    </label>
+                    <div className="inline-flex-center small-gap">
+                      <input
+                        value={name}
+                        className="text-input"
+                        type="nome"
+                        placeholder="Nome"
+                        required={true}
+                        name="nome"
+                        id="nome"
+                        onChange={(e) => update({ name: e.target.value })}
+                      />
+                      <input
+                        value={lastName}
+                        className="text-input"
+                        type="text"
+                        required={true}
+                        placeholder="Sobrenome"
+                        name="sobrenome"
+                        id="sobrenome"
+                        onChange={(e) => update({ lastName: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="content-box mini-gap">
+                    <label className="paragraph" htmlFor="email">
+                      Email:
+                    </label>
                     <input
-                      value={name}
                       className="text-input"
-                      type="nome"
-                      placeholder="Nome"
+                      type="email"
+                      placeholder="seunome@exemplo.com"
+                      name="email"
                       required={true}
-                      name="nome"
-                      id="nome"
-                      onChange={(e) => update({ name: e.target.value })}
-                    />
-                    <input
-                      value={lastName}
-                      className="text-input"
-                      type="text"
-                      required={true}
-                      placeholder="Sobrenome"
-                      name="sobrenome"
-                      id="sobrenome"
-                      onChange={(e) => update({ lastName: e.target.value })}
+                      id="email"
+                      value={email}
+                      onChange={(e) => update({ email: e.target.value })}
                     />
                   </div>
-                </div>
-                <div className="label">
-                  <label htmlFor="email">Email:</label>
-                  <input
-                    className="text-input"
-                    type="email"
-                    placeholder="seunome@exemplo.com"
-                    name="email"
-                    required={true}
-                    id="email"
-                    value={email}
-                    onChange={(e) => update({ email: e.target.value })}
-                  />
-                </div>
-                <div className="label">
-                  <label htmlFor="phone">WhatsApp:</label>
-                  <InternacionalPhoneInput
-                    className="text-input phone-input"
-                    value={phone}
-                    defaultCountry="br"
-                    required={true}
-                    name="phone"
-                    onChange={(e) => update({ phone: e })}
-                  />
-                </div>
-                <div className="label">
-                  <label htmlFor="passwd">Senha:</label>
-                  <PasswdInput
-                    className="text-input"
-                    name="passwd"
-                    required={true}
-                    onChange={(e) => update({ passwd: e.target.value })}
-                    value={passwd}
-                  />
-                </div>
-                {passwd ? (
-                  <div className="label">
-                    <PasswdForceLevel
-                      level={passwdForce.level}
-                      lost={passwdForce.lost}
+                  <div className="content-box mini-gap">
+                    <label className="paragraph" htmlFor="phone">
+                      WhatsApp:
+                    </label>
+                    <InternacionalPhoneInput
+                      className="text-input"
+                      value={phone}
+                      defaultCountry="br"
+                      required={true}
+                      name="phone"
+                      onChange={(e) => update({ phone: e })}
                     />
                   </div>
-                ) : null}
-                <div className="recovery">
-                  <div className="remember">
-                    <MiniSwitch
-                      name="remember"
-                      value={agree}
-                      onChange={(e) => {
-                        update({ agree: e.target.checked ? "sim" : "não" });
-                      }}
+                  <div className="content-box mini-gap">
+                    <label className="paragraph" htmlFor="passwd">
+                      Senha:
+                    </label>
+                    <PasswdInput
+                      name="password"
+                      required={true}
+                      onChange={(e) => update({ passwd: e.target.value })}
+                      value={passwd}
                     />
-                    <p className="remember-text">
-                      Concordo com os <a href="#">termos e condições.</a>
+                  </div>
+                  {passwd ? (
+                    <div className="content-box">
+                      <PasswdForceLevel
+                        level={passwdForce.level}
+                        lost={passwdForce.lost}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+                <div className="content-box">
+                  <div className="inline-flex-center small-gap">
+                    <div className="box padding-top-mini">
+                      <MiniSwitch
+                        name="remember"
+                        value={agree}
+                        onChange={(e) => {
+                          update({ agree: e.target.checked ? "sim" : "não" });
+                        }}
+                      />
+                    </div>
+                    <p className="paragraph align-left">
+                      Concordo com os{" "}
+                      <a className="cta-text" href="#">
+                        termos.
+                      </a>
                     </p>
                   </div>
                 </div>

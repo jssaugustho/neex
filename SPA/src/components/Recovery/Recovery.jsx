@@ -35,6 +35,7 @@ function Recovery() {
   const [timeLeft, setTimeLeft] = useState(() => {
     return -1;
   });
+  const [wait, setWait] = useState(false);
 
   //toggle change email input
   const [changeEmail, setChangeEmail] = useState(false);
@@ -66,6 +67,7 @@ function Recovery() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setWait(true);
     info("Verificando código...", "loading");
     api
       .post("/verify-recovery-code", {
@@ -80,12 +82,16 @@ function Recovery() {
           sessionStorage.setItem("@Auth:next-step", "/dashboard");
           api.defaults.headers.common["Authorization"] = r.data.token;
           setNextStep("/dashboard");
-          setUser(r.data.data);
+          setUser({
+            ...r.data.data,
+            emailVerified: true,
+          });
           setSigned(true);
         }
       })
       .catch((e) => {
         e.response.data.message && info(e.response.data.message, "error");
+        setWait(false);
       });
   }
 
@@ -135,46 +141,59 @@ function Recovery() {
     setOk(null);
   }
 
-  async function handleResendCode(show) {
-    info("Enviando código...", "loading");
-    api
-      .post("/recovery", {
-        email,
-      })
-      .then(() => {
-        info("Código enviado.", "ok");
-        setResendText("01:00");
-        setTimeLeft(60);
-      })
-      .catch((e) => {
-        info(e.response.data.message, "error");
-      });
+  async function handleResendCode() {
+    if (!wait) {
+      setWait(true);
+      info("Enviando código...", "loading");
+      api
+        .post("/recovery", {
+          email,
+        })
+        .then(() => {
+          info("Código enviado no seu email.", "ok");
+          setResendText("01:00");
+          setTimeLeft(60);
+        })
+        .catch((e) => {
+          info(e.response.data.message, "error");
+          setWait(false);
+        });
+    }
   }
 
   async function handleSetEmail(e) {
     e.preventDefault();
 
-    info("Verificando email...", "loading");
+    info("Enviando código...", "loading");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (emailRegex.test(recoveryEmail)) {
-      api
-        .post("/recovery", {
-          email: recoveryEmail,
-        })
-        .then((r) => {
-          localStorage.setItem("recovery-email", recoveryEmail);
-          setEmail(recoveryEmail);
-          info("Código enviado.", "ok");
-          setTimeLeft(60);
-        })
-        .catch((e) => {
-          info(e.response.data.message, "error");
-        });
-    } else {
-      info("Email inválido", "error");
+    if (!wait) {
+      if (emailRegex.test(recoveryEmail)) {
+        setWait(true);
+        api
+          .post("/recovery", {
+            email: recoveryEmail,
+          })
+          .then(() => {
+            localStorage.setItem("recovery-email", recoveryEmail);
+            setEmail(recoveryEmail);
+            info("Código enviado no seu email.", "ok");
+            setTimeLeft(60);
+          })
+          .catch((e) => {
+            info(e.response.data.message, "error");
+            setWait(false);
+          });
+      } else {
+        info("Email inválido", "error");
+      }
     }
+  }
+
+  function handleInputChange(e) {
+    let value = e.target.value.replace(/\D/g, ""); // Remove qualquer caractere não numérico
+    setCode(value);
   }
 
   //select alterar email
@@ -186,11 +205,12 @@ function Recovery() {
   useEffect(() => {
     if (timeLeft < 0) {
       setResendText("Reenviar email");
-      setResendClassName("register-cta");
+      setResendClassName("cta-text");
+      setWait(false);
       return;
     }
 
-    setResendClassName("register-text");
+    setResendClassName(null);
 
     const timer = setInterval(() => {
       setTimeLeft((p) => p - 1);
@@ -212,31 +232,31 @@ function Recovery() {
 
   const insertCode = (
     //inserir código
-    <div className="login">
+    <div className="content-box">
       <form method="post" onSubmit={handleSubmit}>
-        <div className="labels">
-          <div className="inputs">
-            <div className="headline">
-              <h2>Código enviado no seu email</h2>
-              <div className="emailChange">
+        <div className="content-box mid-gap">
+          <div className="content-box mid-gap">
+            <div className="content-box small-gap">
+              <h1 className="small-headline">Verifique o seu email</h1>
+              <div className="content-box mini-gap">
                 {changeEmail ? (
-                  <div className="register changeEmailBox">
+                  <div className="inline-flex-center">
                     <input
                       ref={emailInput}
-                      className="newEmailInput"
+                      className="mini-text-input"
                       type="email"
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
                     />
-                    <div className="changeBtns">
+                    <div className="fit-width-inline">
                       <button
-                        className="checkIcon changeBtn"
+                        className="invisible-btn"
                         onClick={handleChangeEmail}
                       >
                         <CheckIcon className="icon" />
                       </button>
                       <button
-                        className="XIcon changeBtn"
+                        className="invisible-btn"
                         onClick={handleClearEmail}
                       >
                         <XIcon className="icon" />
@@ -244,99 +264,106 @@ function Recovery() {
                     </div>
                   </div>
                 ) : (
-                  <p className="sendedEmail">{email}</p>
+                  <p className="paragraph">{email}</p>
                 )}
-                <div className="changeEmailCta">
-                  <div className="icon">
+                <div className="inline-flex-center mini-gap">
+                  <div className="box">
                     <EditIcon />
                   </div>
-                  <div className="change-a" onClick={handleChangeEmailClick}>
-                    Não é Seu email?
+                  <div
+                    className="paragraph cta-text"
+                    onClick={handleChangeEmailClick}
+                  >
+                    Alterar email
                   </div>
                 </div>
               </div>
-              <div className="infobox">
-                {msg && (
-                  <motion.div
-                    className="msg-box"
-                    layoutId="msg-box"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    exit={{
-                      opacity: 0,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <MiniLoadSpinner className="msg-mini-spinner" />
-                    <p className="msg-text">{msg}</p>
-                  </motion.div>
-                )}
-                {error && (
-                  <motion.div
-                    className="error-box"
-                    layoutId="error-box"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    exit={{
-                      opacity: 0,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <ErrorIcon className="error-icon" />
-                    <p className="error-text">{error}</p>
-                  </motion.div>
-                )}
-                {ok && (
-                  <motion.div
-                    className="msg-box"
-                    layoutId="ok-box"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    exit={{
-                      opacity: 0,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <CheckIcon height={10} className="check-icon" />
-                    <p className="msg-text">{ok}</p>
-                  </motion.div>
-                )}
+            </div>
+            {msg && (
+              <motion.div
+                className="inline-flex-center mini-gap"
+                layoutId="msg-box"
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.4 }}
+              >
+                <MiniLoadSpinner className="msg-mini-spinner mini-gap" />
+                <p className="paragraph">{msg}</p>
+              </motion.div>
+            )}
+            {error && (
+              <motion.div
+                className="inline-flex-center mini-gap"
+                layoutId="error-box"
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.4 }}
+              >
+                <ErrorIcon className="error-icon" />
+                <p className="paragraph">{error}</p>
+              </motion.div>
+            )}
+            {ok && (
+              <motion.div
+                className="inline-flex-center mini-gap"
+                layoutId="ok-box"
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.4 }}
+              >
+                <CheckIcon height={10} className="check-icon" />
+                <p className="paragraph">{ok}</p>
+              </motion.div>
+            )}
+            <div className="content-box small-gap">
+              <div className="content-box mini-gap">
+                <label className="paragraph" htmlFor="content-box">
+                  Insira o código enviado no seu email:
+                </label>
+                <input
+                  className="text-input"
+                  type="text"
+                  maxLength={6}
+                  placeholder="Código de 6 digitos"
+                  name="code"
+                  id="code"
+                  value={code}
+                  onChange={handleInputChange}
+                />
               </div>
-            </div>
-            <div className="label">
-              <label htmlFor="email">
-                Insira o código enviado no seu email:
-              </label>
-              <input
-                className="text-input"
-                type="text"
-                placeholder="Código de 6 digitos"
-                name="code"
-                id="code"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
-            </div>
-            <div className="register">
-              <p className="register-text">Não recebeu o código?</p>
-              <div onClick={handleResendCode} className={`${resendClassName}`}>
-                {resendText}
+              <div className="inline-flex-center micro-gap">
+                <p className="paragraph">Não recebeu o código? </p>
+                <div
+                  onClick={handleResendCode}
+                  className={`paragraph ${resendClassName}`}
+                >
+                  {resendText}
+                </div>
               </div>
             </div>
           </div>
-          <div className="bg-button">
+          <div className="button-bg">
             <button className="cta-button" type="submit">
               Verificar Código
             </button>
@@ -348,83 +375,83 @@ function Recovery() {
 
   const insertEmail = (
     //inserir email
-    <div className="login">
+    <div className="content-box mid-gap">
+      <NavLink to="/login">
+        <div className="inline-flex-center mini-gap">
+          <BackIcon />
+          <p className="paragraph cta-text">Voltar</p>
+        </div>
+      </NavLink>
       <form method="post" onSubmit={handleSetEmail}>
-        <div className="labels">
-          <NavLink to="/login" className="register-cta">
-            <div className="back-icon">
-              <BackIcon />
-              Voltar
-            </div>
-          </NavLink>
-          <div className="inputs">
-            <div className="headline">
-              <h2>Esqueceu sua senha?</h2>
-              <p className="register-text">
-                Envie um código de recuperação no seu email.
+        <div className="content-box small-gap">
+          <div className="content-box mid-gap">
+            <div className="content-box small-gap">
+              <h1 className="small-headline">Esqueceu sua senha?</h1>
+              <p className="paragraph align-left">
+                Envie um código de recuperação de senha no seu email.
               </p>
-              <div className="infobox">
-                {msg && (
-                  <motion.div
-                    className="msg-box"
-                    layoutId="msg-box"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    exit={{
-                      opacity: 0,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <MiniLoadSpinner className="msg-mini-spinner" />
-                    <p className="msg-text">{msg}</p>
-                  </motion.div>
-                )}
-                {error && (
-                  <motion.div
-                    className="error-box"
-                    layoutId="error-box"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    exit={{
-                      opacity: 0,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <ErrorIcon className="error-icon" />
-                    <p className="error-text">{error}</p>
-                  </motion.div>
-                )}
-                {ok && (
-                  <motion.div
-                    className="msg-box"
-                    layoutId="ok-box"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    exit={{
-                      opacity: 0,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <CheckIcon height={11} className="check-icon" />
-                    <p className="msg-text">{ok}</p>
-                  </motion.div>
-                )}
-              </div>
             </div>
-            <div className="label">
-              <label htmlFor="email">Email:</label>
+            {msg && (
+              <motion.div
+                className="inline-flex-center mini-gap"
+                layoutId="msg-box"
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.4 }}
+              >
+                <MiniLoadSpinner className="msg-mini-spinner mini-gap" />
+                <p className="paragraph">{msg}</p>
+              </motion.div>
+            )}
+            {error && (
+              <motion.div
+                className="inline-flex-center mini-gap"
+                layoutId="error-box"
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.4 }}
+              >
+                <ErrorIcon className="error-icon" />
+                <p className="paragraph">{error}</p>
+              </motion.div>
+            )}
+            {ok && (
+              <motion.div
+                className="inline-flex-center mini-gap"
+                layoutId="ok-box"
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.4 }}
+              >
+                <CheckIcon height={10} className="check-icon" />
+                <p className="paragraph">{ok}</p>
+              </motion.div>
+            )}
+            <div className="content-box mini-gap">
+              <label className="paragraph" htmlFor="email">
+                Email:
+              </label>
               <input
                 className="text-input"
                 type="email"
@@ -435,11 +462,11 @@ function Recovery() {
                 onChange={(e) => setRecoveryEmail(e.target.value)}
               />
             </div>
-          </div>
-          <div className="bg-button">
-            <button className="cta-button" type="submit">
-              Enviar Código
-            </button>
+            <div className="button-bg">
+              <button className="cta-button" type="submit">
+                Enviar Código
+              </button>
+            </div>
           </div>
         </div>
       </form>

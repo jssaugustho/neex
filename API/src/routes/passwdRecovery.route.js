@@ -25,7 +25,6 @@ recovery.post(
   resolver(recoveryMiddlewares.validateStringParams),
   resolver(recoveryMiddlewares.getUserbyEmail),
   resolver(recoveryMiddlewares.generateVerificationCode),
-  resolver(recoveryControllers.setEmailVerified),
   resolver(emailControllers.sendPasswdRecoveryCode),
   resolver(recoveryControllers.recoveryPasswdResponse)
 );
@@ -37,6 +36,7 @@ recovery.post(
   resolver(recoveryMiddlewares.getUserbyEmail),
   resolver(recoveryMiddlewares.validatePasswdRecoveryCode),
   resolver(emailControllers.sendPasswdRecoveryConfirmation),
+  resolver(recoveryControllers.setEmailVerified),
   resolver(authControllers.auth)
 );
 

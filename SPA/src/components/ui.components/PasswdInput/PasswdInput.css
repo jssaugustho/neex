@@ -1,4 +1,5 @@
 .passwd-input {
+  height: 60px;
   color: var(--primary-text-color);
   display: flex;
   align-items: center;

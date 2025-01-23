@@ -98,11 +98,11 @@
 .react-international-phone-country-selector-dropdown {
   border-radius: 8px;
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   top: var(--react-international-phone-dropdown-top, 49px);
   left: var(--react-international-phone-dropdown-left, 0);
   display: flex;
-  width: 350px;
+  width: 280px;
   max-height: 200px;
   flex-direction: column;
   padding: 4px 0;
@@ -209,7 +209,7 @@
 .react-international-phone-input-container {
   width: 100%;
   display: flex;
-  height: fit-content;
+  height: 100%;
   box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.2) inset;
   border-radius: 8px;
 }
@@ -217,6 +217,7 @@
 .input-box {
   border-radius: 8px;
   width: 100%;
+  height: 60px;
 }
 
 .react-international-phone-input-container
@@ -229,7 +230,7 @@
 }
 .react-international-phone-input-container .react-international-phone-input {
   overflow: visible;
-  height: var(--react-international-phone-height, 36px);
+  height: 100%;
   box-sizing: border-box;
   padding: 16px 0px 16px 16px;
   border: none;
@@ -240,7 +241,6 @@
   border-top-left-radius: 0;
   color: var(--primary-text-color);
   font-weight: 400;
-  height: fit-content;
   width: 100%;
 }
 .react-international-phone-input-container

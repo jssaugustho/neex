@@ -16,10 +16,10 @@ export default function AuthLayout() {
 
   return (
     <>
-      <div className="auth-container">
+      <div className="content-box flex-row-center">
         {signed && user.emailVerified ? <PreLoader hide={true} /> : null}
-        <div>
-          <div className="content-container">
+        <div className="column">
+          <div className="mobile-breakpoint-box form-width content-box mid-gap align-left vertical-padding">
             <NavLink to="/login">
               <img
                 className="logo"
@@ -27,10 +27,12 @@ export default function AuthLayout() {
                 alt="Lux CRM ©"
               />
             </NavLink>
-            <Outlet />
+            <div className="content-box">
+              <Outlet />
+            </div>
           </div>
         </div>
-        <div className="right">
+        <div className="column gradient-bg">
           <h1 className="title">Faça seu login.</h1>
         </div>
       </div>
