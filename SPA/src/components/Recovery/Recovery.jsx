@@ -31,7 +31,7 @@ function Recovery() {
 
   //temporizador
   const [resendText, setResendText] = useState("Reenviar código");
-  const [resendClassName, setResendClassName] = useState("register-cta");
+  const [resendClassName, setResendClassName] = useState("cta-text");
   const [timeLeft, setTimeLeft] = useState(-1);
 
   const wait = useRef(false);
@@ -170,7 +170,7 @@ function Recovery() {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!wait) {
+    if (!wait.current) {
       if (emailRegex.test(recoveryEmail)) {
         wait.current = true;
         api
