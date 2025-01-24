@@ -350,7 +350,7 @@ body {
   .vertical-padding {
     padding: 64px 0px 64px 0px;
   }
-  .column {
+  .mobile-column {
     justify-content: flex-start;
   }
   .mobile-column > * {
