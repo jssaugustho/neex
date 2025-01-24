@@ -348,14 +348,10 @@ body {
     --small-headline-font-size: 6.8vw;
   }
   .vertical-padding {
-<<<<<<< HEAD
-    padding: 0px 0px 64px 0px;
-=======
     padding: 64px 0px 64px 0px;
   }
   .column {
     justify-content: flex-start;
->>>>>>> dashboard
   }
   .mobile-column > * {
     width: fit-content;
@@ -366,7 +362,7 @@ body {
     gap: 8px;
   }
 }
-
+/* teste */
 @media (max-width: 320px) {
   .app {
     --paragraph-font-size: 4.5vw;
