@@ -30,9 +30,10 @@ function Recovery() {
   const [ok, setOk] = useState(null);
 
   //temporizador
-  const [resendText, setResendText] = useState("Reenviar código");
-  const [resendClassName, setResendClassName] = useState("cta-text");
+  const [resendText, setResendText] = useState("01:00");
+  const [resendClassName, setResendClassName] = useState(null);
   const [timeLeft, setTimeLeft] = useState(-1);
+  const [startTimer, setStartTimer] = useState(false);
 
   const wait = useRef(false);
 
@@ -101,7 +102,7 @@ function Recovery() {
   }
 
   async function handleChangeEmailClick() {
-    setChangeEmail(true);
+    setChangeEmail((p) => !p);
   }
 
   async function handleChangeEmail(e) {
@@ -122,7 +123,9 @@ function Recovery() {
               setEmail(newEmail);
               setChangeEmail(false);
               setResendText("01:00");
+              setResendClassName(null);
               setTimeLeft(60);
+              setStartTimer(true);
             }
           })
           .catch((e) => {
@@ -154,7 +157,9 @@ function Recovery() {
         .then(() => {
           show && info("Código enviado no seu email.", "ok");
           setResendText("01:00");
+          setResendClassName(null);
           setTimeLeft(60);
+          setStartTimer(true);
         })
         .catch((e) => {
           show && info(e.response.data.message, "error");
@@ -180,8 +185,12 @@ function Recovery() {
           .then(() => {
             localStorage.setItem("recovery-email", recoveryEmail);
             setEmail(recoveryEmail);
+            setNewEmail(recoveryEmail);
             info("Código enviado no seu email.", "ok");
+            setResendText("01:00");
+            setResendClassName("cta-text");
             setTimeLeft(60);
+            setStartTimer(true);
           })
           .catch((e) => {
             info(e.response.data.message, "error");
@@ -211,22 +220,24 @@ function Recovery() {
 
   //timer effect
   useEffect(() => {
-    if (timeLeft < 0) {
-      setResendText("Reenviar email");
-      setResendClassName("cta-text");
-      wait.current = false;
-      return;
+    if (startTimer) {
+      if (timeLeft < 0) {
+        setResendText("Reenviar email");
+        setResendClassName("cta-text");
+        wait.current = false;
+        return;
+      }
+
+      setResendClassName(null);
+
+      const timer = setInterval(() => {
+        setTimeLeft((p) => p - 1);
+        setResendText(`00:${String(timeLeft - 1).padStart(2, "0")}`);
+      }, 1000);
+
+      return () => clearInterval(timer);
     }
-
-    setResendClassName(null);
-
-    const timer = setInterval(() => {
-      setTimeLeft((p) => p - 1);
-      setResendText(`00:${String(timeLeft - 1).padStart(2, "0")}`);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, startTimer]);
 
   //load storage
   useLayoutEffect(() => {
@@ -235,7 +246,22 @@ function Recovery() {
     if (loadedEmail) {
       setEmail(loadedEmail);
       setNewEmail(loadedEmail);
+
+      info("Enviando código...", "loading");
+
+      api
+        .post("/recovery", {
+          email,
+        })
+        .finally(() => {
+          info("Código enviado.", "ok");
+          setResendText("01:00");
+          setResendClassName(null);
+          setTimeLeft(60);
+          setStartTimer(true);
+        });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const insertCode = (

@@ -39,7 +39,7 @@
 }
 .react-international-phone-country-selector-button__flag-emoji {
   margin: 0 8px;
-  padding: 4px;
+  padding: 2px;
 }
 .react-international-phone-country-selector-button__flag-emoji--disabled {
   opacity: 0.75;
@@ -99,11 +99,11 @@
   border-radius: 8px;
   position: absolute;
   z-index: 2;
-  top: var(--react-international-phone-dropdown-top, 49px);
-  left: var(--react-international-phone-dropdown-left, 0);
+  top: 60px;
+  left: 0;
   display: flex;
   width: 280px;
-  max-height: 200px;
+  max-height: 180px;
   flex-direction: column;
   padding: 4px 0;
   margin: 0;
@@ -242,6 +242,7 @@
   color: var(--primary-text-color);
   font-weight: 400;
   width: 100%;
+  font-size: var(--paragraph-font-size);
 }
 .react-international-phone-input-container
   .react-international-phone-input:focus {

@@ -21,9 +21,10 @@ function Verify() {
   const [msg, setMsg] = useState(null);
   const [ok, setOk] = useState(null);
 
-  const [resendText, setResendText] = useState("Reenviar código");
-  const [resendClassName, setResendClassName] = useState("cta-text");
-  const [timeLeft, setTimeLeft] = useState(null);
+  const [resendText, setResendText] = useState("01:00");
+  const [resendClassName, setResendClassName] = useState("paragraph");
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [startTimer, setStartTimer] = useState(false);
 
   const wait = useRef(false);
 
@@ -80,7 +81,7 @@ function Verify() {
   }
 
   async function handleChangeEmailClick() {
-    setChangeEmail(true);
+    setChangeEmail((p) => !p);
   }
 
   async function handleChangeEmail(e) {
@@ -133,7 +134,9 @@ function Verify() {
         .get("/resend")
         .then(() => {
           setResendText("01:00");
+          setResendClassName("cta-text");
           setTimeLeft(60);
+          setStartTimer(true);
           show && info("Código enviado no seu email.", "ok");
         })
         .catch((e) => {
@@ -155,15 +158,15 @@ function Verify() {
       handleClearEmail();
     }
   }
+
   //send email
   useEffect(() => {
     if (!wait.current) {
       wait.current = true;
       info("Enviando código...", "loading");
       api.get("/resend").finally(() => {
-        setResendText("01:00");
-        setTimeLeft(60);
         info("Código enviado no seu email.", "ok");
+        setStartTimer(true);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -175,22 +178,25 @@ function Verify() {
 
   //timer effect
   useEffect(() => {
-    if (timeLeft < 0) {
-      wait.current = false;
-      setResendText("Reenviar email");
-      setResendClassName("cta-text");
-      return;
+    if (startTimer) {
+      if (timeLeft < 0) {
+        wait.current = false;
+        setResendText("Reenviar email");
+        setResendClassName("cta-text");
+        setStartTimer(false);
+        return;
+      }
+
+      setResendClassName(null);
+
+      const timer = setInterval(() => {
+        setTimeLeft((p) => p - 1);
+        setResendText(`00:${String(timeLeft - 1).padStart(2, "0")}`);
+      }, 1000);
+
+      return () => clearInterval(timer);
     }
-
-    setResendClassName(null);
-
-    const timer = setInterval(() => {
-      setTimeLeft((p) => p - 1);
-      setResendText(`00:${String(timeLeft - 1).padStart(2, "0")}`);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, startTimer]);
 
   if (!signed) {
     return <Navigate to="/login" />;
