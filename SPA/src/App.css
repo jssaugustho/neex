@@ -348,6 +348,9 @@ body {
     --paragraph-font-size: 3.9vw;
     --small-headline-font-size: 6.8vw;
   }
+  .vertical-padding {
+    padding: 0px 0px 64px 0px;
+  }
   .mobile-column > * {
     width: fit-content;
   }
