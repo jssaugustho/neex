@@ -28,6 +28,20 @@
   }
 }
 
+@media (max-width: 450px) {
+  .mobile-breakpoint-box {
+    height: fit-content;
+  }
+  .form-width {
+    width: 100%;
+    min-width: 320px;
+  }
+  .align-start-column {
+    justify-content: flex-start;
+    min-height: fit-content;
+  }
+}
+
 @media (max-width: 370px) {
   .mobile-breakpoint-box {
     padding-left: 20px;
