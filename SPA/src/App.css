@@ -214,7 +214,6 @@ body {
   font-weight: 500;
   font-size: var(--paragraph-font-size);
   color: var(--common-text-color);
-
   line-height: 160%;
 }
 
@@ -349,7 +348,14 @@ body {
     --small-headline-font-size: 6.8vw;
   }
   .vertical-padding {
+<<<<<<< HEAD
     padding: 0px 0px 64px 0px;
+=======
+    padding: 64px 0px 64px 0px;
+  }
+  .column {
+    justify-content: flex-start;
+>>>>>>> dashboard
   }
   .mobile-column > * {
     width: fit-content;
