@@ -30,12 +30,11 @@ function Recovery() {
   const [ok, setOk] = useState(null);
 
   //temporizador
-  const [resendText, setResendText] = useState("Reenviar email");
+  const [resendText, setResendText] = useState("Reenviar código");
   const [resendClassName, setResendClassName] = useState("register-cta");
-  const [timeLeft, setTimeLeft] = useState(() => {
-    return -1;
-  });
-  const [wait, setWait] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(-1);
+
+  const wait = useRef(false);
 
   //toggle change email input
   const [changeEmail, setChangeEmail] = useState(false);
@@ -67,8 +66,11 @@ function Recovery() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setWait(true);
+
+    wait.current = true;
+
     info("Verificando código...", "loading");
+
     api
       .post("/verify-recovery-code", {
         email,
@@ -76,22 +78,25 @@ function Recovery() {
       })
       .then((r) => {
         if (r.data.status == "Ok") {
-          sessionStorage.setItem("@Auth:token", r.data.token);
-          sessionStorage.setItem("@Auth:refresh-token", r.data.refreshToken);
-          sessionStorage.setItem("@Auth:user", JSON.stringify(r.data.data));
-          sessionStorage.setItem("@Auth:next-step", "/dashboard");
-          api.defaults.headers.common["Authorization"] = r.data.token;
-          setNextStep("/dashboard");
-          setUser({
-            ...r.data.data,
-            emailVerified: true,
-          });
-          setSigned(true);
+          info("Email verificado com sucesso.", "ok");
+          setInterval(() => {
+            sessionStorage.setItem("@Auth:token", r.data.token);
+            sessionStorage.setItem("@Auth:refresh-token", r.data.refreshToken);
+            sessionStorage.setItem("@Auth:user", JSON.stringify(r.data.data));
+            sessionStorage.setItem("@Auth:next-step", "/dashboard");
+            api.defaults.headers.common["Authorization"] = r.data.token;
+            setNextStep("/dashboard");
+            setUser({
+              ...r.data.data,
+              emailVerified: true,
+            });
+            setSigned(true);
+          }, 1000);
         }
       })
       .catch((e) => {
         e.response.data.message && info(e.response.data.message, "error");
-        setWait(false);
+        wait.current = false;
       });
   }
 
@@ -136,27 +141,24 @@ function Recovery() {
   async function handleClearEmail() {
     setChangeEmail(false);
     setNewEmail(email);
-    setMsg(null);
-    setError(null);
-    setOk(null);
   }
 
-  async function handleResendCode() {
-    if (!wait) {
-      setWait(true);
-      info("Enviando código...", "loading");
+  async function handleResendCode(show = true) {
+    if (!wait.current) {
+      wait.current = true;
+      show && info("Enviando código...", "loading");
       api
         .post("/recovery", {
           email,
         })
         .then(() => {
-          info("Código enviado no seu email.", "ok");
+          show && info("Código enviado no seu email.", "ok");
           setResendText("01:00");
           setTimeLeft(60);
         })
         .catch((e) => {
-          info(e.response.data.message, "error");
-          setWait(false);
+          show && info(e.response.data.message, "error");
+          wait.current = false;
         });
     }
   }
@@ -170,7 +172,7 @@ function Recovery() {
 
     if (!wait) {
       if (emailRegex.test(recoveryEmail)) {
-        setWait(true);
+        wait.current = true;
         api
           .post("/recovery", {
             email: recoveryEmail,
@@ -183,11 +185,17 @@ function Recovery() {
           })
           .catch((e) => {
             info(e.response.data.message, "error");
-            setWait(false);
+            wait.current = false;
           });
       } else {
         info("Email inválido", "error");
       }
+    }
+  }
+
+  function handleExit(e) {
+    if (e.keyCode == 27) {
+      handleClearEmail();
     }
   }
 
@@ -206,7 +214,7 @@ function Recovery() {
     if (timeLeft < 0) {
       setResendText("Reenviar email");
       setResendClassName("cta-text");
-      setWait(false);
+      wait.current = false;
       return;
     }
 
@@ -246,6 +254,7 @@ function Recovery() {
                       className="mini-text-input"
                       type="email"
                       value={newEmail}
+                      onKeyDown={handleExit}
                       onChange={(e) => setNewEmail(e.target.value)}
                     />
                     <div className="fit-width-inline">

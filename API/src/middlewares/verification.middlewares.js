@@ -75,7 +75,7 @@ async function generateVerificationCode(req, res, next) {
   let code = randomInt(100000, 999999).toString();
 
   //verify if exists another code
-  let q = await prisma.VerificationCode.findUnique({
+  let q = await prisma.verificationCode.findUnique({
     where: {
       userId: req.userData.id,
     },
@@ -98,7 +98,7 @@ async function generateVerificationCode(req, res, next) {
     }
 
     //update a existent code
-    generate = await prisma.VerificationCode.update({
+    generate = await prisma.verificationCode.update({
       where: {
         userId: req.userData.id,
       },

@@ -1,5 +1,4 @@
 //obrigatory for middlewares
-import { error } from "console";
 import prisma from "../controllers/db.controller.js";
 import crypt from "../core/crypt.js";
 import errors from "../errors/errors.js";
@@ -154,9 +153,15 @@ async function validateUpdateParams(req, res, next) {
     if (!emailRegex.test(req.body.email))
       throw new errors.UserError(response.invalidParam("Email"));
 
-    let q = await prisma.findUnique({
+    let q = await prisma.user.findUnique({
       where: {
         email: req.body.email,
+      },
+    });
+
+    await prisma.verificationCode.deleteMany({
+      where: {
+        userId: req.userData.id,
       },
     });
 
@@ -164,6 +169,7 @@ async function validateUpdateParams(req, res, next) {
 
     //verify email length
     req.updateData.email = req.body.email;
+
     //set emailVerified false in database
     req.updateData.emailVerified = false;
   }

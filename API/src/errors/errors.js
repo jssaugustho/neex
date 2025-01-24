@@ -44,7 +44,7 @@ function response(err, req, res, next) {
   if (err) {
     return res.status(502).send({
       status: "InternalServerError",
-      message: "Erro interno, tente novamente.",
+      message: err.message,
     });
   }
   next();

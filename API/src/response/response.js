@@ -21,7 +21,7 @@ class Response {
   }
   //aguarde para enviar código de verificação novamente.
   waitVerificationCode() {
-    return "Reenvie novamente em 1 minuto.";
+    return "Aguarde o prazo e reenvie o código.";
   }
   succesAuth() {
     return "Autenticado com sucesso.";

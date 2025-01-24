@@ -21,12 +21,11 @@ function Verify() {
   const [msg, setMsg] = useState(null);
   const [ok, setOk] = useState(null);
 
-  const [resendText, setResendText] = useState("Reenviar email");
+  const [resendText, setResendText] = useState("Reenviar código");
   const [resendClassName, setResendClassName] = useState("cta-text");
-  const [timeLeft, setTimeLeft] = useState(() => {
-    return -1;
-  });
-  const [wait, setWait] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
+
+  const wait = useRef(false);
 
   const [changeEmail, setChangeEmail] = useState(false);
   const [newEmail, setNewEmail] = useState(user.email);
@@ -54,7 +53,7 @@ function Verify() {
   async function handleSubmit(e) {
     e.preventDefault();
     info("Verificando código...", "loading");
-    setWait(true);
+    wait.current = true;
 
     let emailVerificationCode = code;
 
@@ -64,16 +63,19 @@ function Verify() {
       })
       .then((r) => {
         if (r.data.status == "Ok") {
-          setNextStep("/dashboard");
-          setUser({
-            ...user,
-            emailVerified: true,
-          });
+          info("Email verificado com sucesso.", "ok");
+          setInterval(() => {
+            setNextStep("/dashboard");
+            setUser({
+              ...user,
+              emailVerified: true,
+            });
+          }, 1000);
         }
       })
       .catch((e) => {
         info(e.response.data.message, "error");
-        setWait(false);
+        wait.current = false;
       });
   }
 
@@ -83,6 +85,7 @@ function Verify() {
 
   async function handleChangeEmail(e) {
     e.preventDefault();
+
     info("Alterando email...", "loading");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -96,59 +99,49 @@ function Verify() {
           .then((r) => {
             console.log(r);
             if (r.data.status === "Ok") {
-              setUser({ ...user, email: newEmail });
+              console.log("Ok");
+              setUser((p) => {
+                return { ...p, email: newEmail };
+              });
               setChangeEmail(false);
-              setMsg(null);
-              setError(null);
-              handleResendCode("hide");
+              wait.current = false;
+              handleResendCode();
             }
           })
           .catch((e) => {
+            console.log(e);
             info(e.response.data.message, "error");
           });
       } else {
         info("Email inválido", "error");
       }
     } else {
-      setMsg(null);
-      setError(null);
-      setChangeEmail(false);
+      handleClearEmail();
     }
   }
 
   async function handleClearEmail() {
     setChangeEmail(false);
     setNewEmail(user.email);
-    setMsg(null);
-    setError(null);
   }
 
-  async function handleResendCode(show) {
-    if (!wait) {
-      setWait(true);
-      info("Enviando código...", "loading");
+  async function handleResendCode(show = true) {
+    if (!wait.current) {
+      wait.current = true;
+      show && info("Enviando código...", "loading");
       api
         .get("/resend")
         .then(() => {
-          setMsg(null);
-          setError(null);
           setResendText("01:00");
           setTimeLeft(60);
-          info("Código enviado no seu email.", "ok");
+          show && info("Código enviado no seu email.", "ok");
         })
         .catch((e) => {
-          if (show != "hide") {
-            info(e.response.data.message, "error");
-            setMsg(null);
-            setWait(false);
-          }
-          if (show == "hide") {
-            setMsg(null);
-            setError(null);
-          }
-          setResendText("01:00");
-          setTimeLeft(60);
+          show && info(e.response.data.message, "error");
+          wait.current = false;
         });
+    } else {
+      show && info("Aguarde o prazo e reenvie o código.");
     }
   }
 
@@ -157,8 +150,23 @@ function Verify() {
     setCode(value);
   }
 
+  function handleExit(e) {
+    if (e.keyCode == 27) {
+      handleClearEmail();
+    }
+  }
+  //send email
   useEffect(() => {
-    handleResendCode();
+    if (!wait.current) {
+      wait.current = true;
+      info("Enviando código...", "loading");
+      api.get("/resend").finally(() => {
+        setResendText("01:00");
+        setTimeLeft(60);
+        info("Código enviado no seu email.", "ok");
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -168,9 +176,9 @@ function Verify() {
   //timer effect
   useEffect(() => {
     if (timeLeft < 0) {
+      wait.current = false;
       setResendText("Reenviar email");
       setResendClassName("cta-text");
-      setWait(false);
       return;
     }
 
@@ -221,6 +229,7 @@ function Verify() {
                             type="email"
                             value={newEmail}
                             onChange={(e) => setNewEmail(e.target.value)}
+                            onKeyDown={handleExit}
                           />
                           <div className="fit-width-inline">
                             <button
