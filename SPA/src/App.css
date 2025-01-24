@@ -214,7 +214,6 @@ body {
   font-weight: 500;
   font-size: var(--paragraph-font-size);
   color: var(--common-text-color);
-
   line-height: 160%;
 }
 
@@ -347,6 +346,12 @@ body {
   .app {
     --paragraph-font-size: 3.9vw;
     --small-headline-font-size: 6.8vw;
+  }
+  .vertical-padding {
+    padding: 64px 0px 64px 0px;
+  }
+  .column {
+    justify-content: flex-start;
   }
   .mobile-column > * {
     width: fit-content;
