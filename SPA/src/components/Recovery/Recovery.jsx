@@ -213,6 +213,18 @@ function Recovery() {
     setCode(value);
   }
 
+  function handleChangeEmailEnter(e) {
+    if (e.keyCode === 13) {
+      setChangeEmail((p) => !p);
+    }
+  }
+
+  function handleResendEnter(e) {
+    if (e.keyCode === 13) {
+      if (!wait.current) handleResendCode();
+    }
+  }
+
   //select alterar email
   useEffect(() => {
     if (emailInput.current) emailInput.current.select();
@@ -306,7 +318,10 @@ function Recovery() {
                     <EditIcon />
                   </div>
                   <div
+                    role="button"
+                    tabIndex={0}
                     className="paragraph cta-text"
+                    onKeyDown={handleChangeEmailEnter}
                     onClick={handleChangeEmailClick}
                   >
                     Alterar email
@@ -390,7 +405,10 @@ function Recovery() {
               <div className="inline-flex-center micro-gap">
                 <p className="paragraph">Não recebeu o código? </p>
                 <div
+                  role="button"
+                  tabIndex={0}
                   onClick={handleResendCode}
+                  onKeyDown={handleResendEnter}
                   className={`paragraph ${resendClassName}`}
                 >
                   {resendText}

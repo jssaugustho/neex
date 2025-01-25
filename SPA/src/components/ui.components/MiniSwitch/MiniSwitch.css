@@ -8,6 +8,10 @@
   overflow: hidden;
 }
 
+.switch-label:focus-within {
+  transform: scale(108%);
+}
+
 /* Hide default HTML checkbox */
 .switch-label input {
   opacity: 0;

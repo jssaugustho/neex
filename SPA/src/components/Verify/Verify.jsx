@@ -159,6 +159,18 @@ function Verify() {
     }
   }
 
+  function handleChangeEmailEnter(e) {
+    if (e.key === "Enter") {
+      handleChangeEmailClick();
+    }
+  }
+
+  function handleResendEnter(e) {
+    if (e.key === "Enter") {
+      if (!wait.current) handleResendCode();
+    }
+  }
+
   //send email
   useEffect(() => {
     if (!wait.current) {
@@ -260,7 +272,10 @@ function Verify() {
                           <EditIcon />
                         </div>
                         <div
+                          role="button"
+                          tabIndex={0}
                           className="paragraph cta-text"
+                          onKeyDown={handleChangeEmailEnter}
                           onClick={handleChangeEmailClick}
                         >
                           Alterar email
@@ -343,6 +358,9 @@ function Verify() {
                     <div className="inline-flex-center micro-gap">
                       <p className="paragraph">Não recebeu o código?</p>
                       <div
+                        role="button"
+                        tabIndex={1}
+                        onKeyDown={handleResendEnter}
                         onClick={handleResendCode}
                         className={`paragraph ${resendClassName}`}
                       >

@@ -168,6 +168,10 @@ body {
   font-size: 16px;
 }
 
+.cta-button:focus {
+  transform: scale(102%);
+}
+
 .cta-button:hover {
   background: var(--common-text-color);
   color: var(--contrast-color);
@@ -252,7 +256,19 @@ body {
   background: var(--contrast-color);
   border: none;
   font-size: var(--paragraph-font-size);
-  border: 2px solid var(--accent-text-color) inset;
+  border: 1px solid transparent outset;
+}
+
+.text-input:focus {
+  outline: none !important;
+  border-color: var(--common-text-color);
+  border-style: inset;
+}
+
+.text-input:-webkit-autofill {
+  box-shadow: 0 0 0px 1000px var(--contrast-color) inset;
+  -webkit-text-fill-color: var(--primary-text-color);
+  border: 4px solid var(--contrast-color) inset;
 }
 
 .mini-text-input {
