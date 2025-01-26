@@ -36,9 +36,10 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <nav className="sidebar mid-gap">
-        <div className="small-horizontal-padding">
-          <div className="inline-flex-center profile small-gap">
+      <nav className="sidebar ">
+        <div className="close-button gradient-bg"></div>
+        <div className="small-horizontal-padding profile-box">
+          <div className="inline-flex-center small-gap profile">
             <div className="box">
               <div className="mid-profile-image"></div>
             </div>
@@ -52,7 +53,14 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        <ul className="y-nav-section nav-items">
+        <ul className="y-nav-section nav-items nav-box">
+          <li className="nav-item accent-nav-item">
+            <div className="content-box gradient-bg nav-cta-bg">
+              <button className="nav-link accent-link" to="#">
+                <p className="nav-link-text">Começar Agora</p>
+              </button>
+            </div>
+          </li>
           <li className="nav-item">
             <NavLink className="nav-link" to="#">
               <p className="nav-link-text">Visão Geral</p>
@@ -89,9 +97,17 @@ const Dashboard = () => {
             </NavLink>
           </li>
         </ul>
-        <div className="logout">
-          <div className="nav-item" role="button" tabIndex={0}>
-            Sair
+        <div className="content-box logout-box">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={handleUserLogout}
+            className="flex-row-center small-gap logout-button"
+          >
+            <div className="box mid-icon-box gradient-bg"></div>
+            <div className="flex-row-center" role="button" tabIndex={0}>
+              Sair
+            </div>
           </div>
         </div>
       </nav>

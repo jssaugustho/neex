@@ -173,14 +173,20 @@ body {
 
 .cta-button:focus {
   transform: scale(102%);
+  backdrop-filter: brightness(120%);
 }
 
 .cta-button:hover {
-  backdrop-filter: brightness(140%);
+  backdrop-filter: brightness(120%);
 }
 
 .gradient-bg {
   background: var(--main-gradient);
+}
+
+.small-horizontal-padding {
+  padding: 0px 16px;
+  width: 100%;
 }
 
 .inline-column {
@@ -353,6 +359,17 @@ body {
   background-color: var(--background-color);
 }
 
+.horizontal-separator {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--contrast-color) 0%,
+    var(--background-color) 50%,
+    var(--contrast-color) 100%
+  );
+  width: 100%;
+}
+
 .button-ul .btn {
   background: transparent;
   border: none;
@@ -365,6 +382,11 @@ body {
 }
 
 .button-ul .btn:hover {
+  cursor: pointer;
+  backdrop-filter: brightness(140%);
+}
+
+.button-ul .btn:focus {
   cursor: pointer;
   backdrop-filter: brightness(140%);
 }
@@ -388,6 +410,12 @@ body {
 
 .y-scroll-section::-webkit-scrollbar-thumb:hover {
   background: var(--hover-color);
+}
+
+.mid-icon-box {
+  width: 40px;
+  aspect-ratio: 1;
+  border-radius: 8px;
 }
 
 @media (max-width: 800px) {
