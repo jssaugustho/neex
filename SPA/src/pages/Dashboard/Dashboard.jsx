@@ -1,11 +1,16 @@
 import "./Dashboard.css";
 
 import { useState } from "react";
+
 import useAuth from "../../contexts/auth/auth.hook.jsx";
+
 import objectParser from "../../utils/objectParser/objectParser.jsx";
+
+import { NavLink, Outlet } from "react-router";
 
 const Dashboard = () => {
   const { user, setUser, api, signOut } = useAuth();
+
   const [msg, setMsg] = useState(objectParser(user));
 
   function handleUserUpdate(e) {
@@ -30,20 +35,82 @@ const Dashboard = () => {
   }
 
   return (
-    <>
-      <div className="dashboard">
-        <h1 className="title">Dashboard</h1>
-        <div className="list">{msg}</div>
-        <div className="buttons">
-          <button className="btn" onClick={handleUserUpdate}>
-            Atualizar
-          </button>
-          <button className="btn" onClick={handleUserLogout}>
-            Sair
-          </button>
+    <div className="dashboard">
+      <nav className="sidebar mid-gap">
+        <div className="small-horizontal-padding">
+          <div className="inline-flex-center profile small-gap">
+            <div className="box">
+              <div className="mid-profile-image"></div>
+            </div>
+            <div className=" content-box profile-data micro-gap">
+              <div className="paragraph profile-name">{user.name}</div>
+              <div className="paragraph profile-email">{user.email}</div>
+            </div>
+          </div>
         </div>
-      </div>
-    </>
+        <ul className="y-scroll-section nav-items">
+          <li className="nav-item">
+            <NavLink className="nav-link" to="#">
+              <p className="nav-link-text">Visão Geral</p>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink className="nav-link" to="#">
+              <p className="nav-link-text">Leads</p>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink className="nav-link" to="#">
+              <p className="nav-link-text">Campanhas</p>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink className="nav-link" to="#">
+              <p className="nav-link-text">Páginas</p>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink className="nav-link" to="#">
+              <p className="nav-link-text">Formulários</p>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink className="nav-link" to="#">
+              <p className="nav-link-text">Configurações</p>
+            </NavLink>
+          </li>
+        </ul>
+        <div className="logout">
+          <div className="nav-item" role="button" tabIndex={0}>
+            Sair
+          </div>
+        </div>
+      </nav>
+      <main className="content-box main-content mid-gap">
+        <header className="content-box dashboard-title">
+          <h1 className="dashboard-title">Bem vindo {user.name}.</h1>
+        </header>
+        <section>
+          <div className="content-box align-left mid-gap">
+            <h1 className="small-headline align-left">Visão Geral</h1>
+            <div className="content-box align-left">{msg}</div>
+            <ul className="flex-row-center button-ul">
+              <li className="button-ul-li">
+                <button className="btn" onClick={handleUserUpdate}>
+                  Atualizar
+                </button>
+              </li>
+              <li className="vertical-separator"></li>
+              <li className="button-ul-li">
+                <button className="btn" onClick={handleUserLogout}>
+                  Sair
+                </button>
+              </li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
   );
 };
 

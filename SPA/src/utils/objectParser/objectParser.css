@@ -1,15 +1,8 @@
-.text {
-  text-align: center;
-  font-weight: 300;
-}
-
-.bold {
-  font-weight: 600;
-}
-
-.list {
+.params-list {
   list-style: none;
-  display: inline-flex;
-  flex-direction: column;
-  gap: 16px;
+  gap: 8px;
+}
+
+.param-name {
+  font-weight: 700;
 }
