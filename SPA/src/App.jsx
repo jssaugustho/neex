@@ -17,7 +17,7 @@ function App() {
   const themeData = useContext(ThemeContext);
 
   return (
-    <div className={`app ${themeData.theme}`}>
+    <div className={`y-scroll-section app ${themeData.theme}`}>
       <RouterProvider router={router} />
     </div>
   );

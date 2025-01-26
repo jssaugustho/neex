@@ -43,12 +43,16 @@ const Dashboard = () => {
               <div className="mid-profile-image"></div>
             </div>
             <div className=" content-box profile-data micro-gap">
-              <div className="paragraph profile-name">{user.name}</div>
-              <div className="paragraph profile-email">{user.email}</div>
+              <div className="paragraph ellipsis-text profile-name">
+                {user.name}
+              </div>
+              <div className="paragraph ellipsis-text profile-email">
+                {user.email}
+              </div>
             </div>
           </div>
         </div>
-        <ul className="y-scroll-section nav-items">
+        <ul className="y-nav-section nav-items">
           <li className="nav-item">
             <NavLink className="nav-link" to="#">
               <p className="nav-link-text">Visão Geral</p>
@@ -57,6 +61,11 @@ const Dashboard = () => {
           <li className="nav-item">
             <NavLink className="nav-link" to="#">
               <p className="nav-link-text">Leads</p>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink className="nav-link" to="#">
+              <p className="nav-link-text">Financeiro</p>
             </NavLink>
           </li>
           <li className="nav-item">
@@ -86,7 +95,7 @@ const Dashboard = () => {
           </div>
         </div>
       </nav>
-      <main className="content-box main-content mid-gap">
+      <main className="y-scroll-section content-box main-content mid-gap">
         <header className="content-box dashboard-title">
           <h1 className="dashboard-title">Bem vindo {user.name}.</h1>
         </header>

@@ -6,10 +6,17 @@
   width: 40px;
   height: 20px;
   overflow: hidden;
+  transition: 0.4s;
 }
 
 .switch-label:focus-within {
-  transform: scale(108%);
+  transform: scale(106%);
+  filter: brightness(120%);
+}
+
+.switch-label:hover {
+  transform: scale(106%);
+  filter: brightness(120%);
 }
 
 /* Hide default HTML checkbox */

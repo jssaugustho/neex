@@ -369,7 +369,7 @@ function Verify() {
                     </div>
                   </div>
                 </div>
-                <div className="bg-button">
+                <div className="button-bg">
                   <button className="cta-button" type="submit">
                     Verificar Código
                   </button>

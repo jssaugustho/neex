@@ -47,7 +47,28 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  padding-right: 8px;
+  padding-right: 16px;
+}
+
+.y-nav-section {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.y-nav-section::-webkit-scrollbar {
+  background: transparent;
+  width: 14px;
+}
+
+.y-nav-section::-webkit-scrollbar-thumb {
+  box-sizing: content-box;
+  background: var(--background-color);
+  border: 4px solid var(--contrast-color);
+  border-radius: 8px;
+}
+
+.y-nav-section::-webkit-scrollbar-thumb:hover {
+  background: var(--hover-color);
 }
 
 .nav-link {
@@ -63,7 +84,7 @@
   padding: 16px 16px;
   width: 100%;
   height: 100%;
-  background-color: var(--hover-color);
+  backdrop-filter: brightness(140%);
 }
 
 .nav-link-text {
@@ -102,20 +123,12 @@
   width: 100%;
   font-size: 14px;
   font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
 }
 
 .profile-email {
   width: 100%;
   font-size: 12px;
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
 }
 
 .profile-data > *:hover {

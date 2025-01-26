@@ -273,7 +273,7 @@ export default function Register() {
                   </div>
                 </div>
               </div>
-              <div className="bg-button">
+              <div className="button-bg">
                 <button className="cta-button" type="submit">
                   Criar Conta
                 </button>
