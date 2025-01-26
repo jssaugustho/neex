@@ -73,11 +73,6 @@ const Dashboard = () => {
           </li>
           <li className="nav-item">
             <NavLink className="nav-link" to="#">
-              <p className="nav-link-text">Financeiro</p>
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink className="nav-link" to="#">
               <p className="nav-link-text">Campanhas</p>
             </NavLink>
           </li>
@@ -89,6 +84,11 @@ const Dashboard = () => {
           <li className="nav-item">
             <NavLink className="nav-link" to="#">
               <p className="nav-link-text">Formulários</p>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink className="nav-link" to="#">
+              <p className="nav-link-text">Finanças</p>
             </NavLink>
           </li>
           <li className="nav-item">

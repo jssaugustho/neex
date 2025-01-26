@@ -129,6 +129,7 @@
   font-weight: 700;
   font-size: var(--paragraph-font-size);
   text-align: left;
+  color: #f5f5f5;
 }
 
 .nav-cta-bg {
