@@ -1,16 +1,21 @@
 import { lazy, Suspense } from "react";
 
 import PrivateRoutes from "./PrivateRoutes.jsx";
+
 import PreLoaderRoute from "./PreLoaderRoutes.jsx";
 
 import Home from "../components/Home/Home.jsx";
-import Dashboard from "../pages/Dashboard/Dashboard.jsx";
 
 import AuthLayout from "../pages/AuthLayout/AuthLayout.jsx";
+import AuthLoader from "../components/AuthLoader/AuthLoader.jsx";
+import AuthLoaderRoutes from "./AuthLoaderRoutes.jsx";
 const Register = lazy(() => import("../components/Register/Register.jsx"));
 const Login = lazy(() => import("../components/Login/Login.jsx"));
 const Verify = lazy(() => import("../components/Verify/Verify.jsx"));
 const Recovery = lazy(() => import("../components/Recovery/Recovery.jsx"));
+
+import Dashboard from "../pages/Dashboard/Dashboard.jsx";
+import DashboardLoader from "../components/DashboardLoader/DashboardLoader.jsx";
 const VisaoGeral = lazy(() =>
   import("../components/VisaoGeral/VisaoGeral.jsx")
 );
@@ -24,12 +29,9 @@ const Configuracoes = lazy(() =>
   import("../components/Configuracoes/Configuracoes.jsx")
 );
 
-import ComponentLoader from "./ComponentLoader.jsx";
 import Loader from "../components/AuthLoader/AuthLoader.jsx";
 import PreLoader from "../components/PreLoader/PreLoader.jsx";
-import AuthLayoutLoader from "./ComponentLoader.jsx";
-import AuthLoader from "../components/AuthLoader/AuthLoader.jsx";
-import DashboardLoader from "../components/DashboardLoader/DashboardLoader.jsx";
+import DashboardLoaderRoutes from "./DashboardLoaderRoutes.jsx";
 
 const AppRoutes = [
   {
@@ -40,7 +42,7 @@ const AppRoutes = [
     element: <AuthLayout />,
     children: [
       {
-        element: <AuthLayoutLoader />,
+        element: <AuthLoaderRoutes />,
         children: [
           {
             path: "login",
@@ -91,59 +93,64 @@ const AppRoutes = [
                 <Dashboard />
               </Suspense>
             ),
-            errorElement: <Loader />,
             children: [
               {
-                path: "dashboard",
-                element: (
-                  <Suspense fallback={<DashboardLoader />}>
-                    <VisaoGeral />
-                  </Suspense>
-                ),
-              },
-              {
-                path: "leads",
-                element: (
-                  <Suspense fallback={<DashboardLoader />}>
-                    <Leads />
-                  </Suspense>
-                ),
-              },
-              {
-                path: "campanhas",
-                element: (
-                  <Suspense fallback={<DashboardLoader />}>
-                    <Campanhas />
-                  </Suspense>
-                ),
-              },
-              {
-                path: "forms",
-                element: (
-                  <Suspense fallback={<DashboardLoader />}>
-                    <Formularios />
-                  </Suspense>
-                ),
-              },
-              {
-                path: "pages",
-                element: (
-                  <Suspense fallback={<DashboardLoader />}>
-                    <Paginas />
-                  </Suspense>
-                ),
-              },
-              {
-                path: "settings",
-                element: (
-                  <Suspense fallback={<DashboardLoader />}>
-                    <Configuracoes />
-                  </Suspense>
-                ),
-              },
-              {
-                path: "*",
-                element: <DashboardLoader />,
+                element: <DashboardLoaderRoutes />,
+                errorElement: <Loader />,
+                children: [
+                  {
+                    path: "dashboard",
+                    element: (
+                      <Suspense fallback={<DashboardLoader />}>
+                        <VisaoGeral />
+                      </Suspense>
+                    ),
+                  },
+                  {
+                    path: "leads",
+                    element: (
+                      <Suspense fallback={<DashboardLoader />}>
+                        <Leads />
+                      </Suspense>
+                    ),
+                  },
+                  {
+                    path: "campanhas",
+                    element: (
+                      <Suspense fallback={<DashboardLoader />}>
+                        <Campanhas />
+                      </Suspense>
+                    ),
+                  },
+                  {
+                    path: "forms",
+                    element: (
+                      <Suspense fallback={<DashboardLoader />}>
+                        <Formularios />
+                      </Suspense>
+                    ),
+                  },
+                  {
+                    path: "pages",
+                    element: (
+                      <Suspense fallback={<DashboardLoader />}>
+                        <Paginas />
+                      </Suspense>
+                    ),
+                  },
+                  {
+                    path: "settings",
+                    element: (
+                      <Suspense fallback={<DashboardLoader />}>
+                        <Configuracoes />
+                      </Suspense>
+                    ),
+                  },
+                  {
+                    path: "*",
+                    element: <DashboardLoader />,
+                  },
+                ],
               },
             ],
           },

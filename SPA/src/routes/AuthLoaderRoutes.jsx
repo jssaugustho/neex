@@ -4,7 +4,7 @@ import { useLayoutEffect, useState } from "react";
 
 import AuthLoader from "../components/AuthLoader/AuthLoader.jsx";
 
-const AuthLayoutLoader = ({ time = 800 }) => {
+const AuthLoaderRoutes = ({ time = 800 }) => {
   const [loading, setLoading] = useState(false);
 
   const navigation = useLocation();
@@ -21,4 +21,4 @@ const AuthLayoutLoader = ({ time = 800 }) => {
   return <>{loading ? <AuthLoader /> : <Outlet />}</>;
 };
 
-export default AuthLayoutLoader;
+export default AuthLoaderRoutes;

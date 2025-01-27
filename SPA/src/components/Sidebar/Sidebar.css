@@ -331,9 +331,10 @@
 }
 
 .logout-icon {
-  font-size: 20px;
+  color: #f5f5f5;
+  font-size: 18px;
   text-align: center;
-  line-height: 100%;
+  line-height: 10%;
 }
 
 .mid-icon-box {
