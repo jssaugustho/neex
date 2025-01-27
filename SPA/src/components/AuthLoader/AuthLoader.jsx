@@ -1,14 +1,12 @@
-import "./Loader.css";
+import "./AuthLoader.css";
 
 import { motion } from "framer-motion";
 
-import BigLoadSpinner from "../../assets/BigLoadSpinner";
-
-export default function Loader() {
+export default function AuthLoader() {
   return (
     <motion.div
-      className="login-motion-div"
-      layoutId="Login"
+      className="column auth-loader"
+      layoutId="AuthLoader"
       initial={{
         opacity: 0,
       }}
@@ -20,9 +18,7 @@ export default function Loader() {
         duration: 0.4,
       }}
     >
-      <div className="loader">
-        <BigLoadSpinner className="loader" />
-      </div>
+      <div className="loader"></div>
     </motion.div>
   );
 }

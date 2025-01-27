@@ -64,7 +64,7 @@ export default function Login() {
           duration: 0.4,
         }}
       >
-        <div className="content-box fill">
+        <div className="content-box">
           <form method="post" onSubmit={handleSubmit}>
             <div className="content-box mid-gap">
               <div className="content-box small-gap">

@@ -29,7 +29,7 @@ function NavItem({
           >
             {icon && (
               <div className="content-box nav-icon-box">
-                <i className={`${icon} nav-icon`}></i>
+                <i className={`${icon} nav-icon cta-icon`}></i>
               </div>
             )}
             <p className="nav-link-text">{children}</p>

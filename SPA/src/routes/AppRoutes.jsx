@@ -25,8 +25,11 @@ const Configuracoes = lazy(() =>
 );
 
 import ComponentLoader from "./ComponentLoader.jsx";
-import Loader from "../components/Loader/Loader.jsx";
+import Loader from "../components/AuthLoader/AuthLoader.jsx";
 import PreLoader from "../components/PreLoader/PreLoader.jsx";
+import AuthLayoutLoader from "./ComponentLoader.jsx";
+import AuthLoader from "../components/AuthLoader/AuthLoader.jsx";
+import DashboardLoader from "../components/DashboardLoader/DashboardLoader.jsx";
 
 const AppRoutes = [
   {
@@ -37,12 +40,12 @@ const AppRoutes = [
     element: <AuthLayout />,
     children: [
       {
-        element: <ComponentLoader />,
+        element: <AuthLayoutLoader />,
         children: [
           {
             path: "login",
             element: (
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<AuthLoader />}>
                 <Login />
               </Suspense>
             ),
@@ -50,7 +53,7 @@ const AppRoutes = [
           {
             path: "register",
             element: (
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<AuthLoader />}>
                 <Register />
               </Suspense>
             ),
@@ -59,7 +62,7 @@ const AppRoutes = [
           {
             path: "verify",
             element: (
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<AuthLoader />}>
                 <Verify />
               </Suspense>
             ),
@@ -67,7 +70,7 @@ const AppRoutes = [
           {
             path: "recovery",
             element: (
-              <Suspense fallback={<Loader />}>
+              <Suspense fallback={<AuthLoader />}>
                 <Recovery />
               </Suspense>
             ),
@@ -93,7 +96,7 @@ const AppRoutes = [
               {
                 path: "dashboard",
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<DashboardLoader />}>
                     <VisaoGeral />
                   </Suspense>
                 ),
@@ -101,7 +104,7 @@ const AppRoutes = [
               {
                 path: "leads",
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<DashboardLoader />}>
                     <Leads />
                   </Suspense>
                 ),
@@ -109,7 +112,7 @@ const AppRoutes = [
               {
                 path: "campanhas",
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<DashboardLoader />}>
                     <Campanhas />
                   </Suspense>
                 ),
@@ -117,7 +120,7 @@ const AppRoutes = [
               {
                 path: "forms",
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<DashboardLoader />}>
                     <Formularios />
                   </Suspense>
                 ),
@@ -125,7 +128,7 @@ const AppRoutes = [
               {
                 path: "pages",
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<DashboardLoader />}>
                     <Paginas />
                   </Suspense>
                 ),
@@ -133,14 +136,14 @@ const AppRoutes = [
               {
                 path: "settings",
                 element: (
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<DashboardLoader />}>
                     <Configuracoes />
                   </Suspense>
                 ),
               },
               {
                 path: "*",
-                element: <Loader />,
+                element: <DashboardLoader />,
               },
             ],
           },

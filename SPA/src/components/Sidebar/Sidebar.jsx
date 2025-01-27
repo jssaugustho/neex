@@ -17,7 +17,9 @@ function Sidebar() {
       <div className="small-horizontal-padding profile-box">
         <div className="inline-flex-center small-gap profile">
           <div className="box">
-            <div className="mid-profile-image"></div>
+            <div className="content-box mid-profile-image">
+              <i className="fi fi-ss-user user-icon"></i>
+            </div>
           </div>
           <div className=" content-box profile-data micro-gap">
             <div className="paragraph ellipsis-text profile-name">
@@ -36,7 +38,7 @@ function Sidebar() {
         <NavItem link="/dashboard" icon="fi fi-rr-dashboard">
           Visão Geral
         </NavItem>
-        <NavItem link="/leads" icon="fi fi-rr-user-headset">
+        <NavItem link="/leads" icon="fi fi-rr-users">
           Leads
         </NavItem>
         <NavItem link="/campanhas" icon="fi fi-rr-megaphone">
@@ -72,7 +74,9 @@ function Sidebar() {
           onClick={handleUserLogout}
           className="flex-row-center small-gap logout-button"
         >
-          <div className="box mid-icon-box gradient-bg"></div>
+          <div className="content-box mid-icon-box gradient-bg">
+            <i className="fi fi-rr-sign-out-alt logout-icon"></i>
+          </div>
           <div className="flex-row-center" role="button" tabIndex={0}>
             Sair
           </div>

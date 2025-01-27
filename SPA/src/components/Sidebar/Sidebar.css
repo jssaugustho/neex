@@ -160,9 +160,14 @@
 
 .nav-icon {
   color: var(--primary-text-color);
-  font-size: 100%;
+  font-size: 20px;
   line-height: 100%;
   vertical-align: middle;
+}
+
+.cta-icon {
+  font-size: 100%;
+  color: #f5f5f5;
 }
 
 .sub-items {
@@ -170,6 +175,7 @@
   opacity: 0;
   transition: 0.4s;
   transform: translateY(0);
+  gap: 4px;
 }
 
 .visible {
@@ -198,17 +204,19 @@
 }
 
 .sub-nav-link:hover {
-  background-color: var(--background-color);
+  padding: 16px 0px;
+  padding-left: 48px;
+  background-color: var(--contrast-color);
 }
 
 .sub-nav-link-active {
   width: 100%;
-  padding: 8px 0px;
+  padding: 16px 0px;
   padding-left: 48px;
   text-decoration: none;
   border-radius: 0 8px 8px 0;
   transition: 0.4s;
-  background-color: var(--background-color);
+  background-color: var(--contrast-color);
 }
 
 .accent-nav-item {
@@ -264,9 +272,20 @@
 
 .mid-profile-image {
   width: 40px;
-  aspect-ratio: 1;
+  height: 40px;
   background: var(--main-gradient);
   border-radius: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0px;
+}
+
+.user-icon {
+  font-size: 30px;
+  color: #f5f5f5;
+  text-align: center;
+  line-height: 0%;
+  padding: 0px;
 }
 
 .profile-data {
@@ -309,4 +328,19 @@
   padding-top: 0px;
   padding-right: 16px;
   height: fit-content;
+}
+
+.logout-icon {
+  font-size: 20px;
+  text-align: center;
+  line-height: 100%;
+}
+
+.mid-icon-box {
+  width: fit-content;
+  aspect-ratio: 1;
+  display: flex;
+  padding: 8px;
+  align-items: center;
+  justify-content: center;
 }
