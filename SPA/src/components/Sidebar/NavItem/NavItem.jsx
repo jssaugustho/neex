@@ -41,7 +41,7 @@ function NavItem({
           onMouseLeave={() => setShowSub(false)}
           className={`content-box ${
             link.includes(location.pathname) || isActive.length > 0
-              ? subLinks.lenght > 0
+              ? subLinks.length > 0
                 ? "nav-link-box-active-sub-link"
                 : "nav-link-box-active"
               : "nav-link-box"

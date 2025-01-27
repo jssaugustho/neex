@@ -45,7 +45,7 @@ function Sidebar() {
         <NavItem link="/forms" icon="fi fi-rr-form">
           Formulários
         </NavItem>
-        <NavItem link="pages" icon="fi fi-rr-file-user">
+        <NavItem link="/pages" icon="fi fi-rr-file-user">
           Páginas
         </NavItem>
         <NavItem
