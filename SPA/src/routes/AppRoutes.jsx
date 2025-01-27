@@ -11,6 +11,18 @@ const Register = lazy(() => import("../components/Register/Register.jsx"));
 const Login = lazy(() => import("../components/Login/Login.jsx"));
 const Verify = lazy(() => import("../components/Verify/Verify.jsx"));
 const Recovery = lazy(() => import("../components/Recovery/Recovery.jsx"));
+const VisaoGeral = lazy(() =>
+  import("../components/VisaoGeral/VisaoGeral.jsx")
+);
+const Leads = lazy(() => import("../components/Leads/Leads.jsx"));
+const Campanhas = lazy(() => import("../components/Campanhas/Campanhas.jsx"));
+const Formularios = lazy(() =>
+  import("../components/Formularios/Formularios.jsx")
+);
+const Paginas = lazy(() => import("../components/Paginas/Paginas.jsx"));
+const Configuracoes = lazy(() =>
+  import("../components/Configuracoes/Configuracoes.jsx")
+);
 
 import ComponentLoader from "./ComponentLoader.jsx";
 import Loader from "../components/Loader/Loader.jsx";
@@ -71,12 +83,66 @@ const AppRoutes = [
         element: <PreLoaderRoute />,
         children: [
           {
-            path: "dashboard",
             element: (
               <Suspense fallback={<PreLoader />}>
                 <Dashboard />
               </Suspense>
             ),
+            errorElement: <Loader />,
+            children: [
+              {
+                path: "dashboard",
+                element: (
+                  <Suspense fallback={<Loader />}>
+                    <VisaoGeral />
+                  </Suspense>
+                ),
+              },
+              {
+                path: "leads",
+                element: (
+                  <Suspense fallback={<Loader />}>
+                    <Leads />
+                  </Suspense>
+                ),
+              },
+              {
+                path: "campanhas",
+                element: (
+                  <Suspense fallback={<Loader />}>
+                    <Campanhas />
+                  </Suspense>
+                ),
+              },
+              {
+                path: "forms",
+                element: (
+                  <Suspense fallback={<Loader />}>
+                    <Formularios />
+                  </Suspense>
+                ),
+              },
+              {
+                path: "pages",
+                element: (
+                  <Suspense fallback={<Loader />}>
+                    <Paginas />
+                  </Suspense>
+                ),
+              },
+              {
+                path: "settings",
+                element: (
+                  <Suspense fallback={<Loader />}>
+                    <Configuracoes />
+                  </Suspense>
+                ),
+              },
+              {
+                path: "*",
+                element: <Loader />,
+              },
+            ],
           },
         ],
       },

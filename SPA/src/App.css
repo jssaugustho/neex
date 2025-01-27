@@ -1,3 +1,5 @@
+@import "../node_modules/@flaticon/flaticon-uicons/css/all/all.css";
+
 .light-theme {
   --main-gradient: linear-gradient(88deg, #0f59b2 5.61%, #00ccf5 94.39%);
   --primary-text-color: #00010b;
@@ -196,6 +198,7 @@ body {
 
 .inline-flex-center {
   width: 100%;
+  height: fit-content;
   display: inline-flex;
   flex-direction: row;
   align-items: center;
