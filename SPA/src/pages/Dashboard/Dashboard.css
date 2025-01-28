@@ -2,5 +2,9 @@
   width: 100%;
   display: flex;
   flex-direction: row;
-  --sidebar-width: 280px;
+  --sidebar-width: 260px;
+}
+
+.collapse {
+  --sidebar-width: 100px;
 }

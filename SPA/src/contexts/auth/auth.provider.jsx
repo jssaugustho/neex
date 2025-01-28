@@ -8,6 +8,8 @@ function AuthProvider({ children }) {
   const [signed, setSigned] = useState(false);
   const [nextStep, setNextStep] = useState("/dashboard");
 
+  const [toggleNavBar, setToggleNavBar] = useState(false);
+
   const api = initApi(signOut);
 
   async function post(route, data) {
@@ -163,6 +165,8 @@ function AuthProvider({ children }) {
         signIn,
         signUp,
         signOut,
+        toggleNavBar,
+        setToggleNavBar,
       }}
     >
       {children}
