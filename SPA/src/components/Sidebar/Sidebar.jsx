@@ -33,7 +33,7 @@ function Sidebar() {
       </div>
       <ul className="y-nav-section nav-items nav-box">
         <NavItem icon="fi fi-sr-play" cta={true}>
-          Começar Agora
+          Passo a Passo
         </NavItem>
         <NavItem link="/dashboard" icon="fi fi-rr-dashboard">
           Visão Geral

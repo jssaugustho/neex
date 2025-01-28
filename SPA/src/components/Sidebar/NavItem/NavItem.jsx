@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import "./NavItem.css";
+
+import { useState } from "react";
 
 import { NavLink, useLocation } from "react-router";
 
@@ -44,6 +46,8 @@ function NavItem({
               ? subLinks.length > 0
                 ? "nav-link-box-active-sub-link"
                 : "nav-link-box-active"
+              : subLinks.length > 0
+              ? "nav-link-box-sub-link"
               : "nav-link-box"
           }`}
         >
@@ -70,7 +74,9 @@ function NavItem({
 
           <ul
             className={`content-box sub-items mini-gap ${
-              showSub || isActive.length > 0 ? "visible" : "invisible"
+              showSub || isActive.length > 0
+                ? "sub-items-visible"
+                : "sub-items-invisible"
             }`}
           >
             {subLinks.map((subLink, index) => (
