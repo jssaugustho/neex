@@ -1,4 +1,4 @@
-import "./VisaoGeral.css";
+import "./Plan.css";
 
 import { useState } from "react";
 
@@ -7,9 +7,8 @@ import objectParser from "../../utils/objectParser/objectParser";
 import useAuth from "../../contexts/auth/auth.hook";
 
 import { motion } from "framer-motion";
-import ContentWarning from "../ContentWarning/ContentWarning";
 
-function VisaoGeral() {
+function Plan() {
   const { user, setUser, api, signOut } = useAuth();
 
   const [msg, setMsg] = useState(objectParser(user));
@@ -42,12 +41,11 @@ function VisaoGeral() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <header className="content-box dashboard-title mid-gap padding-content">
-        <h2 className="dashboard-title">Bem vindo {user.name}.</h2>
-        <h1 className="small-headline align-left">Visão Geral</h1>
+      <header className="content-box dashboard-title mid-gap">
+        <h1 className="small-headline align-left">Assinaturas</h1>
       </header>
       <section>
-        <div className="content-box align-left mid-gap padding-content">
+        <div className="content-box align-left mid-gap">
           <div className="content-box align-left">{msg}</div>
           <ul className="flex-row-center button-ul">
             <li className="button-ul-li">
@@ -68,4 +66,4 @@ function VisaoGeral() {
   );
 }
 
-export default VisaoGeral;
+export default Plan;

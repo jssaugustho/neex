@@ -24,6 +24,7 @@
   justify-content: center;
   cursor: pointer;
   padding: 0;
+  overflow: hidden;
 }
 
 .close-button-icon-box {
@@ -99,104 +100,8 @@
   line-height: 160%;
 }
 
-.profile-box {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: fit-content;
-  padding: 0px 16px;
-  padding-bottom: 32px;
-}
-
-.profile {
-  overflow: hidden;
-  width: 100%;
-  height: fit-content;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: 0.4s;
-}
-
-.mid-profile-image {
-  width: 40px;
-  height: 40px;
-  background: var(--main-gradient);
-  border-radius: 8px;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0px;
-}
-
-.user-icon {
-  font-size: 30px;
-  color: #f5f5f5;
-  text-align: center;
-  line-height: 0;
-  padding: 0px;
-}
-
-.profile-data {
-  transition: 0.4s;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  gap: 0px;
-  padding-right: 32px;
-}
-
-.profile-name {
-  width: 100%;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.profile-email {
-  width: 100%;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.profile-data > *:hover {
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.logout-button {
-  padding: 16px 32px;
-  height: fit-content;
-  align-items: center;
-  border-radius: 0 8px 8px 0;
-  transition: 0.4s;
-}
-
-.logout-button:hover {
-  cursor: pointer;
-  backdrop-filter: brightness(140%);
-}
-
-.logout-box {
-  padding-top: 16px;
-
-  height: fit-content;
-}
-
-.logout-icon {
-  color: #f5f5f5;
-  font-size: 18px;
-  text-align: center;
-  line-height: 10%;
-}
-
-.mid-icon-box {
-  width: fit-content;
-  aspect-ratio: 1;
-  display: flex;
-  padding: 8px;
-  align-items: center;
-  justify-content: center;
-}
-
-.logout-text {
-  transition: 0.4s;
-  font-weight: 700;
+.hide {
+  display: none;
+  visibility: hidden;
+  opacity: 0;
 }

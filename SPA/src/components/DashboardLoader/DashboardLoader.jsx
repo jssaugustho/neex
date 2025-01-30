@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export default function DashboardLoader() {
   return (
     <motion.div
-      className="fill"
+      className="content loader-box"
       layoutId="DashboardLoader"
       initial={{
         opacity: 0,

@@ -50,7 +50,3 @@
   text-overflow: ellipsis;
   transition: 0.4s;
 }
-
-.hide {
-  opacity: 0;
-}

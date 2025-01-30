@@ -27,7 +27,7 @@ function FolderItem({
     <li className={`content-box folder-item ${toggleNavBar ? "collapse" : ""}`}>
       <div className="content-box">
         <div
-          className={`content-box align-left folder-link folder-a small-gap ${
+          className={`content-box align-left folder-link folder-a mini-gap ${
             toggleNavBar ? "folder-btn-collapse" : ""
           } ${isActive ? "folder-a-active" : ""}`}
           onClick={() => {

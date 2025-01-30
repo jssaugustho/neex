@@ -3,23 +3,24 @@ import "./Sidebar.css";
 import CtaItem from "./NavItem/CtaItem/CtaItem.jsx";
 import NavItem from "./NavItem/NavItem/NavItem.jsx";
 
-import useAuth from "../../contexts/auth/auth.hook";
+import useAuth from "../../contexts/auth/auth.hook.jsx";
+import Profile from "./Profile/Profile.jsx";
+import LogoutButton from "./LogoutButton/LogoutButton.jsx";
 
 function Sidebar() {
-  const { user, signOut, toggleNavBar, setToggleNavBar } = useAuth();
-
-  function handleUserLogout(e) {
-    e.preventDefault();
-    signOut();
-  }
+  const { toggleNavBar, setToggleNavBar } = useAuth();
 
   return (
     <nav className={`sidebar ${toggleNavBar ? "collapse" : ""}`}>
+      <Profile />
       <div
         role="button"
         tabIndex={0}
         className="close-button gradient-bg"
         onClick={() => setToggleNavBar((p) => !p)}
+        onKeyDown={(e) => {
+          if (e.key == "Enter") setToggleNavBar((p) => !p);
+        }}
       >
         <div className="content-box close-button-icon-box">
           <i
@@ -29,29 +30,8 @@ function Sidebar() {
           ></i>
         </div>
       </div>
-      <div
-        className={`small-horizontal-padding profile-box ${
-          toggleNavBar ? "hide-nav-item" : ""
-        }`}
-      >
-        <div className={`inline-flex-center small-gap profile`}>
-          <div className="box">
-            <div className="content-box mid-profile-image">
-              <i className="fi fi-ss-user user-icon"></i>
-            </div>
-          </div>
-          <div className={`content-box profile-data micro-gap`}>
-            <div className="paragraph ellipsis-text profile-name">
-              {user.name}
-            </div>
-            <div className="paragraph ellipsis-text profile-email">
-              {user.email}
-            </div>
-          </div>
-        </div>
-      </div>
       <ul className="y-nav-section nav-items nav-box">
-        <CtaItem icon="fi fi-sr-play" cta={true}>
+        <CtaItem icon="fi fi-sr-play" cta={true} marginBottom={true}>
           Passo a Passo
         </CtaItem>
         <NavItem link="/dashboard" icon="fi fi-rr-dashboard">
@@ -69,27 +49,14 @@ function Sidebar() {
         <NavItem link="/pages" icon="fi fi-rr-file-user">
           Páginas
         </NavItem>
+        <NavItem link="/plan" icon="fi fi-rr-file-invoice-dollar">
+          Assinaturas
+        </NavItem>
         <NavItem link="/settings" icon="fi fi-rr-settings">
-          Configurações
+          Preferências
         </NavItem>
       </ul>
-      <div className={`content-box logout-box`}>
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={handleUserLogout}
-          className={`flex-row-center small-gap logout-button ${
-            toggleNavBar ? "hide-nav-link" : ""
-          }`}
-        >
-          <div className="content-box mid-icon-box gradient-bg">
-            <i className="fi fi-rr-sign-out-alt logout-icon"></i>
-          </div>
-          <div className={`flex-row-center ${toggleNavBar ? "hide" : ""}`}>
-            <p className="paragraph logout-text">Sair</p>
-          </div>
-        </div>
-      </div>
+      <LogoutButton />
     </nav>
   );
 }

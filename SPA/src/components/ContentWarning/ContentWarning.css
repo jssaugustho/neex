@@ -1,0 +1,21 @@
+.content-warning {
+  display: none;
+  border: solid 2px #ad6464;
+  background-color: #ebc7c7;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 16px;
+}
+
+.content-warning-text {
+  color: #4b4a4a;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .content-warning {
+    display: flex;
+  }
+}

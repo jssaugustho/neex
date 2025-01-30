@@ -1,5 +1,6 @@
 .nav-item {
   width: 100%;
+  min-width: 72px;
 }
 
 .nav-bg {
@@ -13,13 +14,17 @@
   cursor: pointer;
   background: transparent;
   padding: 8px 16px;
-  padding-right: 20px;
   border: none;
   transition: 0.4s;
   align-items: center;
 }
 
 .nav-a-active {
+  padding: 16px;
+  backdrop-filter: brightness(140%);
+}
+
+.nav-a:focus {
   padding: 16px;
   backdrop-filter: brightness(140%);
 }
@@ -39,12 +44,13 @@
 .nav-icon {
   line-height: 0;
   font-size: 20px;
-  color: #f5f5f5;
+  color: var(--common=text-color);
 }
 
 .nav-text-btn {
   width: 100%;
-  font-weight: 500;
+  font-weight: 400;
+  font-size: 14px;
   color: var(--primary-text-color);
   white-space: nowrap;
   overflow: hidden;
@@ -52,7 +58,8 @@
   transition: 0.4s;
 }
 
-.hide {
-  visibility: hidden;
-  opacity: 0;
+@media (max-width: 800px) {
+  .nav-a {
+    flex-direction: row;
+  }
 }

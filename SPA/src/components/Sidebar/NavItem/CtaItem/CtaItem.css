@@ -1,23 +1,33 @@
 .cta-item {
   width: 100%;
+  min-width: 72px;
+  transition: 0.4s;
+}
+
+.cta-btn:focus {
+  outline-offset: -1px;
+  width: 100%;
+}
+
+.margin-bottom {
   margin-bottom: 8px;
 }
 
 .cta-bg {
   border-radius: 0 8px 8px 0;
   background: var(--main-gradient);
+  overflow: visible;
 }
 
 .cta-btn {
   border-radius: 0 8px 8px 0;
-  overflow: hidden;
+  overflow: visible;
   cursor: pointer;
   background: transparent;
   padding: 16px;
-  padding-right: 20px;
   border: none;
-  transition: 0.4s;
-  align-items: center;
+  transition: backdrop-filter 0.4s;
+  align-items: start;
 }
 
 .cta-btn:hover {
@@ -26,9 +36,10 @@
 
 .cta-icon-box {
   width: 60px;
-  height: 100%;
+  height: 24px;
   align-items: center;
   justify-content: center;
+  box-sizing: content-box;
 }
 
 .cta-icon {
@@ -40,7 +51,7 @@
 .cta-text-btn {
   width: 100%;
   font-weight: 700;
-  color: var(--primary-text-color);
+  color: #f5f5f5;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -58,8 +69,11 @@
   }
 }
 
-.hide {
-  visibility: hidden;
-  display: none;
-  opacity: 0;
+@media (max-width: 800px) {
+  .cta-btn {
+    flex-direction: row;
+  }
+  .cta-text-btn {
+    font-size: 16px;
+  }
 }

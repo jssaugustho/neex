@@ -32,6 +32,7 @@ const Configuracoes = lazy(() =>
 import Loader from "../components/AuthLoader/AuthLoader.jsx";
 import PreLoader from "../components/PreLoader/PreLoader.jsx";
 import DashboardLoaderRoutes from "./DashboardLoaderRoutes.jsx";
+import Plan from "../components/Plan/Plan.jsx";
 
 const AppRoutes = [
   {
@@ -135,6 +136,14 @@ const AppRoutes = [
                     element: (
                       <Suspense fallback={<DashboardLoader />}>
                         <Paginas />
+                      </Suspense>
+                    ),
+                  },
+                  {
+                    path: "plan",
+                    element: (
+                      <Suspense fallback={<DashboardLoader />}>
+                        <Plan />
                       </Suspense>
                     ),
                   },

@@ -36,7 +36,7 @@ function Campanhas() {
 
   return (
     <motion.div
-      className="content-box mid-gap"
+      className="content-box content mid-gap"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
