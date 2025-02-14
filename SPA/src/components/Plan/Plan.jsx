@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import objectParser from "../../utils/objectParser/objectParser";
 
-import useAuth from "../../contexts/auth/auth.hook";
+import useAuth from "../../hooks/useAuth/useAuth.jsx";
 
 import { motion } from "framer-motion";
 

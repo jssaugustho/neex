@@ -17,7 +17,7 @@ const transporter = await nodemailer.createTransport({
 async function sendVerificationCode(req, res, next) {
   //configure message
   let message = {
-    from: "Lux CRM © <joseaugustho@luxdigitalassessoria.com.br>",
+    from: `Lux CRM © <${process.env.EMAIL_USER}>`,
     to: req.userData.email,
     subject: "Lux CRM © - Código de verificação de e-mail",
     html:
@@ -35,7 +35,7 @@ async function sendVerificationCode(req, res, next) {
 
 async function sendEmailVerifiedNotification(req, res, next) {
   let message = {
-    from: "Lux CRM © <joseaugustho@luxdigitalassessoria.com.br>",
+    from: `Lux CRM © <${process.env.EMAIL_USER}>`,
     to: req.userData.email,
     subject: "Lux CRM © - Email verificado.",
     text: "Email verificado com sucesso.",
@@ -54,22 +54,24 @@ async function sendEmailVerifiedNotification(req, res, next) {
 async function sendPasswdRecoveryCode(req, res, next) {
   //configure message
   let message = {
-    from: "Lux CRM © <joseaugustho@luxdigitalassessoria.com.br>",
+    from: `Lux CRM © <${process.env.EMAIL_USER}>`,
     to: req.userData.email,
     subject: "Lux CRM © - Código de recuperação de senha.",
     text: "Código: " + req.emailVerificationCode,
   };
 
   //send email
-  let email = transporter.sendMail(message, (err, info) => {
+  let email = await transporter.sendMail(message, (err, info) => {
     if (err) throw new errors.InternalServerError(err);
     next();
   });
+
+  console.log(email);
 }
 
 async function sendPasswdRecoveryConfirmation(req, res, next) {
   let message = {
-    from: "Lux CRM © <joseaugustho@luxdigitalassessoria.com.br>",
+    from: `Lux CRM © <${process.env.EMAIL_USER}>`,
     to: req.userData.email,
     subject: "Lux CRM © - Senha recuperada com sucesso.",
     text: "Senha recuperada pelo email.",
@@ -94,7 +96,7 @@ async function sendLeadNotification(req, res, next) {
     html.push("Entre no CRM para ver mais.");
 
     let userMessage = {
-      from: "Lux CRM © <joseaugustho@luxdigitalassessoria.com.br>",
+      from: `Lux CRM © <${process.env.EMAIL_USER}>`,
       to: userData.email,
       subject: "[LEAD] [" + req.emailNotification + "] " + req.leadData.name,
       html: html.join("<br/>"),
@@ -109,7 +111,7 @@ async function sendLeadNotification(req, res, next) {
 
       if (q.emailNotification) {
         let supportMessage = {
-          from: "Lux CRM © <joseaugustho@luxdigitalassessoria.com.br>",
+          from: `Lux CRM © <${process.env.EMAIL_USER}>`,
           to: email,
           subject:
             "[LEAD] [" +

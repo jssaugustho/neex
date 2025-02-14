@@ -1,19 +1,24 @@
 import { Navigate, Outlet } from "react-router";
 
-import useAuth from "../contexts/auth/auth.hook.jsx";
+import useUser from "../hooks/useUser/useUser.jsx";
+import useAuth from "../hooks/useAuth/useAuth.jsx";
+
+import PreLoader from "../components/PreLoader/PreLoader.jsx";
 
 const PrivateRoute = () => {
   const { signed, user } = useAuth();
 
-  return signed ? (
-    user.emailVerified ? (
-      <Outlet />
-    ) : (
-      <Navigate to="/verify" />
-    )
-  ) : (
-    <Navigate to="/login" />
-  );
+  const { isLoading, isError, isSuccess, isFetched } = useUser();
+
+  if (isError) return <PreLoader />;
+
+  if (isLoading) return <PreLoader />;
+
+  if (!signed) return <Navigate to="/login" />;
+
+  if (!user.emailVerified) return <Navigate to="/verify" />;
+
+  return <Outlet />;
 };
 
 export default PrivateRoute;

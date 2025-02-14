@@ -3,7 +3,8 @@ import "./Sidebar.css";
 import CtaItem from "./NavItem/CtaItem/CtaItem.jsx";
 import NavItem from "./NavItem/NavItem/NavItem.jsx";
 
-import useAuth from "../../contexts/auth/auth.hook.jsx";
+import useAuth from "../../hooks/useAuth/useAuth.jsx";
+
 import Profile from "./Profile/Profile.jsx";
 import LogoutButton from "./LogoutButton/LogoutButton.jsx";
 
@@ -46,11 +47,8 @@ function Sidebar() {
         <NavItem link="/forms" icon="fi fi-rr-form">
           Formulários
         </NavItem>
-        <NavItem link="/pages" icon="fi fi-rr-file-user">
-          Páginas
-        </NavItem>
         <NavItem link="/plan" icon="fi fi-rr-file-invoice-dollar">
-          Assinaturas
+          Pagamentos
         </NavItem>
         <NavItem link="/settings" icon="fi fi-rr-settings">
           Preferências

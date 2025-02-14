@@ -1,6 +1,6 @@
 import "./LogoutButton.css";
 
-import useAuth from "../../../contexts/auth/auth.hook";
+import useAuth from "../../../hooks/useAuth/useAuth.jsx";
 
 function LogoutButton() {
   const { signOut, toggleNavBar } = useAuth();

@@ -4,22 +4,23 @@ import { Navigate, NavLink } from "react-router";
 
 import { motion } from "framer-motion";
 
+import useAuth from "../../hooks/useAuth/useAuth.jsx";
+
 import ErrorIcon from "../../assets/ErrorIcon.jsx";
 
 import MiniSwitch from "../ui.components/MiniSwitch/MiniSwitch.jsx";
+import PasswdInput from "../ui.components/PasswdInput/PasswdInput.jsx";
 
 import { useEffect, useState } from "react";
-
-import PasswdInput from "../ui.components/PasswdInput/PasswdInput.jsx";
-import useAuth from "../../contexts/auth/auth.hook.jsx";
 
 import MiniLoadSpinner from "../../assets/MiniLoadSpinner.jsx";
 import InternacionalPhoneInput from "../ui.components/InternacionalPhoneInput/InternacionalPhoneInput.jsx";
 import PasswdForceLevel from "../ui.components/PasswdForceLevel/PasswdForceLevel.jsx";
 import RegisterIcon from "../../assets/RegisterIcon.jsx";
+import useRegister from "../../hooks/useRegister/useRegister.jsx";
 
 export default function Register() {
-  const { signed, nextStep, signUp } = useAuth();
+  const { signed, nextStep } = useAuth();
 
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -28,8 +29,14 @@ export default function Register() {
   const [phone, setPhone] = useState("");
   const [agree, setAgree] = useState("");
 
-  const [error, setError] = useState(null);
-  const [msg, setMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  const {
+    mutate: register,
+    isError,
+    error: fetchError,
+    isLoading,
+  } = useRegister();
 
   const [passwdForce, setPasswdForce] = useState({
     lost: [],
@@ -39,17 +46,6 @@ export default function Register() {
   useEffect(() => {
     validatePasswd(passwd);
   }, [passwd]);
-
-  function info(info, type) {
-    if (type == "error") {
-      setMsg(null);
-      setError(info);
-    }
-    if (type == "loading") {
-      setError(null);
-      setMsg(info);
-    }
-  }
 
   function update(params) {
     if (params.email != null) setEmail(params.email);
@@ -79,19 +75,18 @@ export default function Register() {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    //msg
-    info("Cadastrando...", "loading");
+    setErrorMsg(null);
 
     //validar senha
     if (passwdForce.level > 0)
-      return info("Senha fraca, tente com outra.", "error");
+      return setErrorMsg("Senha fraca, tente com outra.", "error");
 
     //validar email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) info("Email inválido", "error");
+    if (!emailRegex.test(email)) setErrorMsg("Email inválido.");
 
     //validar phone
-    if (phone.length < 8) info("Número de celular inválido", "loading");
+    if (phone.length < 8) setErrorMsg("Número de celular inválido.");
 
     //validar termos e condições
     let concorda = false;
@@ -99,12 +94,12 @@ export default function Register() {
     if (agree == "sim") concorda = true;
 
     if (!concorda) {
-      info("Você deve concordar com os termos.", "error");
+      setErrorMsg("Você deve concordar com os termos.");
       return;
     }
 
     //criar usuário e logar
-    signUp({ email, phone, name, lastName, passwd, agree }, info);
+    register({ email, phone, name, lastName, passwd, agree });
   }
 
   if (signed) {
@@ -145,38 +140,6 @@ export default function Register() {
                     </p>
                   </div>
                 </div>
-                {msg && (
-                  <motion.div
-                    className="inline-flex-center mini-gap"
-                    layoutId="msg-box"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <MiniLoadSpinner className="msg-mini-spinner" />
-                    <p className="paragraph info-text">{msg}</p>
-                  </motion.div>
-                )}
-                {error && (
-                  <motion.div
-                    className="inline-flex-center mini-gap"
-                    layoutId="error-box"
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <ErrorIcon className="error-icon" />
-                    <p className="paragraph error-text">{error}</p>
-                  </motion.div>
-                )}
                 <div className="content-box small-gap">
                   <div className="content-box mini-gap">
                     <label className="paragraph" htmlFor="name">
@@ -252,6 +215,56 @@ export default function Register() {
                       />
                     </div>
                   ) : null}
+                  {isLoading && (
+                    <motion.div
+                      className="inline-flex-center mini-gap"
+                      layoutId="msg-box"
+                      initial={{
+                        opacity: 0,
+                      }}
+                      animate={{
+                        opacity: 1,
+                      }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <MiniLoadSpinner className="msg-mini-spinner" />
+                      <p className="paragraph info-text">Carregando...</p>
+                    </motion.div>
+                  )}
+                  {isError && (
+                    <motion.div
+                      className="inline-flex-center mini-gap"
+                      layoutId="error-box"
+                      initial={{
+                        opacity: 0,
+                      }}
+                      animate={{
+                        opacity: 1,
+                      }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <ErrorIcon className="error-icon" />
+                      <p className="paragraph error-text">
+                        {fetchError.response.data.message}
+                      </p>
+                    </motion.div>
+                  )}
+                  {errorMsg && (
+                    <motion.div
+                      className="inline-flex-center mini-gap"
+                      layoutId="error-box"
+                      initial={{
+                        opacity: 0,
+                      }}
+                      animate={{
+                        opacity: 1,
+                      }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <ErrorIcon className="error-icon" />
+                      <p className="paragraph error-text">{errorMsg}</p>
+                    </motion.div>
+                  )}
                 </div>
                 <div className="content-box">
                   <div className="inline-flex-center small-gap">

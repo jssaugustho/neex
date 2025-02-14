@@ -1,11 +1,27 @@
+.padding-box {
+  padding-right: 30px;
+}
+
 .profile-box {
   display: flex;
   justify-content: center;
   align-items: center;
   height: fit-content;
-  padding: 0px 16px;
-  padding-bottom: 32px;
+  padding: 16px;
+  margin-bottom: 32px;
   overflow: visible;
+  border-radius: 0 8px 8px 0;
+  overflow: hidden;
+  cursor: pointer;
+  transition: backdrop-filter 0.4s;
+}
+
+.profile-box:hover {
+  backdrop-filter: brightness(var(--accent-brightness));
+}
+
+.profile-box:focus {
+  backdrop-filter: brightness(var(--accent-brightness));
 }
 
 .profile {
@@ -15,6 +31,12 @@
   border-radius: 8px;
   overflow: hidden;
   transition: 0.4s;
+}
+
+.profile-icon {
+  font-size: 28px;
+  line-height: 1;
+  color: #f5f5f5;
 }
 
 .profile-image-box {
@@ -30,23 +52,7 @@
   justify-content: flex-end;
   padding: 0px;
   cursor: pointer;
-  transition: backdrop-filter 0.4s;
-}
-
-.mid-profile-image:focus {
-  outline-offset: -1px;
-}
-
-.mid-profile-image:hover {
-  filter: brightness(120%);
-}
-
-.user-icon {
-  font-size: 30px;
-  color: #f5f5f5;
-  text-align: center;
-  line-height: 0;
-  padding: 0px;
+  transition: filter 0.4s;
 }
 
 .profile-data {
@@ -68,11 +74,6 @@
   width: 100%;
   font-size: 12px;
   font-weight: 500;
-}
-
-.profile-data > *:hover {
-  cursor: pointer;
-  text-decoration: underline;
 }
 
 @media (max-width: 800px) {

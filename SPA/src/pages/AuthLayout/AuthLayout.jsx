@@ -5,7 +5,7 @@ import { NavLink, Outlet } from "react-router";
 import LightLogo from "../../assets/light-theme-logo.png";
 import DarkLogo from "../../assets/dark-theme-logo.png";
 
-import useAuth from "../../contexts/auth/auth.hook";
+import useAuth from "../../hooks/useAuth/useAuth.jsx";
 import useTheme from "../../contexts/theme/theme.hook";
 
 import PreLoader from "../../components/PreLoader/PreLoader";

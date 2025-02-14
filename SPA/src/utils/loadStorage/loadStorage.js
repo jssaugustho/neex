@@ -29,7 +29,7 @@ function loadStorage() {
     Session.refreshToken &&
     Session.nextStep
   ) {
-    Local.remember = false;
+    Session.remember = false;
     return Session;
   }
 

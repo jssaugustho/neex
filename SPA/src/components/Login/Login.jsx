@@ -11,27 +11,25 @@ import MiniSwitch from "../ui.components/MiniSwitch/MiniSwitch.jsx";
 import PasswdInput from "../ui.components/PasswdInput/PasswdInput.jsx";
 import MiniLoadSpinner from "../../assets/MiniLoadSpinner.jsx";
 
-import useAuth from "../../contexts/auth/auth.hook.jsx";
+import useAuth from "../../hooks/useAuth/useAuth.jsx";
+import useLogin from "../../hooks/useLogin/useLogin.jsx";
 
 export default function Login() {
-  const { signed, nextStep, signIn } = useAuth();
+  const { signed, nextStep } = useAuth();
 
   const [email, setEmail] = useState("");
   const [passwd, setPasswd] = useState("");
   const [remember, setRemember] = useState(false);
 
-  const [error, setError] = useState(null);
-  const [msg, setMsg] = useState(null);
+  const { mutateAsync: login, isError, error, isLoading } = useLogin();
 
-  function info(info, type) {
-    if (type == "error") {
-      setMsg(null);
-      setError(info);
-    }
-    if (type == "loading") {
-      setError(null);
-      setMsg("Fazendo login...");
-    }
+  async function signIn(email, passwd) {
+    let data = {};
+
+    if (email != "") data.email = email;
+    if (passwd != "") data.passwd = passwd;
+
+    await login({ data, remember });
   }
 
   function update(params) {
@@ -42,12 +40,11 @@ export default function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    info("Fazendo login...", "loading");
-    await signIn(email, passwd, remember, info);
+    signIn(email, passwd, remember);
   }
 
   if (signed) {
-    return <Navigate to={nextStep} />;
+    return <Navigate to={nextStep ? nextStep : "/dashboard"} />;
   } else {
     return (
       <motion.div
@@ -83,7 +80,7 @@ export default function Login() {
                   </p>
                 </div>
               </div>
-              {msg && (
+              {isLoading && (
                 <motion.div
                   className="inline-flex-center mini-gap"
                   layoutId="msg-box"
@@ -96,10 +93,10 @@ export default function Login() {
                   transition={{ duration: 0.4 }}
                 >
                   <MiniLoadSpinner className="msg-mini-spinner" />
-                  <p className="paragraph info-text">{msg}</p>
+                  <p className="paragraph info-text">Fazendo Login...</p>
                 </motion.div>
               )}
-              {error && (
+              {isError && (
                 <motion.div
                   className="inline-flex-center mini-gap"
                   layoutId="error-box"
@@ -112,7 +109,9 @@ export default function Login() {
                   transition={{ duration: 0.4 }}
                 >
                   <ErrorIcon className="error-icon" />
-                  <p className="paragraph error-text">{error}</p>
+                  <p className="paragraph error-text">
+                    {error.response.data.message}
+                  </p>
                 </motion.div>
               )}
               <div className="content-box mid-gap">
@@ -165,7 +164,11 @@ export default function Login() {
                 </div>
               </div>
               <div className="content-box button-bg">
-                <button className="cta-button" type="submit">
+                <button
+                  className="cta-button"
+                  type="submit"
+                  disabled={isLoading}
+                >
                   Fazer Login
                 </button>
               </div>

@@ -8,7 +8,11 @@
 
 .logout-button:hover {
   cursor: pointer;
-  backdrop-filter: brightness(140%);
+  backdrop-filter: brightness(var(--accent-brightness));
+}
+
+.logout-button:focus {
+  outline-offset: -3px;
 }
 
 .logout-box {

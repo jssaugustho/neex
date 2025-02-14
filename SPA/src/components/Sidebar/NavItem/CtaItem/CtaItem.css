@@ -5,7 +5,7 @@
 }
 
 .cta-btn:focus {
-  outline-offset: -1px;
+  outline-offset: -3px;
   width: 100%;
 }
 

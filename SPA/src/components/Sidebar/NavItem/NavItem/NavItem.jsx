@@ -1,6 +1,7 @@
 import "./NavItem.css";
 
-import useAuth from "../../../../contexts/auth/auth.hook";
+import useAuth from "../../../../hooks/useAuth/useAuth.jsx";
+
 import { useNavigate, useLocation } from "react-router";
 
 function NavItem({ children, icon = "fi fi-rr-dashboard", link }) {

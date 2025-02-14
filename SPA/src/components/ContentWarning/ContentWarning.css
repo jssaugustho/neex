@@ -14,7 +14,7 @@
   font-weight: 500;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .content-warning {
     display: flex;
   }

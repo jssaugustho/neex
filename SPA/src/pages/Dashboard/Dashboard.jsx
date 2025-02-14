@@ -2,7 +2,7 @@ import "./Dashboard.css";
 
 import { Outlet } from "react-router";
 
-import useAuth from "../../contexts/auth/auth.hook.jsx";
+import useAuth from "../../hooks/useAuth/useAuth.jsx";
 
 import Sidebar from "../../components/Sidebar/Sidebar.jsx";
 

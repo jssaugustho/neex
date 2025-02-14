@@ -13,7 +13,7 @@ import MiniSwitch from "../ui.components/MiniSwitch/MiniSwitch.jsx";
 import { useEffect, useState } from "react";
 
 import PasswdInput from "../ui.components/PasswdInput/PasswdInput.jsx";
-import useAuth from "../../contexts/auth/auth.hook.jsx";
+import useAuth from "../../hooks/useAuth/useAuth.jsx";
 
 import MiniLoadSpinner from "../../assets/MiniLoadSpinner.jsx";
 import InternacionalPhoneInput from "../ui.components/InternacionalPhoneInput/InternacionalPhoneInput.jsx";

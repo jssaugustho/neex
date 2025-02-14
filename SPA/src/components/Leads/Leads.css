@@ -3,3 +3,18 @@
   padding-bottom: 32px;
   gap: 16px;
 }
+
+.select {
+  min-width: 200px;
+  background-color: var(--contrast-color);
+  border: none;
+  border: none;
+  box-shadow: 0 0 2px 0 var(--contrast-color);
+  outline: none;
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--commont-text-color);
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+}

@@ -31,9 +31,9 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .loader-box {
-    min-width: 600px;
+    min-width: 540px;
     margin-left: 100px;
   }
 }

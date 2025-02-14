@@ -21,17 +21,18 @@
 
 .nav-a-active {
   padding: 16px;
-  backdrop-filter: brightness(140%);
+  backdrop-filter: brightness(var(--accent-brightness));
 }
 
 .nav-a:focus {
   padding: 16px;
-  backdrop-filter: brightness(140%);
+  backdrop-filter: brightness(var(--accent-brightness));
+  outline-offset: -3px;
 }
 
 .nav-a:hover {
   padding: 16px;
-  backdrop-filter: brightness(140%);
+  backdrop-filter: brightness(var(--accent-brightness));
 }
 
 .nav-icon-box {

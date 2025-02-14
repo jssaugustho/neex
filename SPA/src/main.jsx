@@ -6,12 +6,18 @@ import App from "./App.jsx";
 import ThemeProvider from "./contexts/theme/theme.provider.jsx";
 import AuthProvider from "./contexts/auth/auth.provider.jsx";
 
+import { QueryClient, QueryClientProvider } from "react-query";
+
+const queryClient = new QueryClient();
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <AuthProvider>
+    <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </ThemeProvider>
-    </AuthProvider>
+    </QueryClientProvider>
   </StrictMode>
 );

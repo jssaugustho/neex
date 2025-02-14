@@ -1,14 +1,12 @@
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 
 import PrivateRoutes from "./PrivateRoutes.jsx";
-
-import PreLoaderRoute from "./PreLoaderRoutes.jsx";
 
 import Home from "../components/Home/Home.jsx";
 
 import AuthLayout from "../pages/AuthLayout/AuthLayout.jsx";
-import AuthLoader from "../components/AuthLoader/AuthLoader.jsx";
 import AuthLoaderRoutes from "./AuthLoaderRoutes.jsx";
+
 const Register = lazy(() => import("../components/Register/Register.jsx"));
 const Login = lazy(() => import("../components/Login/Login.jsx"));
 const Verify = lazy(() => import("../components/Verify/Verify.jsx"));
@@ -16,10 +14,13 @@ const Recovery = lazy(() => import("../components/Recovery/Recovery.jsx"));
 
 import Dashboard from "../pages/Dashboard/Dashboard.jsx";
 import DashboardLoader from "../components/DashboardLoader/DashboardLoader.jsx";
+
 const VisaoGeral = lazy(() =>
   import("../components/VisaoGeral/VisaoGeral.jsx")
 );
-const Leads = lazy(() => import("../components/Leads/Leads.jsx"));
+const Leads = lazy(() => {
+  return import("../components/Leads/Leads.jsx");
+});
 const Campanhas = lazy(() => import("../components/Campanhas/Campanhas.jsx"));
 const Formularios = lazy(() =>
   import("../components/Formularios/Formularios.jsx")
@@ -28,11 +29,12 @@ const Paginas = lazy(() => import("../components/Paginas/Paginas.jsx"));
 const Configuracoes = lazy(() =>
   import("../components/Configuracoes/Configuracoes.jsx")
 );
+const Plan = lazy(() => import("../components/Plan/Plan.jsx"));
 
 import Loader from "../components/AuthLoader/AuthLoader.jsx";
-import PreLoader from "../components/PreLoader/PreLoader.jsx";
+
 import DashboardLoaderRoutes from "./DashboardLoaderRoutes.jsx";
-import Plan from "../components/Plan/Plan.jsx";
+import PreLoader from "../components/PreLoader/PreLoader.jsx";
 
 const AppRoutes = [
   {
@@ -47,36 +49,19 @@ const AppRoutes = [
         children: [
           {
             path: "login",
-            element: (
-              <Suspense fallback={<AuthLoader />}>
-                <Login />
-              </Suspense>
-            ),
+            element: <Login />,
           },
           {
             path: "register",
-            element: (
-              <Suspense fallback={<AuthLoader />}>
-                <Register />
-              </Suspense>
-            ),
+            element: <Register />,
           },
-
           {
             path: "verify",
-            element: (
-              <Suspense fallback={<AuthLoader />}>
-                <Verify />
-              </Suspense>
-            ),
+            element: <Verify />,
           },
           {
             path: "recovery",
-            element: (
-              <Suspense fallback={<AuthLoader />}>
-                <Recovery />
-              </Suspense>
-            ),
+            element: <Recovery />,
           },
         ],
       },
@@ -84,82 +69,46 @@ const AppRoutes = [
   },
   {
     element: <PrivateRoutes />,
+    errorElement: <PreLoader />,
     children: [
       {
-        element: <PreLoaderRoute />,
+        element: <Dashboard />,
         children: [
           {
-            element: (
-              <Suspense fallback={<PreLoader />}>
-                <Dashboard />
-              </Suspense>
-            ),
+            element: <DashboardLoaderRoutes />,
+            errorElement: <Loader />,
             children: [
               {
-                element: <DashboardLoaderRoutes />,
-                errorElement: <Loader />,
-                children: [
-                  {
-                    path: "dashboard",
-                    element: (
-                      <Suspense fallback={<DashboardLoader />}>
-                        <VisaoGeral />
-                      </Suspense>
-                    ),
-                  },
-                  {
-                    path: "leads",
-                    element: (
-                      <Suspense fallback={<DashboardLoader />}>
-                        <Leads />
-                      </Suspense>
-                    ),
-                  },
-                  {
-                    path: "campanhas",
-                    element: (
-                      <Suspense fallback={<DashboardLoader />}>
-                        <Campanhas />
-                      </Suspense>
-                    ),
-                  },
-                  {
-                    path: "forms",
-                    element: (
-                      <Suspense fallback={<DashboardLoader />}>
-                        <Formularios />
-                      </Suspense>
-                    ),
-                  },
-                  {
-                    path: "pages",
-                    element: (
-                      <Suspense fallback={<DashboardLoader />}>
-                        <Paginas />
-                      </Suspense>
-                    ),
-                  },
-                  {
-                    path: "plan",
-                    element: (
-                      <Suspense fallback={<DashboardLoader />}>
-                        <Plan />
-                      </Suspense>
-                    ),
-                  },
-                  {
-                    path: "settings",
-                    element: (
-                      <Suspense fallback={<DashboardLoader />}>
-                        <Configuracoes />
-                      </Suspense>
-                    ),
-                  },
-                  {
-                    path: "*",
-                    element: <DashboardLoader />,
-                  },
-                ],
+                path: "dashboard",
+                element: <VisaoGeral />,
+              },
+              {
+                path: "leads",
+                element: <Leads />,
+              },
+              {
+                path: "campanhas",
+                element: <Campanhas />,
+              },
+              {
+                path: "forms",
+                element: <Formularios />,
+              },
+              {
+                path: "pages",
+                element: <Paginas />,
+              },
+              {
+                path: "plan",
+                element: <Plan />,
+              },
+              {
+                path: "settings",
+                element: <Configuracoes />,
+              },
+              {
+                path: "*",
+                element: <DashboardLoader />,
               },
             ],
           },

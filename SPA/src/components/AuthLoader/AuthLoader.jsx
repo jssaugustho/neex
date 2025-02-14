@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export default function AuthLoader() {
   return (
     <motion.div
-      className="column auth-loader"
+      className="content-box auth-loader"
       layoutId="AuthLoader"
       initial={{
         opacity: 0,

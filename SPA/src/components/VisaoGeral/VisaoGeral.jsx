@@ -1,33 +1,26 @@
 import "./VisaoGeral.css";
 
-import { useState } from "react";
-
 import objectParser from "../../utils/objectParser/objectParser";
 
-import useAuth from "../../contexts/auth/auth.hook";
+import useAuth from "../../hooks/useAuth/useAuth.jsx";
 
 import { motion } from "framer-motion";
-import ContentWarning from "../ContentWarning/ContentWarning";
+import useUser from "../../hooks/useUser/useUser";
+import { useState } from "react";
 
 function VisaoGeral() {
-  const { user, setUser, api, signOut } = useAuth();
+  const { data, isLoading, isError, refetch, isSuccess } = useUser();
 
-  const [msg, setMsg] = useState(objectParser(user));
+  const { signOut } = useAuth();
 
-  function handleUserUpdate(e) {
+  const [user, setUser] = useState(objectParser(data));
+
+  async function handleUserUpdate(e) {
     e.preventDefault();
 
-    setMsg("Carregando...");
-
-    api
-      .get("/user")
-      .then((r) => {
-        setUser(r.data.data[0]);
-        setMsg(objectParser(r.data.data[0]));
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+    setUser("Carregando...");
+    await refetch();
+    setUser(isError ? "Erro na requisição." : objectParser(data));
   }
 
   function handleUserLogout(e) {
@@ -43,12 +36,15 @@ function VisaoGeral() {
       exit={{ opacity: 0 }}
     >
       <header className="content-box dashboard-title mid-gap padding-content">
-        <h2 className="dashboard-title">Bem vindo {user.name}.</h2>
+        <h2 className="dashboard-title">Bem vindo {data.name}.</h2>
         <h1 className="small-headline align-left">Visão Geral</h1>
       </header>
-      <section>
+      <section className="content-box">
         <div className="content-box align-left mid-gap padding-content">
-          <div className="content-box align-left">{msg}</div>
+          <div className="content-box align-left">
+            {isLoading && "Carregando..."}
+            {isSuccess && user}
+          </div>
           <ul className="flex-row-center button-ul">
             <li className="button-ul-li">
               <button className="btn" onClick={handleUserUpdate}>

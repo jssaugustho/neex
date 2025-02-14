@@ -9,6 +9,7 @@ import AppRoutes from "./routes/AppRoutes.jsx";
 
 //THEME CONTEXT
 import ThemeContext from "./contexts/theme/theme.context.jsx";
+
 import { createBrowserRouter, RouterProvider } from "react-router";
 
 const router = createBrowserRouter(AppRoutes);

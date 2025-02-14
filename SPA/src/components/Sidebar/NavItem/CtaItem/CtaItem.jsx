@@ -1,6 +1,6 @@
 import "./CtaItem.css";
 
-import useAuth from "../../../../contexts/auth/auth.hook";
+import useAuth from "../../../../hooks/useAuth/useAuth.jsx";
 
 function CtaItem({
   children,

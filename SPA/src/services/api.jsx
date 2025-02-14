@@ -7,26 +7,20 @@ let isRefreshing = false;
 // Variavel para armazenar a fila de requisições que falharam por token expirado
 let failedRequestQueue = [];
 
-function initApi(signOut) {
+function initApi(signOut, storage) {
   const api = axios.create({
     baseURL,
-    headers: {
-      Authorization: loadStorage().token,
-    },
   });
+
+  api.defaults.headers.common["Authorization"] = storage.token;
 
   // Cria um interceptor para interceptar todas as requisições que forem feitas
   api.interceptors.response.use(
     (response) => {
-      console.log("Requisição ok");
       // Se a requisição der sucesso, retorna a resposta
       return response;
     },
     (error) => {
-      console.log("Erro na requisição.");
-
-      console.log(error.response);
-
       // Se o erro for de autenticação, verifica se o erro foi de token expirado
       if (error.status === 401) {
         let originalConfig = [];
@@ -34,18 +28,9 @@ function initApi(signOut) {
         if (error.response.data.status === "TokenError") {
           // Recupera o refresh token do localStorage
 
-          let remember = false;
-          let refreshToken = "";
+          const storage = loadStorage();
 
-          if (localStorage.getItem("@Auth:refresh-token")) {
-            remember = true;
-            refreshToken = localStorage.getItem("@Auth:refresh-token");
-          }
-
-          if (sessionStorage.getItem("@Auth:refresh-token")) {
-            remember = false;
-            refreshToken = sessionStorage.getItem("@Auth:refresh-token");
-          }
+          const refreshToken = storage.refreshToken;
 
           // Recupera toda a requisição que estava sendo feita e deu erro para ser refeita após o refresh token
           originalConfig = error.config;
@@ -69,7 +54,7 @@ function initApi(signOut) {
                   data,
                 } = response.data;
 
-                if (remember) {
+                if (loadStorage().remember) {
                   console.log("Setando localstorage");
                   // Salva o token no localStorage
                   localStorage.setItem("@Auth:token", token);
@@ -114,29 +99,27 @@ function initApi(signOut) {
                 isRefreshing = false;
               });
           }
-        } else {
-          signOut();
-        }
 
-        // Usando a Promise no lugar do async await, para que a requisição seja feita após o refresh token
-        return new Promise((resolve, reject) => {
-          // Adiciona a requisição na fila de requisições que falharam com as informações necessárias para refazer a requisição novamente
-          failedRequestQueue.push({
-            // Se a requisição der sucesso, chama o onSuccess
-            onSuccess: (token) => {
-              // Adiciona o novo token gerado no refresh token no header de autorização
-              originalConfig.headers["Authorization"] = token;
+          // Usando a Promise no lugar do async await, para que a requisição seja feita após o refresh token
+          return new Promise((resolve, reject) => {
+            // Adiciona a requisição na fila de requisições que falharam com as informações necessárias para refazer a requisição novamente
+            failedRequestQueue.push({
+              // Se a requisição der sucesso, chama o onSuccess
+              onSuccess: (token) => {
+                // Adiciona o novo token gerado no refresh token no header de autorização
+                originalConfig.headers["Authorization"] = token;
 
-              // Faz a requisição novamente passando as informações originais da requisição que falhou
-              resolve(api(originalConfig));
-            },
-            // Se a requisição der erro, chama o onFailure
-            onFailure: (err) => {
-              // Se não for possivel refazer a requisição, retorna o erro
-              reject(err);
-            },
+                // Faz a requisição novamente passando as informações originais da requisição que falhou
+                resolve(api(originalConfig));
+              },
+              // Se a requisição der erro, chama o onFailure
+              onFailure: (err) => {
+                // Se não for possivel refazer a requisição, retorna o erro
+                reject(err);
+              },
+            });
           });
-        });
+        }
       }
 
       // Se não cair em nenhum if retorna um error padrão

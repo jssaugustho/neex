@@ -17,9 +17,9 @@ function PreLoader({ hide = false }) {
     <div className="pre-loader">
       <motion.div
         className="logo-box"
-        initial={{ translateY: 1000, opacity: 0 }}
-        animate={{ translateY: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
       >
         {hide ? null : (
           <img

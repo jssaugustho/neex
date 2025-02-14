@@ -5,29 +5,27 @@ import CheckIcon from "./../../assets/CheckIcon.jsx";
 
 import { Navigate, NavLink } from "react-router";
 import { motion } from "framer-motion";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ErrorIcon from "../../assets/ErrorIcon.jsx";
 
 import MiniLoadSpinner from "../../assets/MiniLoadSpinner.jsx";
 
-import useAuth from "../../contexts/auth/auth.hook.jsx";
+import useAuth from "../../hooks/useAuth/useAuth.jsx";
+
 import EditIcon from "../../assets/EditIcon.jsx";
 import BackIcon from "../../assets/BackIcon.jsx";
+import useRecoverySendCode from "../../hooks/useRecoverySendCode/useRecoverySendCode.jsx";
+import useRecovery from "../../hooks/useRecovery/useRecovery.jsx";
 
 function Recovery() {
   const { api, signed, setSigned, setUser, nextStep, setNextStep } = useAuth();
 
   //email da conta que vai ser verificada
-  const [email, setEmail] = useState();
+  const [email, setEmail] = useState("");
 
   //valor do input do código
   const [code, setCode] = useState("");
-
-  //mensagens de erro
-  const [error, setError] = useState(null);
-  const [msg, setMsg] = useState(null);
-  const [ok, setOk] = useState(null);
 
   //temporizador
   const [resendText, setResendText] = useState("01:00");
@@ -35,11 +33,40 @@ function Recovery() {
   const [timeLeft, setTimeLeft] = useState(-1);
   const [startTimer, setStartTimer] = useState(false);
 
+  const {
+    mutateAsync: recovery,
+    isLoading: isRecoveryLoading,
+    isError: isRecoveryError,
+    error: recoveryError,
+    reset: recoveryReset,
+  } = useRecovery();
+
+  const {
+    mutateAsync: sendCode,
+    isLoading: isSendCodeLoading,
+    isError: isSendCodeError,
+    error: sendCodeError,
+    reset: sendCodeReset,
+  } = useRecoverySendCode();
+
+  const [okMsg, setOkMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  let isError = null;
+
+  if (isSendCodeError) isError = sendCodeError.response.data.message;
+  if (isRecoveryError) isError = recoveryError.response.data.message;
+
+  let isLoading = null;
+
+  if (isSendCodeLoading) isLoading = "Enviando código...";
+  if (isRecoveryLoading) isLoading = "Verificando código...";
+
   const wait = useRef(false);
 
   //toggle change email input
   const [changeEmail, setChangeEmail] = useState(false);
-  const [recoveryEmail, setRecoveryEmail] = useState();
+  const [recoveryEmail, setRecoveryEmail] = useState("");
 
   //change email input value
   const [newEmail, setNewEmail] = useState(email);
@@ -47,22 +74,14 @@ function Recovery() {
   //change email input ref
   const emailInput = useRef();
 
-  function info(info, type) {
-    if (type == "error") {
-      setMsg(null);
-      setOk(null);
-      setError(info);
-    }
-    if (type == "loading") {
-      setError(null);
-      setOk(null);
-      setMsg(info);
-    }
-    if (type == "ok") {
-      setError(null);
-      setMsg(null);
-      setOk(info);
-    }
+  async function reset() {
+    isError = null;
+    isLoading = null;
+    setOkMsg(null);
+    setErrorMsg(null);
+    recoveryReset();
+    sendCodeReset();
+    return;
   }
 
   async function handleSubmit(e) {
@@ -70,35 +89,18 @@ function Recovery() {
 
     wait.current = true;
 
-    info("Verificando código...", "loading");
-
-    api
-      .post("/verify-recovery-code", {
+    reset().then(() => {
+      recovery({
         email,
         passwdRecoveryCode: code,
       })
-      .then((r) => {
-        if (r.data.status == "Ok") {
-          info("Email verificado com sucesso.", "ok");
-          setInterval(() => {
-            sessionStorage.setItem("@Auth:token", r.data.token);
-            sessionStorage.setItem("@Auth:refresh-token", r.data.refreshToken);
-            sessionStorage.setItem("@Auth:user", JSON.stringify(r.data.data));
-            sessionStorage.setItem("@Auth:next-step", "/dashboard");
-            api.defaults.headers.common["Authorization"] = r.data.token;
-            setNextStep("/dashboard");
-            setUser({
-              ...r.data.data,
-              emailVerified: true,
-            });
-            setSigned(true);
-          }, 1000);
-        }
-      })
-      .catch((e) => {
-        e.response.data.message && info(e.response.data.message, "error");
-        wait.current = false;
-      });
+        .then((r) => {
+          setOkMsg("Email verificado com sucesso.");
+        })
+        .catch(() => {
+          wait.current = false;
+        });
+    });
   }
 
   async function handleChangeEmailClick() {
@@ -109,34 +111,35 @@ function Recovery() {
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    wait.current = true;
+    await reset();
+
     if (email != newEmail) {
       if (emailRegex.test(newEmail)) {
-        info("Alterando email...", "loading");
-        api
-          .post("/recovery", {
-            email: newEmail,
+        sendCode({
+          email: newEmail,
+        })
+          .then(() => {
+            sessionStorage.setItem("recovery-email", newEmail);
+            setOkMsg("Código enviado.");
+            setEmail(newEmail);
+            setChangeEmail(false);
+            setResendText("01:00");
+            setResendClassName(null);
+            setTimeLeft(60);
+            setStartTimer(true);
           })
-          .then((r) => {
-            if (r.data.status === "Ok") {
-              localStorage.setItem("recovery-email", newEmail);
-              info("Código enviado.", "ok");
-              setEmail(newEmail);
-              setChangeEmail(false);
-              setResendText("01:00");
-              setResendClassName(null);
-              setTimeLeft(60);
-              setStartTimer(true);
-            }
-          })
-          .catch((e) => {
-            info(e.response.data.message, "error");
+          .catch(() => {
+            wait.current = false;
           });
       } else {
-        info("Email inválido", "error");
+        setErrorMsg("Email inválido.");
+        wait.current = false;
       }
     } else {
-      setMsg(null);
-      setError(null);
+      wait.current = false;
+      setOkMsg(null);
+      setErrorMsg(null);
       setChangeEmail(false);
     }
   }
@@ -146,24 +149,22 @@ function Recovery() {
     setNewEmail(email);
   }
 
-  async function handleResendCode(show = true) {
+  async function handleResendCode() {
     if (!wait.current) {
       wait.current = true;
-      show && info("Enviando código...", "loading");
-      api
-        .post("/recovery", {
-          email,
-        })
+      setResendText("Enviando...");
+      await reset();
+      sendCode({
+        email,
+      })
         .then(() => {
-          show && info("Código enviado no seu email.", "ok");
+          setOkMsg("Código enviado no seu email.");
+        })
+        .finally(() => {
           setResendText("01:00");
           setResendClassName(null);
           setTimeLeft(60);
           setStartTimer(true);
-        })
-        .catch((e) => {
-          show && info(e.response.data.message, "error");
-          wait.current = false;
         });
     }
   }
@@ -171,33 +172,31 @@ function Recovery() {
   async function handleSetEmail(e) {
     e.preventDefault();
 
-    info("Enviando código...", "loading");
+    await reset();
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!wait.current) {
       if (emailRegex.test(recoveryEmail)) {
         wait.current = true;
-        api
-          .post("/recovery", {
-            email: recoveryEmail,
-          })
+        sendCode({
+          email: recoveryEmail,
+        })
           .then(() => {
-            localStorage.setItem("recovery-email", recoveryEmail);
+            sessionStorage.setItem("recovery-email", recoveryEmail);
             setEmail(recoveryEmail);
             setNewEmail(recoveryEmail);
-            info("Código enviado no seu email.", "ok");
+            setOkMsg("Código enviado no seu email.");
             setResendText("01:00");
             setResendClassName("cta-text");
             setTimeLeft(60);
             setStartTimer(true);
           })
-          .catch((e) => {
-            info(e.response.data.message, "error");
+          .catch(() => {
             wait.current = false;
           });
       } else {
-        info("Email inválido", "error");
+        setErrorMsg("Email inválido", "error");
       }
     }
   }
@@ -252,26 +251,32 @@ function Recovery() {
   }, [timeLeft, startTimer]);
 
   //load storage
-  useLayoutEffect(() => {
-    const loadedEmail = localStorage.getItem("recovery-email");
+  useEffect(() => {
+    const loadedEmail = sessionStorage.getItem("recovery-email");
 
-    if (loadedEmail) {
+    if (loadedEmail && !wait.current) {
+      wait.current = true;
       setEmail(loadedEmail);
       setNewEmail(loadedEmail);
 
-      info("Enviando código...", "loading");
-
-      api
-        .post("/recovery", {
-          email,
+      reset().then(() => {
+        sendCode({
+          email: loadedEmail,
         })
-        .finally(() => {
-          info("Código enviado.", "ok");
-          setResendText("01:00");
-          setResendClassName(null);
-          setTimeLeft(60);
-          setStartTimer(true);
-        });
+          .then(() => {
+            setOkMsg("Código enviado.");
+            setResendText("01:00");
+            setResendClassName(null);
+            setTimeLeft(60);
+            setStartTimer(true);
+          })
+          .catch(() => {
+            setResendText("01:00");
+            setResendClassName(null);
+            setTimeLeft(60);
+            setStartTimer(true);
+          });
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -329,7 +334,7 @@ function Recovery() {
                 </div>
               </div>
             </div>
-            {msg && (
+            {isLoading && (
               <motion.div
                 className="inline-flex-center mini-gap"
                 layoutId="msg-box"
@@ -345,10 +350,10 @@ function Recovery() {
                 transition={{ duration: 0.4 }}
               >
                 <MiniLoadSpinner className="msg-mini-spinner mini-gap" />
-                <p className="paragraph">{msg}</p>
+                <p className="paragraph">{isLoading}</p>
               </motion.div>
             )}
-            {error && (
+            {isError && (
               <motion.div
                 className="inline-flex-center mini-gap"
                 layoutId="error-box"
@@ -364,10 +369,29 @@ function Recovery() {
                 transition={{ duration: 0.4 }}
               >
                 <ErrorIcon className="error-icon" />
-                <p className="paragraph">{error}</p>
+                <p className="paragraph">{isError}</p>
               </motion.div>
             )}
-            {ok && (
+            {errorMsg && (
+              <motion.div
+                className="inline-flex-center mini-gap"
+                layoutId="error-box"
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.4 }}
+              >
+                <ErrorIcon className="error-icon" />
+                <p className="paragraph">{errorMsg}</p>
+              </motion.div>
+            )}
+            {okMsg && (
               <motion.div
                 className="inline-flex-center mini-gap"
                 layoutId="ok-box"
@@ -383,7 +407,7 @@ function Recovery() {
                 transition={{ duration: 0.4 }}
               >
                 <CheckIcon height={10} className="check-icon" />
-                <p className="paragraph">{ok}</p>
+                <p className="paragraph">{okMsg}</p>
               </motion.div>
             )}
             <div className="content-box small-gap">
@@ -444,7 +468,7 @@ function Recovery() {
                 Envie um código de recuperação de senha no seu email.
               </p>
             </div>
-            {msg && (
+            {isLoading && (
               <motion.div
                 className="inline-flex-center mini-gap"
                 layoutId="msg-box"
@@ -460,10 +484,10 @@ function Recovery() {
                 transition={{ duration: 0.4 }}
               >
                 <MiniLoadSpinner className="msg-mini-spinner mini-gap" />
-                <p className="paragraph">{msg}</p>
+                <p className="paragraph">{isLoading}</p>
               </motion.div>
             )}
-            {error && (
+            {isError && (
               <motion.div
                 className="inline-flex-center mini-gap"
                 layoutId="error-box"
@@ -479,10 +503,29 @@ function Recovery() {
                 transition={{ duration: 0.4 }}
               >
                 <ErrorIcon className="error-icon" />
-                <p className="paragraph">{error}</p>
+                <p className="paragraph">{isError}</p>
               </motion.div>
             )}
-            {ok && (
+            {errorMsg && (
+              <motion.div
+                className="inline-flex-center mini-gap"
+                layoutId="error-box"
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.4 }}
+              >
+                <ErrorIcon className="error-icon" />
+                <p className="paragraph">{errorMsg}</p>
+              </motion.div>
+            )}
+            {okMsg && (
               <motion.div
                 className="inline-flex-center mini-gap"
                 layoutId="ok-box"
@@ -498,7 +541,7 @@ function Recovery() {
                 transition={{ duration: 0.4 }}
               >
                 <CheckIcon height={10} className="check-icon" />
-                <p className="paragraph">{ok}</p>
+                <p className="paragraph">{okMsg}</p>
               </motion.div>
             )}
             <div className="content-box mini-gap">

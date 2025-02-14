@@ -1,0 +1,58 @@
+.select-container {
+  background-color: var(--contrast-color);
+  border-radius: 8px;
+}
+
+.select-container-open {
+  border-radius: 8px 8px 0 0;
+}
+
+.select-box {
+  width: 240px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: backdrop-filter 0.4s;
+  border-radius: 8px;
+  color: var(--common-color);
+}
+
+.select-placeholder {
+  color: var(--sub-text-color);
+}
+
+.select-box-open {
+  border-radius: 8px 8px 0 0;
+}
+
+.select-box:hover {
+  backdrop-filter: brightness(140%);
+}
+
+.select-icon {
+  line-height: 0;
+}
+
+.select-dropdown {
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  list-style: none;
+  background-color: var(--contrast-color);
+  position: absolute;
+  border-radius: 0 0 8px 8px;
+}
+
+.option {
+  padding: 16px;
+  cursor: pointer;
+}
+
+.option:hover {
+  backdrop-filter: brightness(140%);
+}

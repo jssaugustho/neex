@@ -1,5 +1,7 @@
 .auth-loader {
-  height: 30vh;
+  height: 60vh;
+  align-items: center;
+  justify-content: center;
 }
 
 .loader {
