@@ -4,7 +4,6 @@ class InternalServerError extends Error {
     this.name = "InternalServerError";
     this.message = message;
   }
-  status = 502;
 }
 
 class UserError extends Error {
@@ -13,7 +12,6 @@ class UserError extends Error {
     this.name = "UserError";
     this.message = message;
   }
-  status = 400;
 }
 
 class AuthError extends Error {
@@ -22,7 +20,6 @@ class AuthError extends Error {
     this.name = "AuthError";
     this.message = message;
   }
-  status = 401;
 }
 
 class TokenError extends Error {
@@ -31,23 +28,14 @@ class TokenError extends Error {
     this.name = "TokenError";
     this.message = message;
   }
-  status = 401;
 }
 
-function response(err, req, res, next) {
-  if (err.status) {
-    return res.status(err.status).send({
-      status: err.name,
-      message: err.message,
-    });
+class SessionError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "SessionError";
+    this.message = message;
   }
-  if (err) {
-    return res.status(502).send({
-      status: "InternalServerError",
-      message: err.message,
-    });
-  }
-  next();
 }
 
 export default {
@@ -55,5 +43,5 @@ export default {
   InternalServerError,
   AuthError,
   TokenError,
-  response,
+  SessionError,
 };

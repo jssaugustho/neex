@@ -22,6 +22,7 @@ async function validateStringParams(req, res, next) {
 //verify login and send user id to next in req.id
 async function validateRegisterParams(req, res, next) {
   let lostParams = [];
+
   //verify params
   if (!req.body.name) lostParams.push("nome");
   if (!req.body.lastName) lostParams.push("sobrenome");

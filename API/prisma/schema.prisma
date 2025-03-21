@@ -29,7 +29,7 @@ model User {
   phone             String
   support           Json
   role              Role               @default(USER)
-  token             Token[]
+  session           Session[]
   Lead              Lead[]
   quiz              Quiz[]
   transactions      Transactions[]
@@ -48,12 +48,17 @@ model VerificationCode {
   userId    String   @id @map("_id") @db.ObjectId
 }
 
-model Token {
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  token     String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @id @map("_id") @db.ObjectId
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  token        String   @default("")
+  fingerprint  String
+  ip           String
+  refreshToken String   @default("")
+  userId       String   @db.ObjectId
+  needVerify   Boolean  @default(false)
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 //quiz & leads

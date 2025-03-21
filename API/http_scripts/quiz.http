@@ -1,0 +1,37 @@
+@host = http://localhost:3000
+
+//login
+# @name login
+POST {{host}}/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "joseaugustholi@gmail.com", 
+    "passwd": "8*Caracteres"
+}
+
+###
+
+@token = {{login.response.body.$.token}}
+@refreshToken = {{login.response.body.$.refreshToken}}
+
+//criar quiz
+POST {{host}}/quiz/67b37bbdc0fadce67771866b
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+    "name": "Quiz de teste 2",
+    "slug": "jsnobeat"
+}
+
+###
+
+//verificar slug
+POST {{host}}/verify-slug
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+    "slug": "121312"
+}

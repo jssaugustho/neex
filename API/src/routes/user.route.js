@@ -26,6 +26,7 @@ function resolver(handlerFn) {
 users.get(
   "/user",
   resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.getUserData),
   resolver(userMiddlewares.validateId),
   resolver(userControllers.getUserbyQuery)
 );
@@ -33,6 +34,7 @@ users.get(
 users.get(
   "/users",
   resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.getUserData),
   resolver(userMiddlewares.validateId),
   resolver(userMiddlewares.validateSortBy),
   resolver(userControllers.getUserbyQuery)
@@ -41,6 +43,7 @@ users.get(
 users.get(
   "/users/:id",
   resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.getUserData),
   resolver(userMiddlewares.validateId),
   resolver(userControllers.getUserbyQuery)
 );
@@ -58,6 +61,7 @@ users.post(
 users.put(
   "/user",
   resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.getUserData),
   resolver(userMiddlewares.validateUpdateParams),
   resolver(userControllers.updateUser)
 );
@@ -65,6 +69,7 @@ users.put(
 users.put(
   "/user/:id",
   resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.getUserData),
   resolver(userMiddlewares.validateUpdateParams),
   resolver(userControllers.updateUser)
 );
@@ -72,6 +77,7 @@ users.put(
 users.delete(
   "/user",
   resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.getUserData),
   resolver(userMiddlewares.validateDeleteId),
   resolver(userMiddlewares.validatePasswdDelete),
   resolver(userControllers.deleteUserbyQuery)
@@ -80,6 +86,7 @@ users.delete(
 users.delete(
   "/users/:id",
   resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.getUserData),
   resolver(userMiddlewares.validateDeleteId),
   resolver(userControllers.deleteUserbyQuery)
 );
@@ -87,6 +94,7 @@ users.delete(
 users.delete(
   "/users",
   resolver(authMiddlewares.verifyToken),
+  resolver(authMiddlewares.getUserData),
   resolver(userMiddlewares.validateDeleteId),
   resolver(userControllers.deleteUserbyQuery)
 );

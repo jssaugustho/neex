@@ -38,6 +38,9 @@ class Response {
   invalidToken() {
     return "Token invállido.";
   }
+  invalidRefreshToken() {
+    return "Refresh Token invállido.";
+  }
   unauthorizated() {
     return "Não autorizado.";
   }
@@ -94,6 +97,21 @@ class Response {
   }
   notAgree() {
     return "Você deve concordar com os termos e condições.";
+  }
+  jwtRefreshKeyUndefined() {
+    return "JWT_REFRESH_SECRET undefined.";
+  }
+  blockedUserAgent() {
+    return "User agent bloqueado.";
+  }
+  needFingerprintHeader() {
+    return "Necessário fingerprint.";
+  }
+  invalidSession() {
+    return "Sessão inválida.";
+  }
+  needVerifyEmail() {
+    return "Necessário verificar seu email.";
   }
 }
 
