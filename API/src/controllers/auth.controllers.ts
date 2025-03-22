@@ -1,8 +1,11 @@
-//obrigatory for controllers
+//types
 import { NextFunction, Response } from "express";
 import RequestUserPayload from "../@types/RequestUserPayload/RequestUserPayload.js";
+
+//core
 import Authentication from "../core/Authentication/Authentication.js";
-import User from "../core/User/User.js";
+
+//errors
 import response from "../response/response.js";
 import errors from "../errors/errors.js";
 
@@ -43,6 +46,29 @@ async function auth(
     .catch(next);
 }
 
+async function deAuth(
+  req: RequestUserPayload,
+  res: Response,
+  next: NextFunction
+) {}
+
+async function deAuthAll(
+  req: RequestUserPayload,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.userData?.id) throw new errors.AuthError(response.needAuth());
+
+  Authentication.deauthenticateAll(req.userData.id).then((session) => {
+    res.status(200).send({
+      status: "Ok",
+      message: "Sessão invalidada com sucesso.",
+    });
+  });
+}
+
 export default {
   auth,
+  deAuth,
+  deAuthAll,
 };

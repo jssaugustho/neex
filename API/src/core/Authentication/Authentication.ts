@@ -7,7 +7,7 @@ import response from "../../response/response.js";
 
 //external libs
 import jwt, { JwtPayload } from "jsonwebtoken";
-import axios from "axios";
+import geoip from "geoip-lite";
 
 //types
 import { Session, User } from "@prisma/client";
@@ -18,12 +18,16 @@ import Observer from "../../@types/Observer/Observer.js";
 
 //core
 import Cryptography from "../Cryptography/Cryptography.js";
+import auth from "../../routes/auth.route.js";
+
+//Observers
+import EmailToUser from "./Observers/EmailToUser.js";
 
 class Authentication implements Subject {
   observers: Observer[] = [];
 
   constructor() {
-    return this;
+    this.registerObserver(EmailToUser);
   }
 
   //observer functions
@@ -35,7 +39,7 @@ class Authentication implements Subject {
     this.observers = this.observers.filter((obs) => obs !== observer);
   }
 
-  notify(data?: any) {
+  notify(data: { userData: User; session: Session }) {
     this.observers.forEach((observer) => observer.update(data));
   }
 
@@ -48,17 +52,56 @@ class Authentication implements Subject {
     session: Session,
     fingerprint: string,
     ip: string
-  ): Promise<Boolean> {
+  ): Session | false {
+    let indicators = 0;
+
+    if (!session.authorized) return false;
+
+    if (session.attempts >= 5) indicators += 1;
+
+    if (fingerprint !== session.fingerprint) indicators += 1;
+
+    if (this.verifyIpCity(ip) !== this.verifyIpCity(session.ip))
+      indicators += 1;
+
+    if (indicators >= 2) return false;
+
+    return session;
+  }
+
+  private getIpv4(ip: string) {
+    const match = ip.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/);
+    return match ? match[0] : null;
+  }
+
+  private createSession(
+    userData: User,
+    fingerprint: string,
+    ip: string,
+    authorized: boolean
+  ): Promise<Session> {
     return new Promise(async (resolve, reject) => {
-      let indicators = 0;
-
-      if (fingerprint !== session.fingerprint) indicators += 2;
-
-      if (ip !== session.ip) indicators += 1;
-
-      if (indicators > 1) reject(false);
-
-      resolve(true);
+      prisma.session
+        .create({
+          data: {
+            ip,
+            fingerprint,
+            user: {
+              connect: {
+                id: userData.id,
+              },
+            },
+            authorized,
+          },
+        })
+        .then((session) => {
+          resolve(session);
+        })
+        .catch((err) => {
+          reject(
+            new errors.InternalServerError("Não foi possível iniciar a sessão.")
+          );
+        });
     });
   }
 
@@ -91,84 +134,80 @@ class Authentication implements Subject {
       }
 
       prisma.session
-        .findFirst({
+        .findMany({
           where: {
             userId: q.id,
-            needVerify: false,
           },
           orderBy: {
             updatedAt: "desc",
           },
         })
-        .then((session) => {
-          if (!session) {
-            prisma.session
-              .create({
-                data: {
-                  fingerprint,
-                  ip,
-                  needVerify: false,
-                  user: {
-                    connect: {
-                      id: q.id,
-                    },
-                  },
-                },
-              })
+        .then((sessions) => {
+          let payload: TokenPayload = {};
+
+          if (sessions.length === 0) {
+            this.createSession(q, fingerprint, ip, true)
               .then((session) => {
-                resolve({
-                  id: q.id,
-                  sessionId: session.id,
-                });
+                this.notify({ session, userData: q });
+                return resolve({ id: q.id, sessionId: session.id });
               })
-              .catch((err) => {
-                reject(
-                  new errors.InternalServerError("Erro ao iniciar a sessão.")
+              .catch(() => {
+                return reject(
+                  new errors.InternalServerError("Erro ao iniciar sessão.")
                 );
               });
           } else {
-            if (session.needVerify)
-              reject(new errors.SessionError(response.needVerifyEmail()));
+            let create = true;
 
-            let needVerify = false;
-
-            this.verifyFingerprint(session, fingerprint, ip)
-              .catch(() => {
-                needVerify = true;
-              })
-              .finally(() => {
+            sessions.forEach((session) => {
+              if (this.verifyFingerprint(session, fingerprint, ip)) {
+                create = false;
+                this.notify({ session, userData: q });
+                return resolve({ id: q.id, sessionId: session.id });
+              } else if (
+                session.fingerprint === fingerprint &&
+                session.ip === ip
+              ) {
                 prisma.session
-                  .create({
+                  .update({
+                    where: {
+                      id: session.id,
+                      authorized: false,
+                    },
                     data: {
-                      fingerprint,
                       ip,
-                      needVerify,
-                      user: {
-                        connect: {
-                          id: q.id,
-                        },
-                      },
+                      fingerprint,
+                      attempts: session.attempts + 1,
                     },
                   })
-                  .then((newSession) => {
-                    if (needVerify)
-                      reject(
-                        new errors.SessionError(response.needVerifyEmail())
-                      );
-
-                    resolve({
-                      id: q.id,
-                      sessionId: newSession.id,
-                    });
+                  .then(() => {
+                    return reject(
+                      new errors.SessionError(response.needVerifyEmail())
+                    );
                   })
-                  .catch((err) => {
-                    reject(
+                  .catch(() => {
+                    return reject(
                       new errors.InternalServerError(
-                        "Erro ao iniciar a sessão."
+                        "Não foi possível atualizar a sessão."
                       )
                     );
                   });
-              });
+                create = false;
+              }
+            });
+
+            if (create)
+              this.createSession(q, fingerprint, ip, false)
+                .then(() => {
+                  return reject(
+                    new errors.SessionError(response.needVerifyEmail())
+                  );
+                })
+                .catch(() => {
+                  return reject(
+                    new errors.InternalServerError("Erro ao iniciar sessão.")
+                  );
+                });
           }
         });
     });
@@ -198,13 +237,13 @@ class Authentication implements Subject {
               })
               .then(async (session) => {
                 if (session && session.token === token) {
-                  this.verifyFingerprint(session, fingerprint, ip)
-                    .then((r) => {
-                      resolve(decoded as TokenPayload);
-                    })
-                    .catch((err) => {
-                      reject(new errors.TokenError(response.invalidSession()));
-                    });
+                  if (this.verifyFingerprint(session, fingerprint, ip)) {
+                    resolve(decoded);
+                  } else {
+                    reject(new errors.SessionError(response.needVerifyEmail()));
+                  }
+                } else {
+                  reject(new errors.TokenError(response.invalidToken()));
                 }
               })
               .catch((e) => reject(new errors.InternalServerError(e.message)));
@@ -234,19 +273,14 @@ class Authentication implements Subject {
               .findUnique({ where: { id: decoded.sessionId } })
               .then((session) => {
                 if (session && session.refreshToken === refreshToken)
-                  this.verifyFingerprint(session, fingerprint, ip)
-                    .then((r) => {
-                      if (r) resolve(decoded as TokenPayload);
-                    })
-                    .catch((err) => {
-                      reject(
-                        new errors.AuthError(
-                          reject(
-                            new errors.TokenError(response.invalidSession())
-                          )
-                        )
-                      );
-                    });
+                  if (this.verifyFingerprint(session, fingerprint, ip)) {
+                    resolve(decoded as TokenPayload);
+                  } else {
+                    reject(new errors.SessionError(response.needVerifyEmail()));
+                  }
+                else {
+                  reject(new errors.AuthError(response.invalidRefreshToken()));
+                }
               })
               .catch((err) => reject(err));
           } else reject(new errors.AuthError(response.invalidRefreshToken()));
@@ -303,6 +337,57 @@ class Authentication implements Subject {
           reject(new errors.InternalServerError("Erro ao gerar token."));
         });
     });
+  }
+
+  deauthenticate(sessionId: string): Promise<Session> {
+    return new Promise(async (resolve, reject) => {
+      prisma.session
+        .delete({
+          where: {
+            id: sessionId,
+          },
+        })
+        .then((data) => {
+          if (!data)
+            return reject(new errors.UserError(response.sessionNotFound()));
+          return resolve(data);
+        })
+        .catch((err) => {
+          return reject(
+            new errors.InternalServerError("Não foi possível deletar.")
+          );
+        });
+    });
+  }
+
+  deauthenticateAll(userId: string): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      prisma.session
+        .deleteMany({
+          where: {
+            userId,
+          },
+        })
+        .then((r) => {
+          return resolve();
+        })
+        .catch((err) => {
+          return reject(
+            new errors.InternalServerError("Não foi possível deletar.")
+          );
+        });
+    });
+  }
+
+  verifyIpCity(ip: string) {
+    let ipMatch = this.getIpv4(ip);
+
+    if (process.env.NODE_ENV === "development" && ipMatch === "127.0.0.1")
+      return "localhost";
+
+    let location = geoip.lookup(ipMatch);
+
+    return location.city;
   }
 }
 

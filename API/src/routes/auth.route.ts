@@ -28,4 +28,19 @@ auth.post(
   authControllers.auth
 );
 
+auth.get(
+  "/invalidate-session",
+  authMiddlewares.verifyToken,
+  authMiddlewares.getUserData,
+  authMiddlewares.validateDeleteSession,
+  authControllers.deAuth
+);
+
+auth.get(
+  "/invalidate-all-sessions",
+  authMiddlewares.verifyToken,
+  authMiddlewares.getUserData,
+  authControllers.deAuthAll
+);
+
 export default auth;

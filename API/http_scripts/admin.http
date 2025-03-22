@@ -25,7 +25,7 @@ Authorization: {{token}}
 # @name login
 POST {{host}}/login HTTP/1.1
 Content-Type: application/json
-fingerprint: teste7
+fingerprint: 12346579
 
 {
     "email": "joseaugustholi@gmail.com", 
@@ -36,6 +36,13 @@ fingerprint: teste7
 
 @token = {{login.response.body.$.token}}
 @refreshToken = {{login.response.body.$.refreshToken}}
+
+###
+
+GET {{host}}/invalidate-session HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: 12346579
 
 ###
 
@@ -53,7 +60,7 @@ fingerprint: teste
 //get users
 GET {{host}}/user HTTP/1.1
 Authorization: {{token}}
-fingerprint: teste
+fingerprint: 12345679
 Content-Type: application/json
 
 {

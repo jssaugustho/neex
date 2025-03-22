@@ -165,6 +165,23 @@ async function getUserData(
     .catch(next);
 }
 
+//get user data from the token payload
+async function validateDeleteSession(
+  req: RequestUserPayload,
+  res: Response,
+  next: NextFunction
+) {
+  if (req.body.userId && req.body.sessionId) {
+    req.deleteSession = req.body.sessionId;
+
+    if (req.userData.role === support) next();
+  }
+  if (!req.body.user && req.body.sessionId) {
+    req.deleteSession = req.body.sessionId;
+    next();
+  }
+}
+
 export default {
   userAgentBlackList,
   verifyLogin,
@@ -172,4 +189,5 @@ export default {
   verifyToken,
   isEmailVerified,
   getUserData,
+  validateDeleteSession,
 };

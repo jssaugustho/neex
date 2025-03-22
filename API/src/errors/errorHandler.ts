@@ -7,8 +7,6 @@ function errorHandler(
   res: Response,
   next: NextFunction
 ) {
-  console.error("Erro capturado: ", err);
-
   let statusCode = 502;
 
   if (err.name === "UserError") {

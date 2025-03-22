@@ -44,9 +44,6 @@ class Response {
   unauthorizated() {
     return "Não autorizado.";
   }
-  succesUserUpdate() {
-    return "Usuário atualizado com sucesso.";
-  }
   emailNotExists() {
     return "Usuário não encontrado.";
   }
@@ -112,6 +109,12 @@ class Response {
   }
   needVerifyEmail() {
     return "Necessário verificar seu email.";
+  }
+  cannotSendEmail() {
+    return "Não foi possível enviar o email.";
+  }
+  sessionNotFound() {
+    return "Sessão não encontrada.";
   }
 }
 
