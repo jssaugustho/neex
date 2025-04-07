@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import RequestUserPayload from "../@types/RequestUserPayload/RequestUserPayload.js";
+import RequestUserPayload from "../@types/iRequest/iRequest.js";
 
 function errorHandler(
   err: any,

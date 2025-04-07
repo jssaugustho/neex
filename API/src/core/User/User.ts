@@ -6,16 +6,22 @@ import errors from "../../errors/errors.js";
 import response from "../../response/response.js";
 
 //types
-import { User } from "@prisma/client";
-import Subject from "../../@types/Subject/Subject.js";
-import Observer from "../../@types/Observer/Observer.js";
-import TokenPayload from "../../@types/TokenPayload/TokenPayload.js";
+import { User as iUser, Session as iSession } from "@prisma/client";
+import Subject from "../../@types/iSubject/iSubject.js";
+import Observer from "../../@types/iObserver/iObserver.js";
+import SendVerificationCode from "../../observers/VerificationCode/SendVerificationCode.js";
+
+//external libs
+import Session from "../Session/Session.js";
+import iLookup from "../../@types/iLookup/iLookup.js";
+import EmailNewUserAdmin from "../../observers/NotificateAdmin/EmailNewUserAdmin.js";
+import Verification from "../Verification/Verification.js";
 
 class Authentication implements Subject {
   observers: Observer[] = [];
 
   constructor() {
-    return this;
+    this.registerObserver(EmailNewUserAdmin);
   }
 
   //observer functions
@@ -36,20 +42,85 @@ class Authentication implements Subject {
   }
 
   //core
-  getUserByToken(payload: TokenPayload): Promise<User> {
-    return new Promise<User>((resolve, reject) => {
+  verifySupport(supportEmail: string, userId: string): Promise<Boolean> {
+    return new Promise(async (resolve, reject) => {
+      return resolve(true);
+    });
+  }
+
+  getUserById(id: string): Promise<iUser> {
+    return new Promise<iUser>((resolve, reject) => {
       prisma.user
-        .findUnique({
+        .findUniqueOrThrow({
           where: {
-            id: payload.id,
+            id,
           },
         })
         .then((user) => {
-          resolve(user as User);
+          resolve(user as iUser);
         })
         .catch(() => {
           reject(new errors.UserError(response.userNotFound()));
         });
+    });
+  }
+
+  getUserByEmail(email: string): Promise<iUser> {
+    return new Promise<iUser>((resolve, reject) => {
+      prisma.user
+        .findUniqueOrThrow({
+          where: {
+            email,
+          },
+        })
+        .then((user) => {
+          resolve(user as iUser);
+        })
+        .catch((err) => {
+          console.log(err);
+          reject(new errors.UserError(response.userNotFound()));
+        });
+    });
+  }
+
+  createNewUser(
+    email: string,
+    name: string,
+    lastName: string,
+    phone: string,
+    passwd: string,
+    address: iLookup,
+    fingerprint: string
+  ): Promise<{ session: iSession; user: iUser }> {
+    return new Promise(async (resolve, reject) => {
+      const user = await prisma.user
+        .create({
+          data: {
+            email,
+            name,
+            lastName,
+            phone,
+            passwd,
+          },
+        })
+        .catch((err) => {
+          throw new errors.InternalServerError("Cannot create new User");
+        });
+
+      const session = await Session.createSession(
+        user,
+        fingerprint,
+        address,
+        true
+      ).catch((err) => {
+        throw err;
+      });
+
+      Verification.generateEmailToken(user, session).catch((err) => {
+        throw err;
+      });
+
+      resolve({ user: user as iUser, session });
     });
   }
 }

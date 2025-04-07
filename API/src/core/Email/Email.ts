@@ -1,6 +1,6 @@
 //types
 import { EmailQueue } from "@prisma/client";
-import Observer from "../../@types/Observer/Observer.js";
+import Observer from "../../@types/iObserver/iObserver.js";
 
 //db
 import prisma from "../../controllers/db.controller.js";
@@ -9,10 +9,6 @@ import errors from "../../errors/errors.js";
 
 class Email {
   observers: Observer[] = [];
-
-  constructor() {
-    return this;
-  }
 
   //observer functions
   registerObserver(observer: Observer) {
@@ -46,7 +42,7 @@ class Email {
         .then((email) => {
           return resolve(email);
         })
-        .catch(() => reject(new errors.UserError(response.cannotSendEmail())));
+        .catch((err) => reject(err));
     });
   }
 }

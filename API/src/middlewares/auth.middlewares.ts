@@ -1,5 +1,7 @@
 //core
 import Authentication from "../core/Authentication/Authentication.js";
+import Session from "../core/Session/Session.js";
+import User from "../core/User/User.js";
 
 //response & errors
 import errors from "../errors/errors.js";
@@ -7,13 +9,21 @@ import response from "../response/response.js";
 
 //types
 import { Response, NextFunction } from "express";
-import RequestUserPayload from "../@types/RequestUserPayload/RequestUserPayload.js";
-import User from "../core/User/User.js";
-import Cryptography from "../core/Cryptography/Cryptography.js";
+import iRequest from "../@types/iRequest/iRequest.js";
+import IpType from "../types/IpType/IpType.js";
+import { Session as iSession } from "@prisma/client";
+
+//validators
+import EmailType from "../types/EmailType/EmailType.js";
+import PasswdType from "../types/PasswdType/PasswdType.js";
+import FingerprintType from "../types/FingerprintType/FingerprintType.js";
+import TokenType from "../types/TokenType/TokenType.js";
+import IncrementSessionAttempts from "../observers/SessionAttempts/IncrementSessionAttempts.js";
+import ObjectIdType from "../types/ObjectIdType/ObjectIdType.js";
 
 //verify if user-agent is in blcklist
 async function userAgentBlackList(
-  req: RequestUserPayload,
+  req: iRequest,
   res: Response,
   next: NextFunction
 ) {
@@ -38,79 +48,68 @@ async function userAgentBlackList(
 }
 
 //verify login and send user id to next in req.id
-async function verifyLogin(
-  req: RequestUserPayload,
-  res: Response,
-  next: NextFunction
-) {
-  let { email, passwd } = req.body;
+async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
+  const passwd = new PasswdType(req.body.passwd).getValue();
+  const email = new EmailType(req.body.email).getValue();
 
-  //validate params
-  let lostParams: string[] = [];
+  //baixa o usuario do banco de dados
+  const user = await User.getUserByEmail(email).catch((err) => {
+    throw err;
+  });
 
-  if (!email) {
-    lostParams.push("email");
+  //identifica as sessões do mesmo dispositivo e retorna uma lista
+  let authorized = await Session.identifySession(
+    req.data.fingerprint,
+    req.data.ipLookup,
+    user
+  ).catch((err) => {
+    throw err;
+  });
+
+  if (user.passwd !== passwd) {
+    Session.notifyObserver(IncrementSessionAttempts, {
+      Session: authorized,
+    });
+    throw new errors.AuthError(response.incorrectPasswd());
   }
 
-  if (!passwd) {
-    lostParams.push("senha");
+  //se houver uma sessão liberada e nenhuma bloqueada verifica o login
+  if (authorized) {
+    req.userData = user;
+    req.session = authorized;
+    next();
   }
-
-  if (lostParams.length > 0) {
-    throw new errors.UserError(response.obrigatoryParam(lostParams));
-  }
-
-  if (!req.headers["fingerprint"])
-    throw new errors.UserError(response.needFingerprintHeader());
-
-  if (!req.ip) throw new errors.UserError(response.obrigatoryParam("ip"));
-
-  Authentication.verifyLogin(
-    email,
-    passwd,
-    req.headers["fingerprint"] as string,
-    req.ip
-  )
-    .then((payload) => {
-      req.tokenPayload = payload;
-      next();
-    })
-    .catch(next);
 }
 
 //verify active token and send id to next in req.userData
-async function verifyToken(
-  req: RequestUserPayload,
-  res: Response,
-  next: NextFunction
-) {
+async function verifyToken(req: iRequest, res: Response, next: NextFunction) {
   //verify if header exists
   if (!req.headers["authorization"])
     throw new errors.AuthError(response.needAuth());
-
-  if (!req.headers["fingerprint"])
-    throw new errors.AuthError(response.needFingerprintHeader());
-
   //get token
-  let token = req.headers["authorization"].split(" ")[1];
+  let token = new TokenType(
+    req.headers["authorization"].split(" ")[1]
+  ).getValue();
 
   if (!token) throw new errors.AuthError(response.needAuth());
 
-  Authentication.verifyToken(
+  const { user, session } = await Authentication.verifyToken(
     token,
-    req.headers["fingerprint"] as string,
-    req.ip as string
-  )
-    .then((payload) => {
-      req.tokenPayload = payload;
-      next();
-    })
-    .catch(next);
+    req.data.fingerprint,
+    req.data.ipLookup
+  ).catch((err) => {
+    throw err;
+  });
+
+  req.userData = user;
+  req.session = session;
+
+  next();
 }
 
 //verify token and send id to next in req.id
 async function verifyRefreshToken(
-  req: RequestUserPayload,
+  req: iRequest,
   res: Response,
   next: NextFunction
 ) {
@@ -122,24 +121,23 @@ async function verifyRefreshToken(
     throw new errors.UserError(response.obrigatoryParam("refreshToken"));
   }
 
-  if (!req.headers["fingerprint"])
-    throw new errors.AuthError(response.needFingerprintHeader());
-
-  Authentication.verifyRefreshToken(
+  const { user, session } = await Authentication.verifyRefreshToken(
     refreshToken,
-    req.headers["fingerprint"] as string,
-    req.ip as string
-  )
-    .then((payload) => {
-      req.tokenPayload = payload;
-      next();
-    })
-    .catch(next);
+    req.data.fingerprint,
+    req.data.ipLookup
+  ).catch((err) => {
+    throw err;
+  });
+
+  req.userData = user;
+  req.session = session;
+
+  next();
 }
 
 //verify if email is verified
 async function isEmailVerified(
-  req: RequestUserPayload,
+  req: iRequest,
   res: Response,
   next: NextFunction
 ) {
@@ -149,37 +147,49 @@ async function isEmailVerified(
 }
 
 //get user data from the token payload
-async function getUserData(
-  req: RequestUserPayload,
+async function validateInactivateSession(
+  req: iRequest,
   res: Response,
   next: NextFunction
 ) {
-  if (!req.tokenPayload)
-    throw new errors.InternalServerError("Erro ao carregar usuário.");
+  if (!req.userData) throw new errors.AuthError(response.needAuth());
 
-  User.getUserByToken(req.tokenPayload)
-    .then((user) => {
-      req.userData = user;
-      next();
-    })
-    .catch(next);
+  let sessionId = new ObjectIdType(req.body.sessionId).getValue();
+
+  const session = await Session.getSessionById(req.body.sessionId).catch(
+    (err) => {
+      throw err;
+    }
+  );
+
+  if (!session) throw new errors.UserError(response.sessionNotFound());
+
+  if (
+    req.userData.role === "SUPPORT" ||
+    req.userData.role === "ADMIN" ||
+    session.userId === req.userData.id
+  ) {
+    req.session = session;
+    next();
+  } else {
+    throw new errors.AuthError(response.unauthorizated());
+  }
 }
 
-//get user data from the token payload
-async function validateDeleteSession(
-  req: RequestUserPayload,
+async function getFingerprint(
+  req: iRequest,
   res: Response,
   next: NextFunction
 ) {
-  if (req.body.userId && req.body.sessionId) {
-    req.deleteSession = req.body.sessionId;
+  req.data = {};
 
-    if (req.userData.role === support) next();
-  }
-  if (!req.body.user && req.body.sessionId) {
-    req.deleteSession = req.body.sessionId;
-    next();
-  }
+  req.data.fingerprint = new FingerprintType(
+    req.headers.fingerprint as string
+  ).getValue();
+
+  req.data.ipLookup = new IpType(req.ip as string).getLookup();
+
+  next();
 }
 
 export default {
@@ -188,6 +198,6 @@ export default {
   verifyRefreshToken,
   verifyToken,
   isEmailVerified,
-  getUserData,
-  validateDeleteSession,
+  validateInactivateSession,
+  getFingerprint,
 };

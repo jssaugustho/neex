@@ -25,7 +25,9 @@
   "dependencies": {
     "@prisma/client": "^6.0.1",
     "@types/agenda": "^3.0.2",
+    "@types/geoip-lite": "^1.4.4",
     "@types/nodemailer": "^6.4.17",
+    "@types/swagger-ui-express": "^4.1.8",
     "app-lux-digital-assessoria": "file:",
     "axios": "^1.8.4",
     "cors": "^2.8.5",
@@ -34,6 +36,7 @@
     "express-async-errors": "^3.1.1",
     "fs": "^0.0.1-security",
     "geoip-lite": "^1.4.10",
+    "google-ads-api": "^19.0.2-rest-beta",
     "http": "^0.0.1-security",
     "https": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
@@ -42,7 +45,9 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16",
     "nodemon": "^3.1.9",
-    "pino": "^9.5.0"
+    "openapi-types": "^12.1.3",
+    "pino": "^9.5.0",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

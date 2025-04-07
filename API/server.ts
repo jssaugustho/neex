@@ -2,7 +2,7 @@ import App from "./App.js";
 
 process.env.TZ = "AMERICA/SAO_PAULO";
 
-App.listen(3000, () => console.log("Listening http://localhost:3000/"));
+App.listen(3000, () => console.log("API Listening http://localhost:3000/"));
 
 //   .createServer(
 //     {

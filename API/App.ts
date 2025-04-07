@@ -5,15 +5,17 @@ import cors from "cors";
 
 // rotas
 import userRoute from "./src/routes/user.route.js";
-import leadRoute from "./src/routes/lead.route.js";
+
 import verificationRoute from "./src/routes/verification.route.js";
 import authRoute from "./src/routes/auth.route.js";
-import recoveryRoute from "./src/routes/passwdRecovery.route.js";
 import quizRoute from "./src/routes/quiz.route.js";
 
 import errors from "./src/errors/errors.js";
 import errorHandler from "./src/errors/errorHandler.js";
 import authMiddlewares from "./src/middlewares/auth.middlewares.js";
+
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "./swagger.json" assert { type: "json" };
 
 class App {
   app = express();
@@ -28,6 +30,13 @@ class App {
     //bloqueio de user-agents da blacklist
     this.app.use(authMiddlewares.userAgentBlackList);
 
+    if (process.env.NODE_ENV === "development") {
+      console.log("Development mode detected");
+      console.log("Documentation http://localhost:3000/docs");
+      console.log("---------------------------------------------");
+      this.app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    }
+
     //chamar rotas
     this.routes();
 
@@ -37,7 +46,7 @@ class App {
 
   routes() {
     const corsOptions = {
-      origin: ["http://localhost:5173", "https://luxcrm.space/"],
+      origin: [process.env.API_URL],
       optionsSuccessStatus: 200,
     };
 
@@ -45,10 +54,8 @@ class App {
 
     //rotas
     this.app.use(userRoute);
-    this.app.use(leadRoute);
     this.app.use(verificationRoute);
     this.app.use(authRoute);
-    this.app.use(recoveryRoute);
     this.app.use(quizRoute);
   }
 }

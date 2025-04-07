@@ -1,0 +1,685 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "0.0.2",
+    "title": "Lux CRM Core",
+    "description": "Api documentation for Lux CRM Back End Core."
+  },
+  "schemes": ["https"],
+  "servers": [
+    {
+      "description": "Localhost Development API.",
+      "url": "http://localhost:3000/"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "Token": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authentication"
+      },
+      "FingerprintID": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Fingerprint"
+      },
+      "Language": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Accept-Language"
+      }
+    },
+    "schemas": {
+      "Login": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "passwd": {
+            "type": "string"
+          }
+        }
+      },
+      "RefreshToken": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "SessionId": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "usuariodeteste@gmail.com"
+          },
+          "passwd": {
+            "type": "string",
+            "example": "SenhaDeTeste@123"
+          },
+          "name": {
+            "type": "string",
+            "example": "User"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "de Teste"
+          },
+          "phone": {
+            "type": "string",
+            "example": "(11) 9 9171-8696"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "Token": []
+    },
+    {
+      "FingerprintID": []
+    },
+    {
+      "Language": []
+    }
+  ],
+  "paths": {
+    "/login": {
+      "post": {
+        "summary": "Fazer login.",
+        "tags": ["Authentication"],
+        "description": "Faça seu login e receba de volta um token e um refresh token.",
+        "security": [
+          {
+            "FingerprintID": []
+          },
+          {
+            "Language": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              },
+              "examples": {
+                "Autenticando com email e senha.": {
+                  "value": {
+                    "email": "usuariodeteste@gmail.com",
+                    "passwd": "SenhaDeTeste@123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "Ok"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Usuário autenticado com sucesso."
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjExZjdkYmRiMjJmNmM3NWFlZTJkOSIsInNlc3Npb25JZCI6IjY3ZjEyNDU5NDk3ZDJlMjIyZTFiZjRkNiIsInR5cGUiOiJUb2tlbiIsImlhdCI6MTc0Mzg3OTM2MiwiZXhwIjoxNzQ0NDc5MzYyfQ.P69JGGjp0CyVbkS-vzd4HPwNXrHlLrBXhqkNpsv6L90"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjExZjdkYmRiMjJmNmM3NWFlZTJkOSIsInNlc3Npb25JZCI6IjY3ZjEyNDU5NDk3ZDJlMjIyZTFiZjRkNiIsInR5cGUiOiJSZWZyZXNoVG9rZW4iLCJpYXQiOjE3NDM4NzkzNjIsImV4cCI6MTkxNjY3OTM2Mn0.PgbPFkM8hhizs3LRpIFyBaDNBs5TvxBQ_uLPNpuX0Lw"
+                    },
+                    "data": {
+                      "type": "object",
+                      "format": "email",
+                      "example": {
+                        "id": "67f11f7dbdb22f6c75aee2d9",
+                        "createdAt": "2025-04-05T12:18:05.112Z",
+                        "updatedAt": "2025-04-05T12:18:05.112Z",
+                        "active": true,
+                        "email": "joseaugustholi@gmail.com",
+                        "emailVerified": false,
+                        "emailNotification": true,
+                        "agree": true,
+                        "name": "José",
+                        "lastName": "Augustho",
+                        "passwd": "********************************",
+                        "phone": "(34) 99171-8593",
+                        "role": "USER"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "AuthError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "<Mensagem de erro>"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametros inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "UserError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "<Mensagem de erro>"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Erro interno.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "InternalServerError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "<Mensagem de erro>"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/refresh": {
+      "post": {
+        "summary": "Atualizar token para manter a sessão ativa.",
+        "tags": ["Authentication"],
+        "description": "Envie o refreshToken e receba um token e um refreshToken novos.",
+        "security": [
+          {
+            "FingerprintID": []
+          },
+          {
+            "Language": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshToken"
+              },
+              "examples": {
+                "Atualizando token e refreshToken": {
+                  "value": {
+                    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjEyNmYwMzFlYjU3NjIzYmZkOTZlYiIsInNlc3Npb25JZCI6IjY3ZjEyY2QwM2FjNmNiYzU3OTczNzA3MSIsImlhdCI6MTc0Mzg1ODg5NiwiZXhwIjoxOTE2NjU4ODk2fQ.YRDejsPts2C68zr7xXa_TRsmliDoztKeUGu6DwwCXsQ"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "Ok"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Usuário autenticado com sucesso."
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjExZjdkYmRiMjJmNmM3NWFlZTJkOSIsInNlc3Npb25JZCI6IjY3ZjEyNDU5NDk3ZDJlMjIyZTFiZjRkNiIsInR5cGUiOiJUb2tlbiIsImlhdCI6MTc0Mzg3OTM2MiwiZXhwIjoxNzQ0NDc5MzYyfQ.P69JGGjp0CyVbkS-vzd4HPwNXrHlLrBXhqkNpsv6L90"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjExZjdkYmRiMjJmNmM3NWFlZTJkOSIsInNlc3Npb25JZCI6IjY3ZjEyNDU5NDk3ZDJlMjIyZTFiZjRkNiIsInR5cGUiOiJSZWZyZXNoVG9rZW4iLCJpYXQiOjE3NDM4NzkzNjIsImV4cCI6MTkxNjY3OTM2Mn0.PgbPFkM8hhizs3LRpIFyBaDNBs5TvxBQ_uLPNpuX0Lw"
+                    },
+                    "data": {
+                      "type": "object",
+                      "format": "email",
+                      "example": {
+                        "id": "67f11f7dbdb22f6c75aee2d9",
+                        "createdAt": "2025-04-05T12:18:05.112Z",
+                        "updatedAt": "2025-04-05T12:18:05.112Z",
+                        "active": true,
+                        "email": "joseaugustholi@gmail.com",
+                        "emailVerified": false,
+                        "emailNotification": true,
+                        "agree": true,
+                        "name": "José",
+                        "lastName": "Augustho",
+                        "passwd": "********************************",
+                        "phone": "(34) 99171-8593",
+                        "role": "USER"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "AuthError | TokenError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "<Mensagem de erro>"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametros inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "UserError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "<Mensagem de erro>"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Erro interno.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "InternalServerError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "<Mensagem de erro>"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inactivate-session": {
+      "put": {
+        "summary": "Desativar sessão com base em um id.",
+        "tags": ["Session"],
+        "description": "Desativa a sessão de um usuário com base no sessionId. (Requer que a sessão seja do usuário autenticado ou que o usuário autenticado tenha privilégios de suporte ou administrador)",
+        "security": [
+          {
+            "FingerprintID": []
+          },
+          {
+            "Language": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionId"
+              },
+              "examples": {
+                "Desativando uma sessão": {
+                  "value": {
+                    "sessionId": "67e1d85201acae1a746a3a6b"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "Ok"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Usuário autenticado com sucesso."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado."
+          },
+          "400": {
+            "description": "Parametros inválidos."
+          },
+          "502": {
+            "description": "Erro interno."
+          }
+        }
+      },
+      "get": {
+        "summary": "Desativar sessão autenticada.",
+        "tags": ["Session"],
+        "description": "Desativa a sessão que está autenticada.",
+        "requestBody": {
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "401": {
+            "description": "Não autorizado."
+          },
+          "400": {
+            "description": "Parametros inválidos."
+          },
+          "502": {
+            "description": "Erro interno."
+          }
+        }
+      }
+    },
+    "/inactivate-session/all": {
+      "get": {
+        "summary": "Desativar todas as sessões menos a que está autenticada.",
+        "tags": ["Session"],
+        "description": "Desativa todas as sessões do usuário, menos a que está autenticada pelo token.",
+        "requestBody": {
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "properties": {
+              "message": {
+                "type": "string",
+                "example": "Todas as sessões foram desativadas com sucesso."
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado."
+          },
+          "400": {
+            "description": "Parametros inválidos."
+          },
+          "502": {
+            "description": "Erro interno."
+          }
+        }
+      }
+    },
+    "/block-session": {
+      "put": {
+        "summary": "Bloquear sessão.",
+        "tags": ["Session"],
+        "description": "É usado como medida de segurança para bloquear sessões suspeitas e impedir que dispositivos vinculados à ela façam login. (Requer que a sessão seja do usuário autenticado ou que o usuário autenticado tenha privilégios de suporte ou administrador)",
+        "security": [
+          {
+            "FingerprintID": []
+          },
+          {
+            "Language": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionId"
+              },
+              "examples": {
+                "refreshToken": {
+                  "value": {
+                    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjEyNmYwMzFlYjU3NjIzYmZkOTZlYiIsInNlc3Npb25JZCI6IjY3ZjEyY2QwM2FjNmNiYzU3OTczNzA3MSIsImlhdCI6MTc0Mzg1ODg5NiwiZXhwIjoxOTE2NjU4ODk2fQ.YRDejsPts2C68zr7xXa_TRsmliDoztKeUGu6DwwCXsQ"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "401": {
+            "description": "Não autorizado."
+          },
+          "400": {
+            "description": "Parametros inválidos."
+          },
+          "502": {
+            "description": "Erro interno."
+          }
+        }
+      }
+    },
+    "/user": {
+      "post": {
+        "summary": "Cria um novo usuário.",
+        "tags": ["User"],
+        "description": "Cria um novo usuário.",
+        "security": [
+          {
+            "FingerprintID": []
+          },
+          {
+            "Language": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "usuariodeteste@gmail.com"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Usuário autenticado com sucesso."
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjExZjdkYmRiMjJmNmM3NWFlZTJkOSIsInNlc3Npb25JZCI6IjY3ZjEyNDU5NDk3ZDJlMjIyZTFiZjRkNiIsInR5cGUiOiJUb2tlbiIsImlhdCI6MTc0Mzg3OTM2MiwiZXhwIjoxNzQ0NDc5MzYyfQ.P69JGGjp0CyVbkS-vzd4HPwNXrHlLrBXhqkNpsv6L90"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjExZjdkYmRiMjJmNmM3NWFlZTJkOSIsInNlc3Npb25JZCI6IjY3ZjEyNDU5NDk3ZDJlMjIyZTFiZjRkNiIsInR5cGUiOiJSZWZyZXNoVG9rZW4iLCJpYXQiOjE3NDM4NzkzNjIsImV4cCI6MTkxNjY3OTM2Mn0.PgbPFkM8hhizs3LRpIFyBaDNBs5TvxBQ_uLPNpuX0Lw"
+                    },
+                    "data": {
+                      "type": "object",
+                      "format": "email",
+                      "example": {
+                        "id": "67f11f7dbdb22f6c75aee2d9",
+                        "createdAt": "2025-04-05T12:18:05.112Z",
+                        "updatedAt": "2025-04-05T12:18:05.112Z",
+                        "active": true,
+                        "email": "joseaugustholi@gmail.com",
+                        "emailVerified": false,
+                        "emailNotification": true,
+                        "agree": true,
+                        "name": "José",
+                        "lastName": "Augustho",
+                        "passwd": "********************************",
+                        "phone": "(34) 99171-8593",
+                        "role": "USER"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado."
+          },
+          "400": {
+            "description": "Parametros inválidos."
+          },
+          "502": {
+            "description": "Erro interno."
+          }
+        }
+      }
+    },
+    "/email-exists": {
+      "post": {
+        "summary": "Verifica se um email está disponível.",
+        "tags": ["User"],
+        "description": "Ele retorna",
+        "security": [
+          {
+            "FingerprintID": []
+          },
+          {
+            "Language": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Email"
+              },
+              "examples": {
+                "login": {
+                  "value": {
+                    "email": "usuariodeteste@gmail.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ok"
+          },
+          "401": {
+            "description": "Não autorizado."
+          },
+          "400": {
+            "description": "Parametros inválidos."
+          },
+          "502": {
+            "description": "Erro interno."
+          }
+        }
+      }
+    }
+  }
+}

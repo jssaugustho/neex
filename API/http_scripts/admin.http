@@ -4,20 +4,32 @@
 # @name register
 POST {{host}}/user HTTP/1.1
 Content-Type: application/json
+Fingerprint: HTTP-VSCODE
 
 {
     "name": "José",
-    "email": "joseaugustholi3@gmail.com",
+    "lastName": "Augustho",
+    "email": "usuariodeteste@gmail.com",
     "phone": "34991718593",
-    "passwd": "1234",
-    "confirmPasswd": "1234"
+    "passwd": "SenhaDeTeste@123"
 }
 
 ###
 
-//resend
-get {{host}}/resend HTTP/1.1
-Authorization: {{token}}
+GET {{host}}/user HTTP/1.1
+Content-Type: application/json
+fingerprint: teste123456789
+
+###
+
+POST {{host}}/email-exists HTTP/1.1
+Content-Type: application/json
+fingerprint: teste123456789
+
+{
+    "email": "joseaugustholi@gmail.com"
+}
+
 
 ###
 
@@ -25,11 +37,11 @@ Authorization: {{token}}
 # @name login
 POST {{host}}/login HTTP/1.1
 Content-Type: application/json
-fingerprint: 12346579
+fingerprint: mozilla0firefox
 
 {
-    "email": "joseaugustholi@gmail.com", 
-    "passwd": "8*Caracteres"
+    "email": "usuariodeteste@gmail.com",
+    "passwd": "SenhaDeTeste@123"
 }
 
 ###
@@ -39,73 +51,46 @@ fingerprint: 12346579
 
 ###
 
-GET {{host}}/invalidate-session HTTP/1.1
+GET {{host}}/verify-email?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZWZiYjM1ZDgwMzQ5ODc4NDI2ODU0MiIsInJhbmQiOiIyZmFlNDM4OC0wY2I5LTRlYzAtYWYyZS1lOGU4NWMzY2FhNGIiLCJpYXQiOjE3NDM3Nzk0MjksImV4cCI6MTc0NDM3OTQyOX0.8x6ZY5aiw86moTp_BIu19r-LXPSJDhnpeKN8KQrJoUg
+Authorization: {{token}}
+Content-Type: application/json
+fingerprint: 9999999999
+
+###
+
+GET {{host}}/email-auth?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjExZjdkYmRiMjJmNmM3NWFlZTJkOSIsInNlc3Npb25JZCI6IjY3ZjNkZTRlN2ViYWUyOWQ3NzFlNDkwNyIsInJhbmQiOiI1ZGZjYTg5Zi04NWI5LTRhOGYtOWVjMy05Y2FjOWNjNTI3Y2QiLCJpYXQiOjE3NDQwMzU0MDcsImV4cCI6MTc0NDYzNTQwN30.fnCjmktr3GgaN6AlgMB2ZLpqNCAmf_9s2incRxvkBKQ
+Authorization: {{token}}
+Content-Type: application/json
+fingerprint: 9999999999
+
+###
+
+
+GET {{host}}/resend
+Authorization: {{token}}
+Content-Type: application/json
+fingerprint: 9999999999
+
+###
+
+GET {{host}}/inactivate-session/all HTTP/1.1
 Content-Type: application/json
 Authorization: {{token}}
 fingerprint: 12346579
 
 ###
 
-//refresh token
-POST {{host}}/refresh HTTP/1.1
+GET {{host}}/inactivate-session HTTP/1.1
 Content-Type: application/json
-fingerprint: teste
-
-{
-    "refreshToken": "{{refreshToken}}"
-}
-
-###
-
-//get users
-GET {{host}}/user HTTP/1.1
 Authorization: {{token}}
-fingerprint: 12345679
-Content-Type: application/json
-
-{
-    "take": 200,
-    "my": true
-}
+fingerprint: 12346579
 
 ###
 
-
-//update user
-PUT {{host}}/user HTTP/1.1
+POST {{host}}/send-email-auth HTTP/1.1
+Content-Type: application/json
 Authorization: {{token}}
-Content-Type: application/json
-
-{
-    "id": "67609e7434d17eda53edc373",
-    "name": "Paulo",
-    "email": "paulo2@gmail.com",
-    "phone": "3491718593"
-}
-
-###
-
-//veri:fy code
-POST {{host}}/verify HTTP/1.1
-Authorization: {{token}}
-Content-Type: application/json
-
-{
-    "emailVerificationCode": "719433"
-}
-
-###
-
-//resend code
-GET {{host}}/resend HTTP/1.1
-Authorization: {{token}}
-
-
-###
-
-//recovery passwd
-POST {{host}}/recovery HTTP/1.1
-Content-Type: application/json
+fingerprint: 12346579
 
 {
     "email": "joseaugustholi@gmail.com"
@@ -113,24 +98,65 @@ Content-Type: application/json
 
 ###
 
-//verify recovery code
-POST {{host}}/verify-recovery-code HTTP/1.1
+PUT {{host}}/inactivate-session HTTP/1.1
 Content-Type: application/json
+Authorization: {{token}}
+fingerprint: 12346579
 
 {
-    "email": "joseaugustholi@gmail.com",
-    "passwdRecoveryCode": "861788"
+    "sessionId": "67f29e8f0b3d979a3613314a"
 }
 
 ###
 
-//delete user
+//refresh token
+POST {{host}}/refresh HTTP/1.1
+Content-Type: application/json
+fingerprint: 9999999999
 
-DELETE {{host}}/user HTTP/1.1
+{
+    "refreshToken": "{{refreshToken}}"
+}
+
+###
+
+//get logged user
+GET {{host}}/user HTTP/1.1
 Authorization: {{token}}
+fingerprint: mozilla0firefoxs
+Content-Type: application/json
+
+###
+
+//get all users
+GET {{host}}/users/all HTTP/1.1
+Authorization: {{token}}
+fingerprint: 123456789
+Content-Type: application/json
+
+###
+
+//count all users
+GET {{host}}/users/all/count HTTP/1.1
+Authorization: {{token}}
+fingerprint: 123456789
+Content-Type: application/json
+
+###
+
+//update user
+PUT {{host}}/user HTTP/1.1
+Authorization: {{token}}
+fingerprint: 123456789
 Content-Type: application/json
 
 {
-        "passwd": "1234"
-}
+    "query": {
+        "email": "joseaugustholi5@gmail.com"
+    },
+    "data": {
+        "role": "SUPPORT",
+        "phone": "34991718593"
+    }
+
 

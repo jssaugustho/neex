@@ -63,7 +63,7 @@ class Response {
     if (n == 0) return "Nenhum lead encontrado.";
     else return "Lead encontrado.";
   }
-  userNotFound(n) {
+  userNotFound() {
     return "Usuário não encontrado.";
   }
   verifyYourEmail() {
@@ -99,10 +99,10 @@ class Response {
     return "JWT_REFRESH_SECRET undefined.";
   }
   blockedUserAgent() {
-    return "User agent bloqueado.";
+    return "SVocê não tem autorização para acessar essa API.";
   }
   needFingerprintHeader() {
-    return "Necessário fingerprint.";
+    return "Você não tem autorização para acessar essa API.";
   }
   invalidSession() {
     return "Sessão inválida.";
@@ -115,6 +115,27 @@ class Response {
   }
   sessionNotFound() {
     return "Sessão não encontrada.";
+  }
+  invalidFingerprint() {
+    return "ID do Dispositivo inválido.";
+  }
+  emailAvaible() {
+    return "Email disponível.";
+  }
+  needOneQueryParam() {
+    return "Requer pelo menos um parametro na query.";
+  }
+  needOneBodyParam() {
+    return "Requer pelo menos um parametro para editar.";
+  }
+  invalidUpdate() {
+    return "Não foi possível atualizar usuário.";
+  }
+  cantVerifyEmail() {
+    return "Não foi possível verificar o email.";
+  }
+  retryAuthentication() {
+    return "Faça login novamente.";
   }
 }
 
