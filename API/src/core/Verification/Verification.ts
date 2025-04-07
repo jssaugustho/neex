@@ -24,7 +24,7 @@ import response from "../../response/response.js";
 //observers
 import EmailVerified from "../../observers/NotificateUser/EmailVerified.js";
 import SendVerificationCode from "../../observers/VerificationCode/SendVerificationCode.js";
-import ResetSessionAttempts from "../../observers/EmailExpires/ResetEmailExpires.js";
+import ResetSessionAttempts from "../../observers/SessionAttempts/ResetSessionAttempts.js";
 import IncrementEmailExpires from "../../observers/EmailExpires/IncrementEmailExpires.js";
 import IncrementSessionAttempts from "../../observers/SessionAttempts/IncrementSessionAttempts.js";
 import iLookup from "../../@types/iLookup/iLookup.js";
@@ -119,49 +119,52 @@ class Verification implements iSubject {
   verifyEmailToken(
     token: string,
     user: iUser,
-    fingerprint: string,
-    adddres: iLookup,
-    showNotify = true
-  ): Promise<iVerification> {
+    showNotify = true,
+    fingerprint?: string,
+    address?: iLookup
+  ): Promise<{ tokenVerification: iVerification; session: iSession }> {
     return new Promise(async (resolve, reject) => {
-      const decoded: iTokenPayload = await Token.loadPayload(
-        token,
-        "emailToken"
-      ).catch((err) => {
-        reject(err);
-        return {};
+      let error = errors.UserError;
+
+      if (fingerprint && address) error = errors.AuthError;
+
+      const decoded = (await Token.loadPayload(token, "emailToken").catch(
+        (err) => {
+          reject(err);
+        }
+      )) as iTokenPayload;
+
+      if (!decoded) return reject(new error(response.invalidToken()));
+
+      const session = await Session.getSessionById(decoded.id as string);
+
+      if (!session) {
+        console.log("erro");
+        return reject(new error(response.invalidToken()));
+      }
+
+      const tokenVerification = await prisma.verification.findUniqueOrThrow({
+        where: {
+          userId: decoded.id,
+          used: false,
+        },
       });
 
-      if (!decoded) reject(new errors.AuthError(response.invalidToken()));
-
-      const session = await Session.getSessionById(
-        decoded.sessionId as string
-      ).catch((err) => {
-        return reject(new errors.AuthError(response.invalidToken()));
-      });
-
-      const loadedToken = await prisma.verification
-        .findUniqueOrThrow({
-          where: {
-            userId: decoded.id,
-            sessionId: decoded.sessionId,
-            used: false,
-            token,
-          },
-        })
-        .catch((err) => {
-          this.notifyObserver(IncrementSessionAttempts, {
-            session,
-          });
-          return reject(new errors.AuthError(response.invalidToken()));
-        });
+      if (!tokenVerification) {
+        return reject(new error(response.invalidToken()));
+      }
 
       if (showNotify) this.notifyObserver(EmailVerified, { user, session });
+
+      if (fingerprint && address) {
+        if (fingerprint !== session.fingerprint || address.ip !== session.ip)
+          return reject(new error(response.invalidSession()));
+      }
 
       await prisma.verification
         .update({
           where: {
-            id: loadedToken?.id,
+            id: tokenVerification.id,
           },
           data: {
             used: true,
@@ -177,7 +180,7 @@ class Verification implements iSubject {
         session,
       });
 
-      return resolve(loadedToken as iVerification);
+      return resolve({ tokenVerification, session });
     });
   }
 

@@ -137,6 +137,9 @@ class Response {
   retryAuthentication() {
     return "Faça login novamente.";
   }
+  emailVerified() {
+    return "Email verificado.";
+  }
 }
 
 export default new Response();

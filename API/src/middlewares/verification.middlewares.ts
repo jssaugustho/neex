@@ -18,36 +18,94 @@ import EmailType from "../types/EmailType/EmailType.js";
 //core
 import Token from "../core/Token/Token.js";
 
+async function CheckUserVerified(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
+  //verfy if is verfied
+  if (req.userData?.emailVerified)
+    throw new errors.UserError("Email já verificado.");
+
+  next();
+}
+
 //validate email verification code after auth
 async function validateVerifyEmailParams(
   req: iRequest,
   res: Response,
   next: NextFunction
 ) {
-  req.data.token = new TokenType(req.query.token as string).getValue();
+  req.data.token = new TokenType(req.body.token as string).getValue();
 
-  await Verification.verifyEmailToken(
+  const verification = await Verification.verifyEmailToken(
     req.data.token,
     req.userData as iUser,
-    req.data.fingerprint,
-    req.data.ipLookup,
-    false
+    true
   ).catch((err) => {
     throw err;
   });
+
+  req.session = verification.session;
 
   req.response = {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: "Email verificado.",
+      message: response.emailVerified(),
     },
   };
 
   next();
 }
 
-async function verifySession(req: iRequest, res: Response, next: NextFunction) {
+async function setEmailVerified(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
+  let id = req.userData?.id;
+
+  await prisma.user
+    .update({
+      where: { id },
+      data: { emailVerified: true },
+    })
+    .catch((err) => {
+      throw new errors.InternalServerError(
+        "Cannot update emailVerified user in DB."
+      );
+    });
+
+  next();
+}
+
+//validate email verification code after auth
+async function validateAuthEmailParams(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
+  req.data.token = new TokenType(req.body.token as string).getValue();
+
+  await Verification.verifyEmailToken(
+    req.data.token,
+    req.userData as iUser,
+    false,
+    req.data.fingerprint,
+    req.data.ipLookup
+  ).catch((err) => {
+    throw err;
+  });
+
+  next();
+}
+
+async function verifyFingerprint(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
   req.data.token = new TokenType(req.query.token as string).getValue();
 
   const decoded = await Token.loadPayload(req.data.token).catch((err) => {
@@ -129,7 +187,11 @@ async function verifyWaitTime(
   } else next();
 }
 
-async function sendEmailAuth(req: iRequest, res: Response, next: NextFunction) {
+async function sendEmailVerification(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
   if (!req.userData) throw new errors.InternalServerError("UserData error.");
 
   Verification.generateEmailToken(req.userData, req.session as iSession)
@@ -146,45 +208,13 @@ async function sendEmailAuth(req: iRequest, res: Response, next: NextFunction) {
     .catch(next);
 }
 
-async function CheckUserVerified(
-  req: iRequest,
-  res: Response,
-  next: NextFunction
-) {
-  //verfy if is verfied
-  if (req.userData?.emailVerified)
-    throw new errors.UserError("Email já verificado.");
-
-  next();
-}
-
-async function setEmailVerified(
-  req: iRequest,
-  res: Response,
-  next: NextFunction
-) {
-  let id = req.userData?.id;
-
-  await prisma.user
-    .update({
-      where: { id },
-      data: { emailVerified: true },
-    })
-    .catch((err) => {
-      throw new errors.InternalServerError(
-        "Cannot update emailVerified user in DB."
-      );
-    });
-
-  next();
-}
-
 export default {
   verifySendEmailAuthParams,
   validateVerifyEmailParams,
+  validateAuthEmailParams,
   CheckUserVerified,
   setEmailVerified,
-  verifySession,
-  sendEmailAuth,
+  verifyFingerprint,
+  sendEmailVerification,
   verifyWaitTime,
 };

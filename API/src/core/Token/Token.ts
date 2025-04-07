@@ -26,7 +26,7 @@ class Token {
         });
       }
       if (load == "emailToken") {
-        jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, payload) => {
+        jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
           if (err) return reject(new errors.AuthError(response.invalidToken()));
           return resolve(payload as iTokenPayload);
         });

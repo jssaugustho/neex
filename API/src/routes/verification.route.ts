@@ -27,27 +27,28 @@ verify.get(
   authMiddlewares.getFingerprint,
   authMiddlewares.verifyToken,
   verificationMiddlewares.verifyWaitTime,
-  verificationMiddlewares.sendEmailAuth,
+  verificationMiddlewares.sendEmailVerification,
   verificationControllers.response
 );
 
-//verify email code
-verify.get(
-  "/email-auth",
-  authMiddlewares.getFingerprint,
-  verificationMiddlewares.validateVerifyEmailParams,
-  verificationMiddlewares.setEmailVerified,
-  authControllers.authenticate
-);
+// //verify email code
+// verify.get(
+//   "/email-auth",
+//   authMiddlewares.getFingerprint,
+//   verificationMiddlewares.validateVerifyEmailParams,
+//   verificationMiddlewares.verifyFingerprint,
+//   verificationMiddlewares.setEmailVerified,
+//   authControllers.authenticate
+// );
 
-// send email authentication
-verify.post(
-  "/send-email-auth",
-  authMiddlewares.getFingerprint,
-  verificationMiddlewares.verifySendEmailAuthParams,
-  verificationMiddlewares.verifyWaitTime,
-  verificationMiddlewares.sendEmailAuth,
-  verificationControllers.response
-);
+// // send email authentication
+// verify.post(
+//   "/send-email-auth",
+//   authMiddlewares.getFingerprint,
+//   verificationMiddlewares.verifySendEmailAuthParams,
+//   verificationMiddlewares.verifyWaitTime,
+//   verificationMiddlewares.sendEmailVerification,
+//   verificationControllers.response
+// );
 
 export default verify;

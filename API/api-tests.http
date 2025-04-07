@@ -16,12 +16,6 @@ Fingerprint: HTTP-VSCODE
 
 ###
 
-GET {{host}}/user HTTP/1.1
-Content-Type: application/json
-fingerprint: teste123456789
-
-###
-
 POST {{host}}/email-exists HTTP/1.1
 Content-Type: application/json
 fingerprint: teste123456789
@@ -29,7 +23,6 @@ fingerprint: teste123456789
 {
     "email": "joseaugustholi@gmail.com"
 }
-
 
 ###
 
@@ -51,17 +44,26 @@ fingerprint: mozilla0firefox
 
 ###
 
-GET {{host}}/verify-email?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZWZiYjM1ZDgwMzQ5ODc4NDI2ODU0MiIsInJhbmQiOiIyZmFlNDM4OC0wY2I5LTRlYzAtYWYyZS1lOGU4NWMzY2FhNGIiLCJpYXQiOjE3NDM3Nzk0MjksImV4cCI6MTc0NDM3OTQyOX0.8x6ZY5aiw86moTp_BIu19r-LXPSJDhnpeKN8KQrJoUg
+GET {{host}}/verify-email
 Authorization: {{token}}
 Content-Type: application/json
-fingerprint: 9999999999
+fingerprint: mozilla0firefox
+
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjQxM2Y4NWMzOTdmZTM3NGFhYzIxZiIsInNlc3Npb25JZCI6IjY3ZjQxM2ZlNWMzOTdmZTM3NGFhYzIyMyIsInJhbmQiOiJjYWRjY2IxZS1hM2EzLTQ4ZTgtYjY3Ny02NGE4OTViNTIwZTMiLCJpYXQiOjE3NDQwNTA2MzEsImV4cCI6MTc0NDY1MDYzMX0.s5ZRQvcpA5rVmSIlOcKJHnrZcAhaIqRxqZtby6iOI9M"
+}
 
 ###
 
-GET {{host}}/email-auth?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjExZjdkYmRiMjJmNmM3NWFlZTJkOSIsInNlc3Npb25JZCI6IjY3ZjNkZTRlN2ViYWUyOWQ3NzFlNDkwNyIsInJhbmQiOiI1ZGZjYTg5Zi04NWI5LTRhOGYtOWVjMy05Y2FjOWNjNTI3Y2QiLCJpYXQiOjE3NDQwMzU0MDcsImV4cCI6MTc0NDYzNTQwN30.fnCjmktr3GgaN6AlgMB2ZLpqNCAmf_9s2incRxvkBKQ
+GET {{host}}/email-auth
 Authorization: {{token}}
 Content-Type: application/json
 fingerprint: 9999999999
+,
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjEyNmYwMzFlYjU3NjIzYmZkOTZlYiIsInNlc3Npb25JZCI6IjY3ZjQwZjRlNzM1ZWUzYzA1OGRmMTFkNiIsInJhbmQiOiJmNGIwNmFjNS0xYzM5LTQzZTktODE3Yy0yMmE4NmY3MGIzZmEiLCJpYXQiOjE3NDQwNDg5MDEsImV4cCI6MTc0NDY0ODkwMX0.YuiK8tCgrpq2jDYS7AmU0_OIymGwXXnSUretzeqymS4"
+}
+
 
 ###
 
@@ -69,7 +71,7 @@ fingerprint: 9999999999
 GET {{host}}/resend
 Authorization: {{token}}
 Content-Type: application/json
-fingerprint: 9999999999
+fingerprint: mozilla0firefox
 
 ###
 
