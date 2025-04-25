@@ -16,15 +16,12 @@ import iObserver from "../../@types/iObserver/iObserver.js";
 import iSubject from "../../@types/iSubject/iSubject.js";
 import iTokenPayload from "../../@types/iTokenPayload/iTokenPayload.js";
 import iLookup from "../../@types/iLookup/iLookup.js";
-import { Lookup } from "geoip-lite";
-
-//core
-import Cryptography from "../Cryptography/Cryptography.js";
 
 //Observers
 import NotifyNewLoginUser from "../../observers/NotificateUser/EmailNewFingerprintDetected.js";
 import Session from "../Session/Session.js";
 import Token from "../Token/Token.js";
+import iSessionAttempts from "../../@types/iSessionAttempt/iSessionAttempt.js";
 
 class Authentication implements iSubject {
   observers: iObserver[] = [];
@@ -51,115 +48,128 @@ class Authentication implements iSubject {
   }
 
   //core
-  verifyToken(
-    token: string,
-    fingerprint: string,
-    address: iLookup
-  ): Promise<{ session: iSession; user: iUser }> {
+  verifyToken(token: string, session: iSession): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const decoded = (await Token.loadPayload(token).catch((err) => {
         return reject(err);
       })) as iTokenPayload;
 
-      if (decoded.type !== "Token")
+      if (!decoded)
         return reject(new errors.TokenError(response.invalidToken()));
 
-      if (decoded.id && decoded.sessionId) {
-        const user = (await User.getUserById(decoded.id).catch((err) => {
-          reject(new errors.TokenError(response.invalidToken()));
-          return {};
-        })) as iUser;
+      if (decoded?.type !== "Token")
+        return reject(new errors.TokenError(response.invalidToken()));
 
-        const tokenSession = (await Session.getSessionById(
-          decoded.sessionId
-        ).catch((err) => {
+      if (session.id !== decoded?.sessionId)
+        return reject(new errors.TokenError(response.invalidToken()));
+
+      const tokenUser = (await User.getUserById(decoded.id as string).catch(
+        (err) => {
           return reject(new errors.TokenError(response.invalidToken()));
-        })) as iSession;
+        }
+      )) as iUser;
 
-        await Session.identifySession(
-          fingerprint,
-          address,
-          user,
-          1,
-          tokenSession?.token,
-          tokenSession?.refreshToken
-        )
-          .then((result) => {
-            if (result.token !== token)
-              return reject(new errors.TokenError(response.invalidToken()));
+      const tokenSession = (await Session.getSessionById(
+        decoded.sessionId as string
+      ).catch((err) => {
+        return reject(new errors.TokenError(response.invalidToken()));
+      })) as iSession;
 
-            return resolve({ session: result, user });
-          })
-          .catch((err) => {
-            return reject(err);
-          });
-      }
+      if (!Session.isActive(tokenSession) || !tokenSession || !tokenUser)
+        return reject(new errors.TokenError(response.invalidSession()));
+
+      if (token !== tokenSession.token)
+        return reject(new errors.TokenError(response.invalidToken()));
+
+      const authorized = await Session.verifySessionAuthorization(
+        tokenUser,
+        session,
+        false
+      ).catch((err) => {
+        return reject(
+          new errors.InternalServerError(
+            "Cannot verify the session authorization."
+          )
+        );
+      });
+
+      if (!authorized)
+        return reject(new errors.SessionError(response.needVerifyEmail()));
+
+      return resolve(tokenUser as iUser);
     });
   }
 
-  verifyRefreshToken(
-    refreshToken: string,
-    fingerprint: string,
-    address: iLookup
-  ): Promise<{ session: iSession; user: iUser }> {
+  verifyRefreshToken(token: string, session: iSession): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
-      const decoded: iTokenPayload = await Token.loadPayload(
-        refreshToken,
-        "refreshToken"
-      ).catch((err) => {
-        reject(err);
-        return {};
-      });
+      const decoded = (await Token.loadPayload(token, "refreshToken").catch(
+        (err) => {
+          return reject(err);
+        }
+      )) as iTokenPayload;
+
+      if (!decoded)
+        return reject(new errors.AuthError(response.invalidRefreshToken()));
 
       if (decoded.type !== "RefreshToken")
         return reject(new errors.AuthError(response.invalidRefreshToken()));
 
-      if (decoded.id && decoded.sessionId) {
-        const user = (await User.getUserById(decoded.id).catch((err) => {
-          return reject(new errors.AuthError(response.invalidRefreshToken()));
-        })) as iUser;
+      if (session.id !== decoded.sessionId)
+        return reject(new errors.TokenError(response.invalidSession()));
 
-        const tokenSession = (await Session.getSessionById(
-          decoded.sessionId
-        ).catch((err) => {
-          return reject(new errors.TokenError(response.invalidToken()));
-        })) as iSession;
+      const refreshTokenUser = (await User.getUserById(
+        decoded.id as string
+      ).catch((err) => {
+        return reject(new errors.AuthError(response.invalidRefreshToken()));
+      })) as iUser;
 
-        await Session.identifySession(
-          fingerprint,
-          address,
-          user,
-          1,
-          tokenSession?.token,
-          tokenSession?.refreshToken
-        )
-          .then((result) => {
-            if (refreshToken !== result.refreshToken)
-              return reject(
-                new errors.AuthError(response.invalidRefreshToken())
-              );
+      const refreshTokenSession = (await Session.getSessionById(
+        decoded.sessionId as string
+      ).catch((err) => {
+        return reject(new errors.AuthError(response.invalidRefreshToken()));
+      })) as iSession;
 
-            return resolve({ session: result, user });
-          })
-          .catch((err) => {
-            return reject(err);
-          });
-      }
+      if (
+        !Session.isActive(refreshTokenSession) ||
+        !refreshTokenSession ||
+        !refreshTokenUser
+      )
+        return reject(new errors.TokenError(response.invalidSession()));
+
+      if (token !== refreshTokenSession.refreshToken)
+        return reject(new errors.AuthError(response.invalidRefreshToken()));
+
+      const authorized = await Session.verifySessionAuthorization(
+        refreshTokenUser,
+        session,
+        false
+      ).catch((err) => {
+        return reject(
+          new errors.InternalServerError(
+            "Cannot verify the session authorization."
+          )
+        );
+      });
+
+      if (!authorized)
+        return reject(new errors.SessionError(response.needVerifyEmail()));
+
+      return resolve(refreshTokenUser);
     });
   }
 
   authenticate(
     user: iUser,
-    sessionId: string,
-    location: iLookup,
+    session: iSession,
     fingerprint: string,
+    location: iLookup,
     firstTime: boolean = false
   ): Promise<{ token: string; refreshToken: string }> {
     return new Promise(async (resolve, reject) => {
       const token = jwt.sign(
         {
           id: user.id,
-          sessionId,
+          sessionId: session.id,
           type: "Token",
         },
         process.env.JWT_SECRET,
@@ -171,7 +181,7 @@ class Authentication implements iSubject {
       const refreshToken = jwt.sign(
         {
           id: user.id,
-          sessionId,
+          sessionId: session.id,
           type: "RefreshToken",
         },
         process.env.JWT_REFRESH_SECRET,
@@ -180,18 +190,59 @@ class Authentication implements iSubject {
         }
       );
 
+      let sessionAttempts: iSessionAttempts = {};
+
+      sessionAttempts[user.id] = {
+        attempts: 0,
+        timeStamp: Date.now(),
+      };
+
+      if (session.attempts) {
+        sessionAttempts = {
+          ...(session.attempts as iSessionAttempts),
+          ...sessionAttempts,
+        };
+      }
+
+      if (!user.active) {
+        await prisma.user
+          .update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              active: true,
+            },
+          })
+          .catch((err) => {
+            return reject(
+              new errors.InternalServerError("Cannot reactivateuser account.")
+            );
+          });
+      }
+
       prisma.session
         .update({
           where: {
-            id: sessionId,
+            id: session.id,
           },
           data: {
             ip: location.ip,
             location: location.location as object,
-            fingerprint: fingerprint,
+            fingerprint,
             token,
             refreshToken,
-            attempts: 0,
+            attempts: sessionAttempts,
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+            authorizedUsers: {
+              connect: {
+                id: user.id,
+              },
+            },
           },
         })
         .then((data) => {

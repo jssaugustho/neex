@@ -4,6 +4,7 @@ import prisma from "../controllers/db.controller.js";
 //types
 import { NextFunction, Response } from "express";
 import iRequest from "../@types/iRequest/iRequest.js";
+import { Session as iSession, User as iUser } from "@prisma/client";
 
 //core
 import EmailType from "../types/EmailType/EmailType.js";
@@ -15,11 +16,12 @@ import User from "../core/User/User.js";
 //errors
 import errors from "../errors/errors.js";
 import response from "../response/response.js";
-import Session from "../core/Session/Session.js";
-import { get } from "http";
-import ObjectIdType from "../types/ObjectIdType/ObjectIdType.js";
+
+//validate
 import RoleType from "../types/RoleType/RoleType.js";
-import { error } from "console";
+import ObjectIdType from "../types/ObjectIdType/ObjectIdType.js";
+import Session from "../core/Session/Session.js";
+import SendVerificationCode from "../observers/VerificationCode/SendVerificationCode.js";
 
 //verify login and send user id to next in req.id
 async function validateRegisterParams(
@@ -33,11 +35,42 @@ async function validateRegisterParams(
     throw err;
   });
 
+  let phone = new PhoneType(req.body.phone);
+
+  await phone.avaible().catch((err) => {
+    throw err;
+  });
+
   req.data.email = email.getValue();
   req.data.passwd = new PasswdType(req.body.passwd).getValue();
   req.data.name = new SmallTextType(req.body.name).getValue();
   req.data.lastName = new SmallTextType(req.body.lastName).getValue();
-  req.data.phone = new PhoneType(req.body.phone).getValue();
+  req.data.phone = phone.getValue();
+
+  next();
+}
+
+async function registerNewUser(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
+  req.userData = (await User.createNewUser(
+    req.session as iSession,
+    req.data.email,
+    req.data.name,
+    req.data.lastName,
+    req.data.phone,
+    req.data.passwd
+  ).catch(next)) as iUser;
+
+  req.response = {
+    statusCode: 201,
+    output: {
+      status: "Ok",
+      message: "Usuário criado com sucesso.",
+    },
+  };
 
   next();
 }
@@ -60,26 +93,17 @@ async function emailExists(req: iRequest, res: Response, next: NextFunction) {
   next();
 }
 
-async function registerNewUser(
+async function validateUserId(
   req: iRequest,
   res: Response,
   next: NextFunction
 ) {
-  const { session, user } = await User.createNewUser(
-    req.data.email,
-    req.data.name,
-    req.data.lastName,
-    req.data.phone,
-    req.data.passwd,
-    req.data.ipLookup,
-    req.data.fingerprint
-  ).catch((err) => {
-    throw err;
-  });
+  let id = new ObjectIdType(
+    req.params.id,
+    new errors.UserError(response.userNotFound())
+  ).getValue();
 
-  req.session = session;
-  req.userData = user;
-  req.data.firstTime = true;
+  req.userData = (await User.getUserById(id).catch(next)) as iUser;
 
   next();
 }
@@ -94,7 +118,7 @@ async function getUser(req: iRequest, res: Response, next: NextFunction) {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: "Usuário encontrado.",
+      message: response.sessionsFound(1),
       data: req.userData,
     },
   };
@@ -102,8 +126,28 @@ async function getUser(req: iRequest, res: Response, next: NextFunction) {
   next();
 }
 
-async function getAllUsers(req: iRequest, res: Response, next: NextFunction) {
-  const users = await prisma.user.findMany().catch((err) => {
+async function getUsers(req: iRequest, res: Response, next: NextFunction) {
+  const query: any = {
+    take: req.data.take,
+    skip: req.data.skip,
+  };
+
+  let where = {};
+
+  if (req.data.search) {
+    query.where = {
+      OR: [
+        { name: { contains: req.data.search, mode: "insensitive" } },
+        { lastName: { contains: req.data.search, mode: "insensitive" } },
+        { email: { contains: req.data.search, mode: "insensitive" } },
+        { phone: { contains: req.data.search, mode: "insensitive" } },
+      ],
+    };
+
+    where = query.where;
+  }
+
+  const users = await prisma.user.findMany(query).catch((err) => {
     throw new errors.InternalServerError("Cannot get users in DB.");
   });
 
@@ -113,13 +157,23 @@ async function getAllUsers(req: iRequest, res: Response, next: NextFunction) {
     return user;
   });
 
+  const lenght = await prisma.user
+    .count({
+      where,
+    })
+    .catch(() => {
+      throw new errors.InternalServerError("Cannot count users in DB.");
+    });
+
   req.response = {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: "Usuários encontrados.",
+      message: response.userFound(lenght),
       info: {
-        lenght: users.length,
+        lenght,
+        showing: req.data.take,
+        skipped: req.data.skip,
       },
       data: publicUsers,
     },
@@ -129,9 +183,26 @@ async function getAllUsers(req: iRequest, res: Response, next: NextFunction) {
 }
 
 async function countAllUsers(req: iRequest, res: Response, next: NextFunction) {
-  const count = await prisma.user.count().catch((err) => {
-    throw new errors.InternalServerError("Cannot count users in DB.");
-  });
+  let where = {};
+
+  if (req.data.search) {
+    where = {
+      OR: [
+        { name: { contains: req.data.search, mode: "insensitive" } },
+        { lastName: { contains: req.data.search, mode: "insensitive" } },
+        { email: { contains: req.data.search, mode: "insensitive" } },
+        { phone: { contains: req.data.search, mode: "insensitive" } },
+      ],
+    };
+  }
+
+  const count = await prisma.user
+    .count({
+      where,
+    })
+    .catch((err) => {
+      throw new errors.InternalServerError("Cannot count users in DB.");
+    });
 
   req.response = {
     statusCode: 200,
@@ -155,16 +226,14 @@ async function validateUpdateParams(
   req.data = {};
   req.data.body = {};
 
-  if (req.body.data?.name)
-    req.data.body.name = new SmallTextType(req.body.data.name).getValue();
+  if (req.body.name)
+    req.data.body.name = new SmallTextType(req.body.name).getValue();
 
-  if (req.body.data?.lastName)
-    req.data.body.lastName = new SmallTextType(
-      req.body.data.lastName
-    ).getValue();
+  if (req.body.lastName)
+    req.data.body.lastName = new SmallTextType(req.body.lastName).getValue();
 
-  if (req.body.data?.email) {
-    let email = new EmailType(req.body.data.email);
+  if (req.body.email) {
+    let email = new EmailType(req.body.email);
 
     await email.avaible().catch((err) => {
       throw err;
@@ -174,27 +243,31 @@ async function validateUpdateParams(
     req.data.body.emailVerified = false;
   }
 
-  if (req.body.data?.phone)
-    req.data.body.phone = new PhoneType(req.body.data.phone).getValue();
+  if (req.body.phone) {
+    let phone = new PhoneType(req.body.phone);
 
-  if (req.body.data?.passwd)
-    req.data.body.passwd = new PasswdType(req.body.data.passwd).getValue();
+    await phone.avaible().catch((err) => {
+      throw err;
+    });
 
-  if (req.body.data?.role) {
-    if (req.userData?.role !== "ADMIN")
-      throw new errors.UserError(response.unauthorizated());
-
-    req.data.body.role = new RoleType(req.body.data.role).getValue();
+    req.data.body.phone = phone.getValue();
   }
 
-  if (req.body.data?.active) {
+  if (req.body.passwd)
+    req.data.body.passwd = new PasswdType(req.body.passwd).getValue();
+
+  if (req.body.role) {
     if (req.userData?.role !== "ADMIN")
       throw new errors.UserError(response.unauthorizated());
 
-    if (typeof req.body.data?.active !== "boolean")
+    req.data.body.role = new RoleType(req.body.role).getValue();
+  }
+
+  if (req.body.active) {
+    if (typeof req.body.active !== "boolean")
       throw new errors.UserError(response.invalidParam("active"));
 
-    req.data.body.active = req.body.data.active;
+    req.data.body.active = req.body.active;
   }
 
   if (Object.keys(req.data.body).length === 0) {
@@ -211,309 +284,88 @@ async function validateUpdateQuery(
 ) {
   req.data.query = {};
 
-  if (!req.body.query) throw new errors.UserError(response.needOneQueryParam());
+  if (!req.userData) throw new errors.InternalServerError("Userdata error");
 
-  if (req.body.query.id)
-    req.data.query.id = new ObjectIdType(req.body.query.id).getValue();
+  const privilege =
+    req.userData.role === "ADMIN" || req.userData.role === "SUPPORT";
 
-  if (req.body.query.email)
-    req.data.query.email = new EmailType(req.body.query.email).getValue();
+  if (!req.params.query || typeof req.params.query !== "string")
+    throw new errors.UserError(response.invalidQuery());
+
+  if (!privilege) throw new errors.AuthError(response.unauthorizated());
+
+  req.data.query = {
+    OR: [{ email: req.params.query }, { id: req.params.query }],
+  };
 
   if (Object.keys(req.data.query).length === 0) {
-    throw new errors.UserError(response.needOneQueryParam());
+    throw new errors.UserError(response.invalidQuery());
   }
 
   next();
 }
 
-async function updateUser(req: iRequest, res: Response, next: NextFunction) {
+async function ownUserQuery(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.userData) throw new errors.InternalServerError("Userdata error");
+
+  req.data.query = {
+    id: req.userData.id,
+  };
+
+  next();
+}
+
+async function validateSearch(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
+  if (req.query.search && typeof req.query.search === "string")
+    req.data.search = req.query.search;
+
+  next();
+}
+
+async function updateUsers(req: iRequest, res: Response, next: NextFunction) {
   const user = await prisma.user
     .updateMany({
       where: req.data.query,
       data: req.data.body,
     })
     .catch((err) => {
+      console.log(err);
       throw new errors.InternalServerError("Cannot edit users in DB.");
     });
+
+  if (req.data.body.email) {
+    Session.notifyObserver(SendVerificationCode, {
+      session: req.session,
+      user,
+    });
+  }
 
   req.response = {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: "Usuários atualizados.",
-      info: {
-        count: user.count,
-      },
+      message: "Usuário atualizado.",
     },
   };
 
   next();
 }
 
-async function verifyAdmin(req: iRequest, res: Response, next: NextFunction) {
-  if (req.userData?.role !== "ADMIN")
-    throw new errors.AuthError(response.unauthorizated());
-
-  next();
-}
-
-// //validate update params
-// async function validateUpdateParams(
-//   req: iRequest,
-//   res: Response,
-//   next: NextFunction
-// ) {
-//   req.updateData = {};
-//   req.where = { id: req.userData.id };
-//   req.requiresPasswd = true;
-
-//   //validar o id
-//   if (req.params.id) {
-//     let q = await prisma.user.findUnique({
-//       where: {
-//         id: req.params.id,
-//       },
-//     });
-
-//     let aproved = false;
-
-//     if (req.userData.email in q.support) aproved = true;
-
-//     if (req.userData.role == "ADMIN") aproved = true;
-
-//     req.where = {
-//       id: q.id,
-//     };
-//     req.requiresPasswd = false;
-//   }
-
-//   //verify name
-//   if (req.body.name) {
-//     req.updateData.name = req.body.name;
-//   }
-
-//   //validating email param
-//   if (req.body.email) {
-//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-//     if (!emailRegex.test(req.body.email))
-//       throw new errors.UserError(response.invalidParam("Email"));
-
-//     let q = await prisma.user.findUnique({
-//       where: {
-//         email: req.body.email,
-//       },
-//     });
-
-//     await prisma.verificationCode.deleteMany({
-//       where: {
-//         userId: req.userData.id,
-//       },
-//     });
-
-//     if (q) throw new errors.UserError(response.emailInUse());
-
-//     //verify email length
-//     req.updateData.email = req.body.email;
-
-//     //set emailVerified false in database
-//     req.updateData.emailVerified = false;
-//   }
-
-//   if (req.body.phone) req.updateData = req.body.phone;
-
-//   if (req.body.newPasswd)
-//     req.updateData.passwd = crypt.criptografar(req.body.newPasswd);
-
-//   if (isValidObjectId(req.body.support)) req.updateData = req.body.support;
-
-//   if (req.requiresPasswd) {
-//     //validating Passwd params
-//     if (req.body.newPasswd) {
-//       //verify actual passwd
-//       let { passwd } = req.body;
-
-//       if (!passwd)
-//         throw new errors.UserError(response.obrigatoryParam("senha"));
-
-//       //validate passwd
-//       if (req.userData.passwd != crypt.criptografar(req.body.passwd))
-//         throw new errors.UserError(response.incorrectPasswd());
-
-//       if (req.body.passwd.length > 32 || req.body.passwd < 8)
-//         throw new errors.UserError(response.invalidPasswdLength(16, 32));
-//     }
-//   }
-
-//   if (Object.keys(req.updateData).length == 0)
-//     throw new errors.UserError("Pelo menos um campo obrigatório.");
-
-//   next();
-// }
-
-// //validate password
-// async function validatePasswdDelete(
-//   req: iRequest,
-//   res: Response,
-//   next: NextFunction
-// ) {
-//   let lostParams = [];
-
-//   if (req.requiresPasswd) {
-//     if (!req.body.passwd)
-//       throw new errors.UserError(response.obrigatoryParam("passwd"));
-
-//     let q = await prisma.user.findUnique({
-//       where: {
-//         id: req.id,
-//       },
-//     });
-
-//     if (crypt.criptografar(passwd) != q.passwd)
-//       throw new errors.UserError(response.incorrectPasswd());
-//   }
-
-//   next();
-// }
-
-// async function validateDelete(
-//   req: iRequest,
-//   res: Response,
-//   next: NextFunction
-// ) {
-//   if (req.params.id) {
-//     if (isValidObjectId(req.params.id))
-//       throw new errors.UserError(response.userNotFound());
-
-//     let q = await prisma.user.findUnique({ where: { id: req.params.id } });
-
-//     if (!q.support[req.userData.email])
-//       throw new errors.AuthError(response.unauthorizated());
-
-//     req.dbQuery = {
-//       where: {
-//         id: req.params.id,
-//       },
-//     };
-//   } else {
-//     req.dbQuery = {
-//       where: {
-//         id: req.userData.id,
-//       },
-//     };
-//     req.requiresPasswd = true;
-//   }
-//   next();
-// }
-
-// async function userPrivileges(
-//   req: iRequest,
-//   res: Response,
-//   next: NextFunction
-// ) {
-//   if (req.body.id) {
-//     if (isValidObjectId(req.body.id)) {
-//       let q = await prisma.user.findUnique({
-//         where: {
-//           id: req.body.id,
-//         },
-//       });
-
-//       let aproved = false;
-
-//       if (q.support[req.id].privilege == "SUPPORT") aproved = true;
-//       if (req.userData.role == "ADMIN") aproved = true;
-
-//       if (!aproved) throw new errors.AuthError("Não autorizado.");
-
-//       if (!q) throw new errors.UserError("Usuário não encontrado.");
-
-//       req.updateUserId = req.body.id;
-//       next();
-//     } else {
-//       throw new errors.UserError("Id inválido.");
-//     }
-//   } else {
-//     req.requiresPasswd = true;
-//     req.updateUserId = req.id;
-//     next();
-//   }
-// }
-
-// async function validateId(req: iRequest, res: Response, next: NextFunction) {
-//   req.dbQuery = {
-//     where: { id: req.userData.id },
-//   };
-
-//   if (req.path.split("/")[1] == "users") {
-//     if (req.params.id) {
-//       if (!isValidObjectId(req.params.id))
-//         throw new errors.UserError(response.userNotFound());
-//       req.dbQuery.where = { id: req.params.id };
-//     } else req.dbQuery.where = {};
-//   }
-
-//   next();
-// }
-
-// async function validateSortBy(
-//   req: iRequest,
-//   res: Response,
-//   next: NextFunction
-// ) {
-//   let aproved = { updatedAt: true, createdAt: true };
-//   let aprovedSort = { asc: true, desc: true };
-//   let sort = "desc";
-
-//   if (req.query.sort in aprovedSort) sort = req.query.sort;
-
-//   req.dbQuery.orderBy = {
-//     updatedAt: sort,
-//   };
-
-//   if (req.query.orderBy in aproved) {
-//     req.dbQuery.orderBy = {};
-//     req.dbQuery.orderBy[req.query.orderBy] = sort;
-//   }
-
-//   if (req.query.take >= 0)
-//     req.dbQuery.take = new Number(req.query.take).valueOf();
-
-//   if (req.query.skip >= 0)
-//     req.dbQuery.skip = new Number(req.query.skip).valueOf();
-
-//   next();
-// }
-
-// async function validateDeleteId(
-//   req: iRequest,
-//   res: Response,
-//   next: NextFunction
-// ) {
-//   req.dbQuery = {
-//     where: { id: req.userData.id },
-//   };
-
-//   if (req.path.split("/")[1] == "users") {
-//     if (req.params.id) {
-//       if (!isValidObjectId(req.params.id))
-//         throw new errors.UserError(response.userNotFound());
-//       req.deleteId = req.params.id;
-//     } else throw new errors.UserError(response.userNotFound());
-//   }
-
-//   next();
-// }
-
 export default {
   validateRegisterParams,
-  verifyAdmin,
   registerNewUser,
   emailExists,
   getUser,
-  getAllUsers,
+  getUsers,
   countAllUsers,
-  updateUser,
+  updateUsers,
   validateUpdateParams,
   validateUpdateQuery,
+  validateUserId,
+  validateSearch,
+  ownUserQuery,
 };

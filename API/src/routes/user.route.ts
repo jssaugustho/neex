@@ -7,28 +7,21 @@ import authControllers from "../controllers/auth.controllers.js";
 // controles da rota
 import userMiddlewares from "../middlewares/user.middlewares.js";
 import userControllers from "../controllers/user.controllers.js";
-
-// controle globais
-import emailControllers from "../controllers/email.controllers.js";
-
-//só para gerar o código de verificação
-import verificationMiddlewares from "../middlewares/verification.middlewares.js";
+import commonMiddlewares from "../middlewares/common.middlewares.js";
 
 const users = Router();
 
 //register
 users.post(
   "/user",
-  authMiddlewares.getFingerprint,
   userMiddlewares.validateRegisterParams,
   userMiddlewares.registerNewUser,
-  authControllers.authenticate
+  userControllers.response
 );
 
 //email exists
 users.post(
   "/email-exists",
-  authMiddlewares.getFingerprint,
   userMiddlewares.emailExists,
   userControllers.response
 );
@@ -36,99 +29,60 @@ users.post(
 //get logged user
 users.get(
   "/user",
-  authMiddlewares.getFingerprint,
   authMiddlewares.verifyToken,
   userMiddlewares.getUser,
   userControllers.response
 );
 
-//get all users (only ADMIN)
+//get one user (only ADMIN || SUPPORT)
 users.get(
-  "/users/all",
-  authMiddlewares.getFingerprint,
+  "/support/user/:id",
   authMiddlewares.verifyToken,
-  userMiddlewares.verifyAdmin,
-  userMiddlewares.getAllUsers,
+  commonMiddlewares.verifyAdminAndSupport,
+  userMiddlewares.validateUserId,
+  userMiddlewares.getUser,
   userControllers.response
 );
 
-//get all users count (only ADMIN)
+//get all users (only ADMIN || SUPPORT)
 users.get(
-  "/users/all/count",
-  authMiddlewares.getFingerprint,
+  "/support/users",
   authMiddlewares.verifyToken,
-  userMiddlewares.verifyAdmin,
+  commonMiddlewares.verifyAdminAndSupport,
+  userMiddlewares.validateSearch,
+  commonMiddlewares.validateSteps,
+  userMiddlewares.getUsers,
+  userControllers.response
+);
+
+//get all users count (only ADMIN || SUPPORT)
+users.get(
+  "/support/users/count",
+  authMiddlewares.verifyToken,
+  commonMiddlewares.verifyAdminAndSupport,
+  userMiddlewares.validateSearch,
   userMiddlewares.countAllUsers,
   userControllers.response
 );
 
-users.put(
+//patch user
+users.patch(
   "/user",
-  authMiddlewares.getFingerprint,
   authMiddlewares.verifyToken,
-  userMiddlewares.verifyAdmin,
   userMiddlewares.validateUpdateParams,
-  userMiddlewares.validateUpdateQuery,
-  userMiddlewares.updateUser,
+  userMiddlewares.ownUserQuery,
+  userMiddlewares.updateUsers,
   userControllers.response
 );
 
-// users.get(
-//   "/user",
-//   authMiddlewares.verifyToken,
-//   userMiddlewares.validateId,
-//   userControllers.getUserbyQuery
-// );
-
-// users.get(
-//   "/users",
-//   authMiddlewares.verifyToken,
-//   userMiddlewares.validateId,
-//   userMiddlewares.validateSortBy,
-//   userControllers.getUserbyQuery
-// );
-
-// users.get(
-//   "/users/:id",
-//   authMiddlewares.verifyToken,
-//   userMiddlewares.validateId,
-//   userControllers.getUserbyQuery
-// );
-
-// users.put(
-//   "/user",
-//   authMiddlewares.verifyToken,
-//   userMiddlewares.validateUpdateParams,
-//   userControllers.updateUser
-// );
-
-// users.put(
-//   "/user/:id",
-//   authMiddlewares.verifyToken,
-//   userMiddlewares.validateUpdateParams,
-//   userControllers.updateUser
-// );
-
-// users.delete(
-//   "/user",
-//   authMiddlewares.verifyToken,
-//   userMiddlewares.validateDeleteId,
-//   userMiddlewares.validatePasswdDelete,
-//   userControllers.deleteUserbyQuery
-// );
-
-// users.delete(
-//   "/users/:id",
-//   authMiddlewares.verifyToken,
-//   userMiddlewares.validateDeleteId,
-//   userControllers.deleteUserbyQuery
-// );
-
-// users.delete(
-//   "/users",
-//   authMiddlewares.verifyToken,
-//   userMiddlewares.validateDeleteId,
-//   userControllers.deleteUserbyQuery
-// );
+//patch user (only ADMIN || SUPPORT)
+users.patch(
+  "/support/user/:query",
+  authMiddlewares.verifyToken,
+  userMiddlewares.validateUpdateParams,
+  userMiddlewares.validateUpdateQuery,
+  userMiddlewares.updateUsers,
+  userControllers.response
+);
 
 export default users;

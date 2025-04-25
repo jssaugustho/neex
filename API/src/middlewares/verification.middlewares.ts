@@ -1,220 +1,145 @@
-//obrigatory for middlewares
-import prisma from "../controllers/db.controller.js";
+//core
+import Authentication from "../core/Authentication/Authentication.js";
+import Session from "../core/Session/Session.js";
+import User from "../core/User/User.js";
+
+//response & errors
 import errors from "../errors/errors.js";
+import response from "../response/response.js";
 
 //types
+import { Response, NextFunction } from "express";
 import iRequest from "../@types/iRequest/iRequest.js";
-import { NextFunction, Response } from "express";
-import Verification from "../core/Verification/Verification.js";
+import IpType from "../types/IpType/IpType.js";
 import { Session as iSession, User as iUser } from "@prisma/client";
 
 //validators
-import TokenType from "../types/TokenType/TokenType.js";
-import User from "../core/User/User.js";
-import Session from "../core/Session/Session.js";
-import response from "../response/response.js";
 import EmailType from "../types/EmailType/EmailType.js";
+import PasswdType from "../types/PasswdType/PasswdType.js";
+import FingerprintType from "../types/FingerprintType/FingerprintType.js";
+import TokenType from "../types/TokenType/TokenType.js";
+import ObjectIdType from "../types/ObjectIdType/ObjectIdType.js";
 
-//core
+//observers
+import IncrementSessionAttempts from "../observers/SessionAttempts/IncrementSessionAttempts.js";
+
+//db
+import prisma from "../controllers/db.controller.js";
+import Email from "../core/Email/Email.js";
+import Verification from "../core/Verification/Verification.js";
+import iSessionAttempts from "../@types/iSessionAttempt/iSessionAttempt.js";
 import Token from "../core/Token/Token.js";
+import iTokenPayload from "../@types/iTokenPayload/iTokenPayload.js";
 
-async function CheckUserVerified(
+async function validateResend(
   req: iRequest,
   res: Response,
   next: NextFunction
 ) {
-  //verfy if is verfied
-  if (req.userData?.emailVerified)
-    throw new errors.UserError("Email já verificado.");
+  if (!req.session) throw new errors.InternalServerError("Session error");
 
-  next();
-}
+  let email = new EmailType(req.body.email).getValue();
 
-//validate email verification code after auth
-async function validateVerifyEmailParams(
-  req: iRequest,
-  res: Response,
-  next: NextFunction
-) {
-  req.data.token = new TokenType(req.body.token as string).getValue();
+  req.userData = await User.getUserByEmail(email).catch((err) => {
+    throw new errors.UserError(response.emailNotExists());
+  });
 
-  const verification = await Verification.verifyEmailToken(
-    req.data.token,
-    req.userData as iUser,
-    true
+  req.data.timeLeft = await Verification.getTimeLeft(
+    req.session,
+    req.userData
   ).catch((err) => {
     throw err;
   });
 
-  req.session = verification.session;
+  const minutes = new Date(req.data.timeLeft).getMinutes();
+  const seconds = new Date(req.data.timeLeft).getSeconds();
+  const hours = new Date(req.data.timeLeft).getHours();
+
+  req.data.pretty = `${minutes}m ${seconds}s`;
+
+  if (hours >= 1) req.data.pretty = `${hours}h ${minutes}m ${seconds}s`;
+
+  if (req.data.timeLeft <= 0) {
+    next();
+  } else {
+    res.status(400).send({
+      status: "UserError",
+      message: response.waitVerificationCode(),
+      info: {
+        timeLeft: req.data.timeLeft,
+        pretty: req.data.pretty,
+      },
+    });
+  }
+}
+
+async function sendEmail(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.userData) throw new errors.UserError("UserData Error");
+  if (!req.session) throw new errors.UserError("Session Error");
+
+  const verification = await Verification.generate2faLink(
+    req.userData,
+    req.session
+  ).catch((err) => {
+    throw err;
+  });
+
+  req.session = await prisma.session.update({
+    where: {
+      id: req.session.id,
+    },
+    data: {
+      exponencialEmailExpires: {
+        increment: 1,
+      },
+    },
+  });
+
+  let timeLeft = Verification.getExponencialTime(req.session);
+
+  let minutes = new Date(timeLeft).getMinutes();
+  let seconds = new Date(timeLeft).getSeconds();
+  let hours = new Date(timeLeft).getHours();
+
+  let pretty = `${minutes}m ${seconds}s`;
+
+  if (hours >= 1) pretty = `${hours}h ${minutes}m ${seconds}s`;
 
   req.response = {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: response.emailVerified(),
+      message: "Email enviado.",
+      info: {
+        timeLeft,
+        pretty,
+      },
     },
   };
 
   next();
 }
 
-async function setEmailVerified(
-  req: iRequest,
-  res: Response,
-  next: NextFunction
-) {
-  let id = req.userData?.id;
-
-  await prisma.user
-    .update({
-      where: { id },
-      data: { emailVerified: true },
-    })
-    .catch((err) => {
-      throw new errors.InternalServerError(
-        "Cannot update emailVerified user in DB."
-      );
-    });
-
-  next();
-}
-
-//validate email verification code after auth
-async function validateAuthEmailParams(
-  req: iRequest,
-  res: Response,
-  next: NextFunction
-) {
-  req.data.token = new TokenType(req.body.token as string).getValue();
-
-  await Verification.verifyEmailToken(
-    req.data.token,
-    req.userData as iUser,
-    false,
-    req.data.fingerprint,
-    req.data.ipLookup
-  ).catch((err) => {
-    throw err;
-  });
-
-  next();
-}
-
-async function verifyFingerprint(
-  req: iRequest,
-  res: Response,
-  next: NextFunction
-) {
-  req.data.token = new TokenType(req.query.token as string).getValue();
-
-  const decoded = await Token.loadPayload(req.data.token).catch((err) => {
-    throw err;
-  });
-
-  req.userData = await User.getUserById(decoded.id as string).catch((err) => {
-    throw err;
-  });
-
-  console.log(decoded);
-
-  const decodedSession = (await Session.getSessionById(
-    decoded.sessionId as string
-  ).catch(next)) as iSession;
-
-  const indicators: string[] = [];
-
-  if (req.data.figerprint !== decodedSession.fingerprint)
-    indicators.push("fingerprint");
-
-  if (req.data.ipLookup.ip !== decodedSession.ip) indicators.push("ip");
-
-  if (indicators.length >= 2)
-    throw new errors.AuthError(response.unauthorizated());
-
-  next();
-}
-
-async function verifySendEmailAuthParams(
-  req: iRequest,
-  res: Response,
-  next: NextFunction
-) {
-  req.data.email = new EmailType(req.body.email as string).getValue();
-
-  req.userData = await User.getUserByEmail(req.data.email).catch((err) => {
-    throw err;
-  });
-
-  req.session = await Session.createSession(
-    req.userData as iUser,
-    req.data.fingerprint,
-    req.data.ipLookup,
-    false
-  );
-
-  next();
-}
-
-async function verifyWaitTime(
+async function validateEmailToken(
   req: iRequest,
   res: Response,
   next: NextFunction
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
 
-  req.data.verification = await prisma.verification
-    .findUniqueOrThrow({
-      where: {
-        userId: req.userData?.id,
-      },
-    })
-    .catch((err) => {
-      throw new errors.InternalServerError("Cannot find verification in DB.");
-    });
+  const token = new TokenType(req.body.token).getValue();
 
-  const waitTime = Verification.verifyTime(req.data.verification, req.session);
+  req.userData = (await Verification.verify2faToken(token, req.session).catch(
+    (err) => {
+      throw err;
+    }
+  )) as iUser;
 
-  if (!waitTime.approved) {
-    res.status(400).send({
-      status: "UserError",
-      message: response.waitVerificationCode(),
-      info: {
-        waitTime: waitTime.time,
-        timeLeft: waitTime.prettyTime,
-      },
-    });
-  } else next();
-}
-
-async function sendEmailVerification(
-  req: iRequest,
-  res: Response,
-  next: NextFunction
-) {
-  if (!req.userData) throw new errors.InternalServerError("UserData error.");
-
-  Verification.generateEmailToken(req.userData, req.session as iSession)
-    .then((token) => {
-      req.response = {
-        statusCode: 200,
-        output: {
-          status: "Ok",
-          message: "Email enviado para: " + req.userData?.email,
-        },
-      };
-      next();
-    })
-    .catch(next);
+  next();
 }
 
 export default {
-  verifySendEmailAuthParams,
-  validateVerifyEmailParams,
-  validateAuthEmailParams,
-  CheckUserVerified,
-  setEmailVerified,
-  verifyFingerprint,
-  sendEmailVerification,
-  verifyWaitTime,
+  validateEmailToken,
+  validateResend,
+  sendEmail,
 };

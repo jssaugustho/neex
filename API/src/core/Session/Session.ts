@@ -13,11 +13,12 @@ import IncrementSessionAttempts from "../../observers/SessionAttempts/IncrementS
 //types
 import iObserver from "../../@types/iObserver/iObserver.js";
 import iSubject from "../../@types/iSubject/iSubject.js";
-import iSessionPontuation from "../../@types/iSessionPontuation/iSessionPontuation.js";
 import iLookup from "../../@types/iLookup/iLookup.js";
 
 //external libs
-import { Lookup } from "geoip-lite";
+import iSessionAttempts from "../../@types/iSessionAttempt/iSessionAttempt.js";
+import { disconnect } from "process";
+import userControllers from "../../controllers/user.controllers.js";
 
 class Session implements iSubject {
   observers: iObserver[] = [];
@@ -40,10 +41,11 @@ class Session implements iSubject {
   }
 
   createSession(
-    userData: iUser,
     fingerprint: string,
     address: iLookup,
     authorized: boolean,
+    attempts?: object,
+    authorizedUsers?: string[],
     token?: string,
     refreshToken?: string
   ): Promise<iSession> {
@@ -52,186 +54,189 @@ class Session implements iSubject {
         ip: string;
         location: object;
         fingerprint: string;
-        authorized: boolean;
-        user: {
+        attempts?: object;
+        authorizedUsers?: {
+          connect: { id: string }[];
+        };
+        user?: {
           connect: {
             id: string;
           };
         };
-        token?: string;
-        refreshToken?: string;
       } = {
         ip: address.ip,
         location: address.location as object,
         fingerprint,
-        authorized,
-        user: {
-          connect: {
-            id: userData.id,
-          },
-        },
       };
+      if (authorizedUsers) {
+        data.authorizedUsers = {
+          connect: [],
+        };
 
-      if (token) data.token = token;
-      if (refreshToken) data.refreshToken = refreshToken;
+        data.authorizedUsers.connect = authorizedUsers.map((atual: string) => {
+          return { id: atual };
+        });
+      }
+      if (attempts) data.attempts = attempts;
 
-      prisma.session
+      await prisma.session
         .create({
           data,
         })
         .then((session) => {
-          resolve(session);
+          return resolve(session);
         })
         .catch((err) => {
-          reject(
-            new errors.InternalServerError("Não foi possível iniciar a sessão.")
+          console.log(err);
+          return reject(
+            new errors.InternalServerError("Cannot create new session in DB.")
           );
         });
     });
   }
+
   identifySession(
     fingerprint: string,
     address: iLookup,
-    userData: iUser,
-    tolerancy = 2,
-    token: string = "",
-    refreshToken: string = ""
+    sessionId?: string
   ): Promise<iSession> {
     return new Promise(async (resolve, reject) => {
-      const sessions: iSession[] = await prisma.session
-        .findMany({
+      if (sessionId) {
+        let session = (await prisma.session
+          .findUniqueOrThrow({
+            where: {
+              id: sessionId,
+              OR: [
+                { fingerprint },
+                {
+                  ip: address.ip,
+                },
+              ],
+            },
+          })
+          .catch((err) => {
+            return reject(new errors.AuthError(response.invalidSession()));
+          })) as iSession;
+
+        return resolve(session);
+      } else {
+        let ipSessions = await prisma.session.findMany({
           where: {
-            userId: userData.id,
+            OR: [
+              { ip: address.ip },
+              {
+                fingerprint: fingerprint,
+              },
+            ],
           },
-        })
-        .catch((err) => {
-          reject(
-            new errors.InternalServerError("DB Error: Cannot find sessions.")
-          );
-          return [];
+          orderBy: {
+            updatedAt: "desc",
+          },
         });
 
-      //se for o primeiro login cria uma sessão e adiciona a lista a ser verificada
-      if (sessions.length === 0) {
-        const newSession = await this.createSession(
-          userData,
-          fingerprint,
-          address,
-          true
-        ).catch((err) => {
-          return reject(
-            new errors.InternalServerError("Cannot create session in DB.")
-          );
-        });
-        if (newSession) return resolve(newSession);
-      }
+        let winnerSession: iSession | null = null;
+        let attempts = {};
+        let authorizedUsers: string[] = [];
 
-      let identifiedSessions: iSessionPontuation[] = [];
-      let blockedSessions: iSession[] = [];
-
-      //verifica todas as sessões ligadas a esse dispositivo.
-      sessions.forEach(async (session) => {
-        let indicators: string[] = [];
-
-        let sessionAddress = {
-          ip: session.ip,
-          location: session.location as unknown as Lookup,
-        };
-        if (sessionAddress.ip !== address.ip) {
-          indicators.push("Different IP adddres.");
-          if (sessionAddress.location.city !== address.location.city)
-            indicators.push("Different IP adddres city.");
-
-          if (sessionAddress.location.region !== address.location.region)
-            indicators.push("Different IP adddres region.");
-
-          if (sessionAddress.location.country !== address.location.country)
-            indicators.push("Different IP adddres country.");
-        }
-
-        if (session.fingerprint !== fingerprint)
-          indicators.push("Different fingerprint ID.");
-
-        if (indicators.length <= tolerancy) {
-          if (session.authorized && session.attempts <= 10) {
-            identifiedSessions.push({
-              ...session,
-              indicators: indicators.length,
-            });
-          } else {
-            this.notifyObserver(IncrementSessionAttempts, { session });
-            blockedSessions.push(session);
+        ipSessions.forEach((session) => {
+          if (
+            session.fingerprint === fingerprint &&
+            session.ip === address.ip &&
+            !winnerSession
+          ) {
+            winnerSession = session;
+            return;
           }
-        }
-      });
 
-      if (blockedSessions.length === 0 && identifiedSessions.length > 0) {
-        const winnerSession = identifiedSessions.reduce((min, obj) =>
-          obj.indicators < min.indicators ? obj : min
-        );
+          if (session.ip === address.ip) {
+            attempts = {
+              ...attempts,
+              ...(session.attempts as object),
+            };
+            authorizedUsers = session.authorizedUsersId;
+          }
+        });
 
-        if (winnerSession.indicators > 0) {
-          this.createSession(
-            userData,
+        if (!winnerSession) {
+          winnerSession = (await this.createSession(
             fingerprint,
             address,
-            true,
-            token,
-            refreshToken
-          )
-            .then((sessionCreated) => {
-              return resolve(sessionCreated);
-            })
-            .catch((err) => {
-              return reject(
-                new errors.InternalServerError("Cannot create session in DB.")
-              );
-            });
-        } else {
-          if (!winnerSession.active && token && refreshToken)
-            return resolve(
-              (await this.createSession(
-                userData,
-                fingerprint,
-                address,
-                true,
-                token,
-                refreshToken
-              ).catch((err) => {
-                return reject(
-                  new errors.InternalServerError("Cannot update session in DB.")
-                );
-              })) as iSession
-            );
-
-          await prisma.session
-            .update({
-              where: {
-                id: winnerSession.id,
-              },
-              data: {
-                ip: address.ip,
-                location: address.location as object,
-                fingerprint,
-                active: true,
-              },
-            })
-            .catch((err) => {
-              return reject(
-                new errors.InternalServerError("Cannot update session in DB.")
-              );
-            });
-          return resolve(winnerSession);
+            false,
+            attempts,
+            authorizedUsers
+          ).catch((err) => {
+            return reject(err);
+          })) as iSession;
         }
-      } else return reject(new errors.SessionError(response.unauthorizated()));
+
+        return resolve(winnerSession);
+      }
     });
   }
+
+  verifySessionAuthorization(
+    user: iUser,
+    session: iSession,
+    allowFingerprint = true
+  ): Promise<Boolean> {
+    return new Promise(async (resolve, reject) => {
+      let authorized = false;
+
+      let where: object = {
+        ip: session.ip,
+      };
+
+      if (!allowFingerprint)
+        where = {
+          OR: [
+            {
+              ip: session.ip,
+            },
+            {
+              fingerprint: session.fingerprint,
+            },
+          ],
+        };
+
+      const sessions = (await prisma.session
+        .findMany({
+          where,
+        })
+        .catch((err) => {
+          return reject(
+            new errors.InternalServerError("Cannot get sessions in DB.")
+          );
+        })) as iSession[];
+
+      sessions.forEach((session) => {
+        if (
+          this.verifyAttempts(session, user) &&
+          session.authorizedUsersId.includes(user.id)
+        )
+          authorized = true;
+      });
+
+      if (!authorized)
+        this.notifyObserver(IncrementSessionAttempts, { user, session });
+
+      return resolve(authorized);
+    });
+  }
+
   getAllUserSessions(userData: iUser): Promise<iSession[]> {
     return new Promise((resolve, reject) => {
+      let query: object = {
+        where: {
+          authorizedUsers: {
+            some: {
+              id: userData.id,
+            },
+          },
+        },
+      };
+
       prisma.session
-        .findMany({
-          where: { userId: userData.id, active: true },
-        })
+        .findMany(query)
         .then((results) => {
           return resolve(results);
         })
@@ -242,11 +247,11 @@ class Session implements iSubject {
         });
     });
   }
+
   getSessionById(sessionId: string, userData?: iUser): Promise<iSession> {
     return new Promise((resolve, reject) => {
-      let query: { id: string; active: boolean; userId?: string } = {
+      let query: { id: string; userId?: string } = {
         id: sessionId,
-        active: true,
       };
 
       if (userData) query.userId = userData.id;
@@ -263,56 +268,16 @@ class Session implements iSubject {
         });
     });
   }
-  inactivateAllUserSessions(
-    userData: iUser,
-    exception?: iSession
-  ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      let query = {};
 
-      if (exception)
-        query = {
-          userId: userData.id,
-          NOT: [{ id: exception.id }],
-        };
-
-      query = {
-        userId: userData.id,
+  inactivateSession(session: iSession, user: iUser): Promise<iSession | null> {
+    return new Promise(async (resolve, reject) => {
+      let data: any = {
+        token: "",
+        refreshToken: "",
+        userId: null,
       };
 
-      prisma.session
-        .updateMany({
-          where: query,
-          data: {
-            active: false,
-          },
-        })
-        .then((result) => {
-          return resolve();
-        })
-        .catch((err) => {
-          reject(new errors.InternalServerError("Cannot inactivate sessions."));
-        });
-    });
-  }
-  inactivateSession(
-    session: iSession,
-    block = false
-  ): Promise<iSession | null> {
-    return new Promise((resolve, reject) => {
-      let data: {
-        active?: boolean;
-        authorized?: boolean;
-      } = {
-        active: false,
-      };
-
-      if (block)
-        data = {
-          authorized: false,
-        };
-
-      prisma.session
+      await prisma.session
         .update({
           where: {
             id: session.id,
@@ -326,10 +291,170 @@ class Session implements iSubject {
         })
         .catch((err) => {
           return reject(
-            new errors.InternalServerError("Cannot inactive session in DB>")
+            new errors.InternalServerError("Cannot inactive session in DB.")
           );
         });
     });
+  }
+
+  inactivateAllUserSessions(
+    userData: iUser,
+    exception?: iSession
+  ): Promise<number> {
+    return new Promise(async (resolve, reject) => {
+      let query: any = {
+        userId: userData.id,
+      };
+
+      if (exception)
+        query = {
+          userId: userData.id,
+          NOT: [{ id: exception.id }],
+        };
+
+      const userSessions = (await prisma.session
+        .findMany({
+          where: query,
+        })
+        .catch(() => {
+          return reject(
+            new errors.InternalServerError("Cannot inactivate sessions. 1")
+          );
+        })) as iSession[];
+
+      userSessions.forEach(async (session) => {
+        await prisma.session
+          .update({
+            where: {
+              id: session.id,
+            },
+            data: {
+              user: {
+                disconnect: true,
+              },
+              token: "",
+              refreshToken: "",
+            },
+          })
+          .catch(() => {
+            return reject(
+              new errors.InternalServerError(
+                "Cannot update session: " + session.id
+              )
+            );
+          });
+      });
+
+      return resolve(userSessions.length);
+    });
+  }
+
+  blockAllUserSessions(
+    userData: iUser,
+    exception?: iSession,
+    block = false
+  ): Promise<number> {
+    return new Promise(async (resolve, reject) => {
+      let query: any = {
+        authorizedUsersId: { has: userData.id },
+      };
+
+      if (exception)
+        query = {
+          authorizedUsersId: { has: userData.id },
+          NOT: [{ id: exception.id }],
+        };
+
+      const sessions = (await prisma.session
+        .findMany({
+          where: query,
+        })
+        .catch((err) => {
+          reject(new errors.InternalServerError("Cannot inactivate sessions."));
+        })) as iSession[];
+
+      sessions.forEach(async (session) => {
+        await prisma.session
+          .update({
+            where: {
+              id: session.id,
+            },
+            data: {
+              authorizedUsers: {
+                disconnect: { id: userData.id },
+              },
+              user: {
+                disconnect: true,
+              },
+            },
+          })
+          .catch(() => {
+            return reject(
+              new errors.InternalServerError(
+                "Cannot update session: " + session.id
+              )
+            );
+          });
+      });
+
+      return resolve(sessions.length);
+    });
+  }
+
+  blockSession(session: iSession, user: iUser): Promise<iSession | null> {
+    return new Promise(async (resolve, reject) => {
+      let data: any = {
+        token: "",
+        refreshToken: "",
+        user: {
+          disconnect: {
+            id: user.id,
+          },
+        },
+        authorizedUsers: {
+          set: [],
+        },
+      };
+
+      await prisma.session
+        .update({
+          where: {
+            id: session.id,
+          },
+          data,
+        })
+        .then((session) => {
+          if (session) return resolve(session);
+
+          return resolve(null);
+        })
+        .catch((err) => {
+          return reject(
+            new errors.InternalServerError("Cannot inactive session in DB.")
+          );
+        });
+    });
+  }
+
+  isActive(session: iSession) {
+    if (!session?.userId) return false;
+    if (!session?.token) return false;
+    if (!session?.refreshToken) return false;
+
+    return true;
+  }
+
+  verifyAttempts(session: iSession, user: iUser) {
+    let attempts = session?.attempts as object as iSessionAttempts;
+
+    if (
+      attempts[user.id] &&
+      Date.now() - attempts[user.id].timeStamp < 10 * 1000 * 60 &&
+      attempts[user.id].attempts >= 10
+    )
+      return false;
+
+    return true;
   }
 }
 

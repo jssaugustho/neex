@@ -1,0 +1,225 @@
+@host = http://localhost:3000/V1
+
+
+# @name register
+POST {{host}}/user HTTP/1.1
+Content-Type: application/json
+Fingerprint: GOOGLE-CHROME
+
+{
+    "name": "José",
+    "lastName": "Augustho",
+    "email": "joseaugustholi2@gmail.com",
+    "phone": "34991718592",
+    "passwd": "SenhaDeTeste@123"
+}
+
+###
+
+//login
+# @name login
+POST {{host}}/login HTTP/1.1
+Content-Type: application/json
+Fingerprint: GOOGLE-CHROME
+
+{
+    "email": "joseaugustholi2@gmail.com",
+    "passwd": "SenhaDeTeste@123"
+}
+
+###
+
+@token = {{login.response.body.$.token}}
+@refreshToken = {{login.response.body.$.refreshToken}}
+
+###
+
+//refresh token
+POST {{host}}/refresh HTTP/1.1
+Content-Type: application/json
+Fingerprint: GOOGLE-CHROME
+
+{
+    "refreshToken": "{{refreshToken}}"
+}
+
+###
+
+//get logged user
+GET {{host}}/user HTTP/1.1
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+
+###
+
+//update user
+PATCH {{host}}/user HTTP/1.1
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+
+{
+    "phone": "34991718593"
+}
+
+###
+
+//get user by id
+GET {{host}}/support/user/67fecf302cdddf231abdb1e5 HTTP/1.1
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+
+###
+
+//update users
+PATCH {{host}}/support/user/67fecf302cdddf231abdb1e5 HTTP/1.1
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+
+{
+    "phone": "34991718593"
+}
+
+###
+
+//get all users
+GET {{host}}/support/users HTTP/1.1
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+
+###
+
+//count all users
+GET {{host}}/support/users/count HTTP/1.1
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+
+###
+
+POST {{host}}/email-exists HTTP/1.1
+Content-Type: application/json
+fingerprint: GOOGLE-CHROME
+
+{
+    "email": "joseaugustholi@gmail.com"
+}
+
+###
+
+POST {{host}}/resend HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+{
+    "email": "joseaugustholi@gmail.com"
+}
+
+###
+
+POST {{host}}/2fa
+Authorization: {{token}}
+Content-Type: application/json
+fingerprint: GOOGLE-CHROME
+
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MDg5MDFhMTc5OTMwOGRjMDU2MzJjMSIsInNlc3Npb25JZCI6IjY4MDg5MDFhMTc5OTMwOGRjMDU2MzJjMCIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0NTU3MDU0OSwiZXhwIjoxNzQ1ODcwNTQ5fQ.Os2zpBLD3EFrIShE0aYx3W8iv8FRfe16U82Qyh59nmg"
+}
+
+### Rotas documentadas até aqui, ainda em teste.
+
+GET {{host}}/session HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/session/logout HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/session/logout/68074e7fbafd7afda4789493 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/session/unauthorize HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/session/unauthorize/6808901a1799308dc05632c0 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/sessions HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/sessions/count HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/sessions/logout HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/sessions/unauthorize HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/sessions/6808908a1799308dc05632c4 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/sessions/count/6808908a1799308dc05632c4 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/sessions/logout/6808908a1799308dc05632c4 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/sessions/unauthorize/6808908a1799308dc05632c4 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###

@@ -74,26 +74,24 @@ class Authentication implements Subject {
           },
         })
         .then((user) => {
-          resolve(user as iUser);
+          return resolve(user as iUser);
         })
         .catch((err) => {
-          console.log(err);
-          reject(new errors.UserError(response.userNotFound()));
+          return reject(new errors.UserError(response.userNotFound()));
         });
     });
   }
 
   createNewUser(
+    session: iSession,
     email: string,
     name: string,
     lastName: string,
     phone: string,
-    passwd: string,
-    address: iLookup,
-    fingerprint: string
-  ): Promise<{ session: iSession; user: iUser }> {
+    passwd: string
+  ): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
-      const user = await prisma.user
+      const user = (await prisma.user
         .create({
           data: {
             email,
@@ -104,23 +102,14 @@ class Authentication implements Subject {
           },
         })
         .catch((err) => {
-          throw new errors.InternalServerError("Cannot create new User");
-        });
+          return reject(
+            new errors.InternalServerError("Cannot create new User")
+          );
+        })) as iUser;
 
-      const session = await Session.createSession(
-        user,
-        fingerprint,
-        address,
-        true
-      ).catch((err) => {
-        throw err;
-      });
+      await Verification.generate2faLink(user, session);
 
-      Verification.generateEmailToken(user, session).catch((err) => {
-        throw err;
-      });
-
-      resolve({ user: user as iUser, session });
+      resolve(user);
     });
   }
 }

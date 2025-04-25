@@ -21,29 +21,40 @@ async function authenticate(
 
   if (!req.userData) throw new errors.InternalServerError("UserData not found");
 
-  if (!req.headers["fingerprint"])
+  if (!req.data.fingerprint)
     throw new errors.UserError(response.needFingerprintHeader());
 
-  let ip = new IpType(req.ip as string).getLookup();
+  let address = new IpType(req.ip as string).getLookup();
 
   Authentication.authenticate(
     req.userData,
-    req.session.id,
-    ip,
-    req.headers["fingerprint"] as string,
+    req.session,
+    req.data.fingerprint,
+    address,
     req.data.firstTime
   )
     .then((data) => {
       const publicData = req.userData;
       if (publicData) publicData.passwd = "********************************";
 
-      res.status(200).send({
-        status: "Ok",
-        message: response.succesAuth(),
-        token: "bearer " + data.token,
-        refreshToken: data.refreshToken,
-        data: publicData,
-      });
+      req.response = {
+        statusCode: 200,
+        output: {
+          status: "Ok",
+          message: response.succesAuth(),
+          token: "Bearer " + data.token,
+          refreshToken: data.refreshToken,
+          sessionId: req.session?.id as string,
+          data: publicData,
+        },
+      };
+
+      if (!req.userData?.active)
+        req.response.output.info = {
+          reactivate: true,
+        };
+
+      res.status(req.response.statusCode).send(req.response.output);
     })
     .catch(next);
 }
@@ -57,10 +68,33 @@ async function inactivateAllUserSessions(
 
   if (!req.userData) throw new errors.InternalServerError("UserData not found");
 
-  Session.inactivateAllUserSessions(req.userData, req.session).then(() => {
+  Session.inactivateAllUserSessions(req.userData, req.session).then((count) => {
     res.status(200).send({
       status: "Ok",
-      message: "Todas as sessões foram inativadas.",
+      message: response.sessionsInactived(count),
+      info: {
+        count,
+      },
+    });
+  });
+}
+
+async function blockAllUserSessions(
+  req: RequestUserPayload,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.session) throw new errors.InternalServerError("Session not found");
+
+  if (!req.userData) throw new errors.InternalServerError("UserData not found");
+
+  Session.blockAllUserSessions(req.userData, req.session).then((count) => {
+    res.status(200).send({
+      status: "Ok",
+      message: response.sessionsUnauthorized(count),
+      info: {
+        count,
+      },
     });
   });
 }
@@ -71,12 +105,13 @@ async function inactivateSession(
   next: NextFunction
 ) {
   if (!req.session) throw new errors.UserError(response.sessionNotFound());
+  if (!req.userData) throw new errors.UserError(response.userNotFound());
 
-  Session.inactivateSession(req.session)
+  Session.inactivateSession(req.session, req.userData)
     .then((session) => {
       res.status(200).send({
         status: "Ok",
-        message: "Sessão invalidada.",
+        message: response.sessionsInactived(1),
       });
     })
     .catch((err) => {
@@ -90,12 +125,13 @@ async function blockSession(
   next: NextFunction
 ) {
   if (!req.session) throw new errors.UserError(response.sessionNotFound());
+  if (!req.userData) throw new errors.UserError(response.userNotFound());
 
-  Session.inactivateSession(req.session, true)
+  Session.blockSession(req.session, req.userData)
     .then((session) => {
       res.status(200).send({
         status: "Ok",
-        message: "Sessão invalidada.",
+        message: response.sessionsUnauthorized(1),
       });
     })
     .catch((err) => {
@@ -103,9 +139,23 @@ async function blockSession(
     });
 }
 
+//auth user, register and send token
+async function responseRequests(
+  req: RequestUserPayload,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.response)
+    throw new errors.InternalServerError("Response not found.");
+
+  res.status(req.response.statusCode).send(req.response.output);
+}
+
 export default {
   authenticate,
   inactivateAllUserSessions,
   inactivateSession,
   blockSession,
+  responseRequests,
+  blockAllUserSessions,
 };

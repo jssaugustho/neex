@@ -6,16 +6,15 @@ import iValidateString from "../../@types/iValidateString/iValidateString.js";
 import errors from "../../errors/errors.js";
 import response from "../../response/response.js";
 
-class ObjectIdType implements iValidateString {
+class NumberType implements iValidateString {
   regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
   value: string;
 
-  constructor(text: string, error?: Error) {
-    if (!error) error = new errors.UserError(response.obrigatoryParam("id"));
+  constructor(text: string) {
+    if (!text) throw new errors.UserError(response.obrigatoryParam("id"));
 
-    if (!text) throw error;
-
-    if (!isValidObjectId(text) || typeof text != "string") throw error;
+    if (typeof text != "boolean")
+      throw new errors.UserError(response.invalidParam("id"));
 
     this.value = text;
   }
@@ -25,4 +24,4 @@ class ObjectIdType implements iValidateString {
   }
 }
 
-export default ObjectIdType;
+export default NumberType;

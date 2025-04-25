@@ -1,33 +1,23 @@
 //types
-import iObserver from "../../@types/iObserver/iObserver.js";
 import {
   User as iUser,
   Session as iSession,
   Verification as iVerification,
 } from "@prisma/client";
+import iObserver from "../../@types/iObserver/iObserver.js";
 import iSubject from "../../@types/iSubject/iSubject.js";
-import iTokenPayload from "../../@types/iTokenPayload/iTokenPayload.js";
+
+//db
+import prisma from "../../controllers/db.controller.js";
 
 //external libs
-import prisma from "../../controllers/db.controller.js";
 import jwt from "jsonwebtoken";
-import { randomUUID } from "crypto";
-
-//core
+import SendVerificationCode from "../../observers/VerificationCode/SendVerificationCode.js";
 import Token from "../Token/Token.js";
-import Session from "../Session/Session.js";
-
-//errors
 import errors from "../../errors/errors.js";
 import response from "../../response/response.js";
-
-//observers
-import EmailVerified from "../../observers/NotificateUser/EmailVerified.js";
-import SendVerificationCode from "../../observers/VerificationCode/SendVerificationCode.js";
-import ResetSessionAttempts from "../../observers/SessionAttempts/ResetSessionAttempts.js";
-import IncrementEmailExpires from "../../observers/EmailExpires/IncrementEmailExpires.js";
-import IncrementSessionAttempts from "../../observers/SessionAttempts/IncrementSessionAttempts.js";
-import iLookup from "../../@types/iLookup/iLookup.js";
+import User from "../User/User.js";
+import { rejects } from "assert";
 
 class Verification implements iSubject {
   observers: iObserver[] = [];
@@ -45,7 +35,7 @@ class Verification implements iSubject {
     this.observers = this.observers.filter((obs) => obs !== observer);
   }
 
-  notify(data?: { user: iUser; token: string }) {
+  async notify(data?: { user: iUser; token: string }) {
     this.observers.forEach((observer) => observer.update(data));
   }
 
@@ -53,165 +43,213 @@ class Verification implements iSubject {
     observer.update(data);
   }
 
-  generateEmailToken(user: iUser, session: iSession): Promise<string> {
-    return new Promise(async (resolve, reject) => {
-      const token = jwt.sign(
-        {
-          id: user.id,
-          sessionId: session.id,
-          rand: randomUUID(),
-        },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: 1000 * 60 * 10,
-        }
-      );
+  getExponencialTime(session: iSession) {
+    const exponencialList = [
+      1,
+      2,
+      5,
+      10,
+      15,
+      30,
+      45,
+      60,
+      90,
+      60 * 3,
+      60 * 12,
+      60 * 24,
+    ];
 
+    let exponencialValue =
+      exponencialList[
+        session.exponencialEmailExpires <= 11
+          ? session.exponencialEmailExpires
+          : 11
+      ] * 60000;
+
+    return exponencialValue;
+  }
+
+  async getTimeLeft(session: iSession, user: iUser): Promise<number> {
+    return new Promise(async (resolve, reject) => {
       const verification = await prisma.verification.findUnique({
         where: {
           userId: user.id,
         },
       });
 
-      if (!verification)
-        await prisma.verification.create({
-          data: {
-            used: false,
-            token,
-            user: {
-              connect: {
-                id: user.id,
-              },
-            },
-            session: {
-              connect: {
-                id: session.id,
-              },
-            },
-          },
-        });
-      else
-        await prisma.verification.update({
-          where: { id: verification.id },
-          data: {
-            used: false,
-            token,
-            user: {
-              connect: {
-                id: user.id,
-              },
-            },
-            session: {
-              connect: {
-                id: session.id,
-              },
-            },
-          },
-        });
+      if (!verification || session.exponencialEmailExpires < 0)
+        return resolve(0);
 
-      this.notifyObserver(IncrementEmailExpires, { session });
-      this.notify({ user, token });
+      const TimePassed =
+        Date.now() - new Date(verification.updatedAt).getTime();
 
-      return resolve(token);
+      let exponencialValue = this.getExponencialTime(session);
+
+      return resolve(exponencialValue - TimePassed);
     });
   }
 
-  verifyEmailToken(
-    token: string,
+  async generate2faLink(
     user: iUser,
-    showNotify = true,
-    fingerprint?: string,
-    address?: iLookup
-  ): Promise<{ tokenVerification: iVerification; session: iSession }> {
+    session: iSession
+  ): Promise<iVerification> {
     return new Promise(async (resolve, reject) => {
-      let error = errors.UserError;
-
-      if (fingerprint && address) error = errors.AuthError;
-
-      const decoded = (await Token.loadPayload(token, "emailToken").catch(
-        (err) => {
-          reject(err);
+      const token = jwt.sign(
+        {
+          id: user.id,
+          sessionId: session.id,
+          type: "Email2fa",
+        },
+        process.env.JWT_VERIFICATION_SECRET as string,
+        {
+          expiresIn: 1000 * 60 * 5,
         }
-      )) as iTokenPayload;
+      );
 
-      if (!decoded) return reject(new error(response.invalidToken()));
+      let check = (await prisma.verification
+        .findUnique({
+          where: {
+            userId: user.id,
+          },
+        })
+        .catch((err) => {
+          return reject(
+            new errors.InternalServerError("Cannot get verification in DB.")
+          );
+        })) as iVerification;
 
-      const session = await Session.getSessionById(decoded.id as string);
-
-      if (!session) {
-        console.log("erro");
-        return reject(new error(response.invalidToken()));
+      if (!check) {
+        check = (await prisma.verification.create({
+          data: {
+            token,
+            used: false,
+            session: {
+              connect: {
+                id: session.id,
+              },
+            },
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          },
+        })) as iVerification;
+      } else {
+        await prisma.verification.update({
+          where: {
+            userId: user.id,
+          },
+          data: {
+            token,
+            used: false,
+            session: {
+              connect: {
+                id: session.id,
+              },
+            },
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          },
+        });
       }
 
-      const tokenVerification = await prisma.verification.findUniqueOrThrow({
-        where: {
-          userId: decoded.id,
-          used: false,
-        },
+      await this.notify({
+        user,
+        token,
       });
 
-      if (!tokenVerification) {
-        return reject(new error(response.invalidToken()));
-      }
+      resolve(check);
+    });
+  }
 
-      if (showNotify) this.notifyObserver(EmailVerified, { user, session });
+  async verifyLastAttempt(user: iUser): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+      let verification = await prisma.verification
+        .findUnique({
+          where: {
+            userId: user.id,
+          },
+        })
+        .catch(() => {
+          throw new errors.InternalServerError(
+            "Cannot get verification in DB."
+          );
+        });
 
-      if (fingerprint && address) {
-        if (fingerprint !== session.fingerprint || address.ip !== session.ip)
-          return reject(new error(response.invalidSession()));
-      }
+      if (!verification) return resolve(true);
 
-      await prisma.verification
+      let lastAttempt = new Date(verification.updatedAt).getTime();
+
+      if (lastAttempt > Date.now() - 60 * 1000 * 60) return reject(false);
+
+      return resolve(true);
+    });
+  }
+
+  async verify2faToken(token: string, session: iSession): Promise<iUser> {
+    return new Promise(async (resolve, reject) => {
+      const error = new errors.AuthError(response.invalidEmailToken());
+      const payload = await Token.loadPayload(token, "emailToken").catch(
+        (err) => {
+          return reject(err);
+        }
+      );
+
+      if (!payload) return reject(error);
+
+      if (payload.sessionId !== session.id) return reject(error);
+
+      if (!payload.id) return reject(error);
+
+      const user = (await User.getUserById(payload.id).catch((err) => {
+        return reject(error);
+      })) as iUser;
+
+      let verification = (await prisma.verification
+        .findUniqueOrThrow({
+          where: {
+            userId: user.id,
+          },
+        })
+        .catch(() => {
+          return reject(error);
+        })) as iVerification;
+
+      if (verification.token !== token || verification.used)
+        return reject(error);
+
+      verification = (await prisma.verification
         .update({
           where: {
-            id: tokenVerification.id,
+            id: verification.id,
           },
           data: {
             used: true,
           },
         })
-        .catch((err) => {
-          return reject(
-            new errors.InternalServerError("Cannot update verification in db.")
-          );
+        .catch(() => {
+          return reject(error);
+        })) as iVerification;
+
+      await prisma.session
+        .update({
+          where: {
+            id: session.id,
+          },
+          data: {
+            exponencialEmailExpires: -1,
+          },
+        })
+        .catch(() => {
+          return reject(error);
         });
 
-      this.notifyObserver(ResetSessionAttempts, {
-        session,
-      });
-
-      return resolve({ tokenVerification, session });
+      return resolve(user);
     });
-  }
-
-  verifyTime(
-    verification: iVerification,
-    session: iSession
-  ): {
-    approved: boolean;
-    time: number;
-    prettyTime: string;
-  } {
-    const now = new Date(Date.now()).getTime();
-
-    const updatedAt = new Date(verification.updatedAt).getTime();
-
-    let interval = session.exponencialEmailExpires * 60 * 1000;
-
-    if (session.exponencialEmailExpires > 16) interval = 16 * 60 * 1000;
-
-    const elapsedTime = now - updatedAt;
-
-    const waitTime = interval - elapsedTime;
-
-    const minutes = Math.floor(waitTime / 60000);
-    const seconds = Math.floor((waitTime % 60000) / 1000);
-
-    return {
-      approved: elapsedTime >= interval,
-      time: waitTime,
-      prettyTime: `${minutes}m ${seconds}s`,
-    };
   }
 }
 

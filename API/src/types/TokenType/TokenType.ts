@@ -10,10 +10,10 @@ class TokenType implements iValidateString {
   value: string;
 
   constructor(text: string) {
-    if (!text) throw new errors.UserError(response.obrigatoryParam("token"));
+    if (!text) throw new errors.AuthError(response.invalidToken());
 
-    if (text.length > 512 || typeof text != "string")
-      throw new errors.UserError(response.invalidParam("token"));
+    if (text.length > 1024 || typeof text != "string")
+      throw new errors.AuthError(response.invalidToken());
 
     this.value = text;
   }

@@ -1,4 +1,5 @@
 import iValidateString from "../../@types/iValidateString/iValidateString.js";
+import prisma from "../../controllers/db.controller.js";
 import errors from "../../errors/errors.js";
 import response from "../../response/response.js";
 
@@ -37,6 +38,33 @@ class PhoneType implements iValidateString {
     } else {
       throw new errors.UserError(response.invalidParam("phone"));
     }
+  }
+
+  avaible(): Promise<Boolean> {
+    return new Promise(async (resolve, reject) => {
+      //query user data
+      let findEmail = await prisma.user
+        .findUnique({
+          where: {
+            phone: this.pretty,
+          },
+        })
+        .catch((err) => {
+          return reject(
+            new errors.InternalServerError(
+              "Cannot verify disponibility of phone."
+            )
+          );
+        });
+
+      //verify if email exists
+      if (findEmail) {
+        return reject(new errors.UserError(response.phoneInUse()));
+      }
+
+      //check if email exists
+      resolve(true);
+    });
   }
 
   getOnlyNumbers(): string {

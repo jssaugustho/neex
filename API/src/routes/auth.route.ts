@@ -3,56 +3,131 @@ import { Router } from "express";
 //controle de acesso e autenticação
 import authMiddlewares from "../middlewares/auth.middlewares.js";
 import authControllers from "../controllers/auth.controllers.js";
+import commonMiddlewares from "../middlewares/common.middlewares.js";
 
 const auth = Router();
 
 //login
-auth.post(
-  "/login",
-  authMiddlewares.getFingerprint,
-  authMiddlewares.verifyLogin,
-  authControllers.authenticate
-);
+auth.post("/login", authMiddlewares.verifyLogin, authControllers.authenticate);
 
 //refresh token
 auth.post(
   "/refresh",
-  authMiddlewares.getFingerprint,
   authMiddlewares.verifyRefreshToken,
   authControllers.authenticate
 );
 
-//inativa a sessão repassada através da propriedade sessionId
-auth.put(
-  "/inactivate-session",
-  authMiddlewares.getFingerprint,
+//retorna a sessão atual
+auth.get(
+  "/session",
   authMiddlewares.verifyToken,
-  authMiddlewares.validateInactivateSession,
-  authControllers.inactivateSession
+  authMiddlewares.getAtualSession,
+  authControllers.responseRequests
 );
 
-//inativa a sessão logada.
+//inativa a sessão logada
 auth.get(
-  "/inactivate-session",
-  authMiddlewares.getFingerprint,
+  "/session/logout/",
   authMiddlewares.verifyToken,
   authControllers.inactivateSession
 );
 
-//inativa todas as sessões menos a que está logada
 auth.get(
-  "/inactivate-session/all",
-  authMiddlewares.getFingerprint,
+  "/session/logout/:sessionId",
+  authMiddlewares.verifyToken,
+  authMiddlewares.validateSessionId,
+  authControllers.inactivateSession
+);
+
+auth.get(
+  "/session/unauthorize",
+  authMiddlewares.verifyToken,
+  authControllers.blockSession
+);
+
+auth.get(
+  "/session/unauthorize/:sessionId",
+  authMiddlewares.verifyToken,
+  authMiddlewares.validateSessionId,
+  authControllers.blockSession
+);
+
+auth.get(
+  "/sessions",
+  authMiddlewares.verifyToken,
+  commonMiddlewares.validateSteps,
+  authMiddlewares.getSessions,
+  authControllers.responseRequests
+);
+
+auth.get(
+  "/sessions/count",
+  authMiddlewares.verifyToken,
+  authMiddlewares.countSessions,
+  authControllers.responseRequests
+);
+
+auth.get(
+  "/sessions/logout",
   authMiddlewares.verifyToken,
   authControllers.inactivateAllUserSessions
 );
 
-//inativa a sessão repassada através da propriedade sessionId
-auth.put(
-  "/block-session",
-  authMiddlewares.getFingerprint,
+auth.get(
+  "/sessions/unauthorize/",
   authMiddlewares.verifyToken,
-  authMiddlewares.validateInactivateSession,
+  authControllers.blockAllUserSessions
+);
+
+auth.get(
+  "/support/sessions/:userId",
+  authMiddlewares.verifyToken,
+  commonMiddlewares.verifyAdminAndSupport,
+  authMiddlewares.validateUserId,
+  commonMiddlewares.validateSteps,
+  authMiddlewares.getSessions,
+  authControllers.responseRequests
+);
+
+auth.get(
+  "/support/sessions/count/:userId",
+  authMiddlewares.verifyToken,
+  commonMiddlewares.verifyAdminAndSupport,
+  authMiddlewares.validateUserId,
+  authMiddlewares.countSessions,
+  authControllers.responseRequests
+);
+
+auth.get(
+  "/support/sessions/logout/:userId",
+  authMiddlewares.verifyToken,
+  commonMiddlewares.verifyAdminAndSupport,
+  authMiddlewares.validateUserId,
+  authControllers.inactivateAllUserSessions
+);
+
+auth.get(
+  "/support/sessions/unauthorize/:userId/",
+  authMiddlewares.verifyToken,
+  commonMiddlewares.verifyAdminAndSupport,
+  authMiddlewares.validateUserId,
+  authControllers.blockAllUserSessions
+);
+
+auth.get(
+  "/support/session/logout/:sessionId",
+  authMiddlewares.verifyToken,
+  commonMiddlewares.verifyAdminAndSupport,
+  authMiddlewares.validateSessionId,
+  authControllers.inactivateSession
+);
+
+auth.get(
+  "/support/session/unauthorize/:userId/:sessionId",
+  authMiddlewares.verifyToken,
+  commonMiddlewares.verifyAdminAndSupport,
+  authMiddlewares.validateUserId,
+  authMiddlewares.validateSessionId,
   authControllers.blockSession
 );
 

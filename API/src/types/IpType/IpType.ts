@@ -15,7 +15,7 @@ class IpType implements iValidateString {
   }
 
   validate(ip: string) {
-    if (ip === "::1") return "181.222.238.8";
+    if (ip === "::1") return "181.222.238.9";
 
     const match = ip.match(this.regex);
 

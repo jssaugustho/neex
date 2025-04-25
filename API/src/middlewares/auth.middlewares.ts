@@ -11,15 +11,20 @@ import response from "../response/response.js";
 import { Response, NextFunction } from "express";
 import iRequest from "../@types/iRequest/iRequest.js";
 import IpType from "../types/IpType/IpType.js";
-import { Session as iSession } from "@prisma/client";
+import { Session as iSession, User as iUser } from "@prisma/client";
 
 //validators
 import EmailType from "../types/EmailType/EmailType.js";
 import PasswdType from "../types/PasswdType/PasswdType.js";
 import FingerprintType from "../types/FingerprintType/FingerprintType.js";
 import TokenType from "../types/TokenType/TokenType.js";
-import IncrementSessionAttempts from "../observers/SessionAttempts/IncrementSessionAttempts.js";
 import ObjectIdType from "../types/ObjectIdType/ObjectIdType.js";
+
+//observers
+import IncrementSessionAttempts from "../observers/SessionAttempts/IncrementSessionAttempts.js";
+
+//db
+import prisma from "../controllers/db.controller.js";
 
 //verify if user-agent is in blcklist
 async function userAgentBlackList(
@@ -47,38 +52,77 @@ async function userAgentBlackList(
   next();
 }
 
+async function getSession(req: iRequest, res: Response, next: NextFunction) {
+  req.data = {};
+
+  req.data.fingerprint = new FingerprintType(
+    req.headers.fingerprint as string
+  ).getValue();
+
+  req.data.ipLookup = new IpType(req.ip as string).getLookup();
+
+  let sessionId = "";
+
+  if (req.headers.session) {
+    sessionId = new ObjectIdType(
+      req.headers.session as string,
+      new errors.AuthError(response.invalidSession())
+    ).getValue();
+
+    req.session = await Session.identifySession(
+      req.data.fingerprint,
+      req.data.ipLookup,
+      sessionId
+    ).catch((err) => {
+      throw err;
+    });
+  } else {
+    req.session = await Session.identifySession(
+      req.data.fingerprint,
+      req.data.ipLookup
+    ).catch((err) => {
+      throw err;
+    });
+  }
+
+  next();
+}
+
 //verify login and send user id to next in req.id
 async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
   const passwd = new PasswdType(req.body.passwd).getValue();
   const email = new EmailType(req.body.email).getValue();
 
   //baixa o usuario do banco de dados
-  const user = await User.getUserByEmail(email).catch((err) => {
+  req.userData = await User.getUserByEmail(email).catch((err) => {
     throw err;
   });
 
-  //identifica as sessões do mesmo dispositivo e retorna uma lista
-  let authorized = await Session.identifySession(
-    req.data.fingerprint,
-    req.data.ipLookup,
-    user
-  ).catch((err) => {
-    throw err;
-  });
+  if (!Session.verifyAttempts(req.session as iSession, req.userData))
+    throw new errors.SessionError(response.attemptLimit());
 
-  if (user.passwd !== passwd) {
-    Session.notifyObserver(IncrementSessionAttempts, {
-      Session: authorized,
-    });
-    throw new errors.AuthError(response.incorrectPasswd());
+  if (req.session)
+    if (req.userData.passwd !== passwd) {
+      Session.notifyObserver(IncrementSessionAttempts, {
+        session: req.session,
+        user: req.userData,
+      });
+      throw new errors.AuthError(response.incorrectPasswd());
+    }
+
+  //verifica se essa sessão necessita de 2fa autorizá-la.
+  const authorized = (await Session.verifySessionAuthorization(
+    req.userData,
+    req.session as iSession
+  ).catch(() => {
+    return false;
+  })) as boolean;
+
+  if (!authorized) {
+    throw new errors.SessionError(response.needVerifyEmail());
   }
 
-  //se houver uma sessão liberada e nenhuma bloqueada verifica o login
-  if (authorized) {
-    req.userData = user;
-    req.session = authorized;
-    next();
-  }
+  next();
 }
 
 //verify active token and send id to next in req.userData
@@ -91,18 +135,14 @@ async function verifyToken(req: iRequest, res: Response, next: NextFunction) {
     req.headers["authorization"].split(" ")[1]
   ).getValue();
 
-  if (!token) throw new errors.AuthError(response.needAuth());
-
-  const { user, session } = await Authentication.verifyToken(
+  const user = await Authentication.verifyToken(
     token,
-    req.data.fingerprint,
-    req.data.ipLookup
+    req.session as iSession
   ).catch((err) => {
     throw err;
   });
 
   req.userData = user;
-  req.session = session;
 
   next();
 }
@@ -114,61 +154,50 @@ async function verifyRefreshToken(
   next: NextFunction
 ) {
   //captura o refresh token da requisição
-  let { refreshToken } = req.body;
 
   //verifify if token exists
-  if (!refreshToken) {
+  if (!req.body.refreshToken) {
     throw new errors.UserError(response.obrigatoryParam("refreshToken"));
   }
 
-  const { user, session } = await Authentication.verifyRefreshToken(
+  //get token
+  let refreshToken = new TokenType(req.body.refreshToken).getValue();
+
+  const user = await Authentication.verifyRefreshToken(
     refreshToken,
-    req.data.fingerprint,
-    req.data.ipLookup
+    req.session as iSession
   ).catch((err) => {
     throw err;
   });
 
   req.userData = user;
-  req.session = session;
 
-  next();
-}
-
-//verify if email is verified
-async function isEmailVerified(
-  req: iRequest,
-  res: Response,
-  next: NextFunction
-) {
-  if (req.userData && !req.userData.emailVerified)
-    throw new errors.UserError(response.verifyYourEmail());
   next();
 }
 
 //get user data from the token payload
-async function validateInactivateSession(
+async function validateSessionId(
   req: iRequest,
   res: Response,
   next: NextFunction
 ) {
-  if (!req.userData) throw new errors.AuthError(response.needAuth());
+  if (!req.userData) throw new errors.InternalServerError("Userdata error");
 
-  let sessionId = new ObjectIdType(req.body.sessionId).getValue();
+  let sessionId = new ObjectIdType(req.params.sessionId).getValue();
 
-  const session = await Session.getSessionById(req.body.sessionId).catch(
-    (err) => {
-      throw err;
-    }
-  );
+  const session = await Session.getSessionById(sessionId).catch((err) => {
+    throw new errors.UserError(response.sessionNotFound());
+  });
 
   if (!session) throw new errors.UserError(response.sessionNotFound());
 
-  if (
-    req.userData.role === "SUPPORT" ||
-    req.userData.role === "ADMIN" ||
-    session.userId === req.userData.id
-  ) {
+  if (!Session.isActive(session))
+    throw new errors.UserError(response.sessionInactive());
+
+  let userPrivilege =
+    req.userData.role === "ADMIN" || req.userData.role === "SUPPORT";
+
+  if (req.session?.userId === req.userData.id || userPrivilege) {
     req.session = session;
     next();
   } else {
@@ -176,28 +205,158 @@ async function validateInactivateSession(
   }
 }
 
-async function getFingerprint(
+//get user data from the token payload
+async function validateUserId(
   req: iRequest,
   res: Response,
   next: NextFunction
 ) {
-  req.data = {};
+  if (!req.userData) throw new errors.InternalServerError("UserData error.");
 
-  req.data.fingerprint = new FingerprintType(
-    req.headers.fingerprint as string
-  ).getValue();
+  if (
+    req.userData?.role !== "ADMIN" &&
+    req.userData?.role !== "SUPPORT" &&
+    req.userData.id !== req.params.userId
+  )
+    throw new errors.UserError(response.unauthorizated());
 
-  req.data.ipLookup = new IpType(req.ip as string).getLookup();
+  req.data.userId = new ObjectIdType(req.params?.userId as string).getValue();
+
+  req.userData = (await User.getUserById(req.data.userId).catch((err) => {
+    throw new errors.UserError(response.userNotFound());
+  })) as iUser;
+
+  next();
+}
+
+async function getSessions(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.userData) throw new errors.InternalServerError("UserData error.");
+
+  const sessions = (await prisma.session
+    .findMany({
+      where: {
+        authorizedUsersId: {
+          has: req.userData.id,
+        },
+      },
+      take: req.data.take,
+      skip: req.data.skip,
+    })
+    .catch((err) => {
+      throw new errors.InternalServerError("Cannot get sessions in DB.");
+    })) as (iSession & { authorizedUsers: iUser[] })[];
+
+  const publicSessions = sessions.map((session) => {
+    session.token =
+      "***********************************************************************************";
+    session.refreshToken =
+      "***********************************************************************************";
+
+    session.fingerprint = "************************";
+
+    return session;
+  });
+
+  let activeSessions = publicSessions.filter((session) => {
+    if (session.userId === req.userData?.id) return session;
+  });
+
+  req.response = {
+    statusCode: 200,
+    output: {
+      status: "Ok",
+      message: response.sessionsFound(publicSessions.length),
+      info: {
+        count: publicSessions.length,
+        showing: req.data.take,
+        skipped: req.data.skip,
+        activeSessions: activeSessions.length,
+      },
+      data: publicSessions,
+    },
+  };
+
+  next();
+}
+
+async function countSessions(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.userData) throw new errors.InternalServerError("UserData error.");
+
+  const sessions = await prisma.session
+    .count({
+      where: {
+        authorizedUsersId: {
+          has: req.userData.id,
+        },
+      },
+    })
+    .catch((err) => {
+      throw new errors.InternalServerError("Cannot count sessions in DB.");
+    });
+
+  const activeSessions = await prisma.session
+    .count({
+      where: {
+        userId: req.userData.id,
+      },
+    })
+    .catch((err) => {
+      throw new errors.InternalServerError("Cannot count sessions in DB.");
+    });
+
+  req.response = {
+    statusCode: 200,
+    output: {
+      status: "Ok",
+      message: response.sessionsFound(sessions),
+      info: {
+        count: sessions,
+        activeSessions,
+      },
+    },
+  };
+
+  next();
+}
+
+async function getAtualSession(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.userData) throw new errors.InternalServerError("UserData error.");
+  if (!req.session) throw new errors.InternalServerError("Session error.");
+
+  let session = req.session;
+
+  session.token =
+    "***********************************************************************************";
+  session.refreshToken =
+    "***********************************************************************************";
+
+  session.fingerprint = "************************";
+
+  req.response = {
+    statusCode: 200,
+    output: {
+      status: "Ok",
+      message: "Sessão encontrada.",
+      data: session,
+    },
+  };
 
   next();
 }
 
 export default {
+  getSession,
   userAgentBlackList,
   verifyLogin,
   verifyRefreshToken,
   verifyToken,
-  isEmailVerified,
-  validateInactivateSession,
-  getFingerprint,
+  validateSessionId,
+  validateUserId,
+  getSessions,
+  countSessions,
+  getAtualSession,
 };

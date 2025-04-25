@@ -1,54 +1,26 @@
 import { Router } from "express";
 
-// controle de acesso
-import authMiddlewares from "../middlewares/auth.middlewares.js";
-
-//controles da rota
+//controle de acesso e autenticação
 import verificationMiddlewares from "../middlewares/verification.middlewares.js";
 import verificationControllers from "../controllers/verification.controllers.js";
+import authMiddlewares from "../middlewares/auth.middlewares.js";
 import authControllers from "../controllers/auth.controllers.js";
 
-const verify = Router();
+const verificationRoute = Router();
 
-//verify email code
-verify.get(
-  "/verify-email",
-  authMiddlewares.getFingerprint,
-  authMiddlewares.verifyToken,
-  verificationMiddlewares.CheckUserVerified,
-  verificationMiddlewares.validateVerifyEmailParams,
-  verificationMiddlewares.setEmailVerified,
-  verificationControllers.response
-);
-
-// send email authentication
-verify.get(
+//refresh token
+verificationRoute.post(
   "/resend",
-  authMiddlewares.getFingerprint,
-  authMiddlewares.verifyToken,
-  verificationMiddlewares.verifyWaitTime,
-  verificationMiddlewares.sendEmailVerification,
+  verificationMiddlewares.validateResend,
+  verificationMiddlewares.sendEmail,
   verificationControllers.response
 );
 
-// //verify email code
-// verify.get(
-//   "/email-auth",
-//   authMiddlewares.getFingerprint,
-//   verificationMiddlewares.validateVerifyEmailParams,
-//   verificationMiddlewares.verifyFingerprint,
-//   verificationMiddlewares.setEmailVerified,
-//   authControllers.authenticate
-// );
+//retorna todas as sessões ativas
+verificationRoute.post(
+  "/2fa",
+  verificationMiddlewares.validateEmailToken,
+  authControllers.authenticate
+);
 
-// // send email authentication
-// verify.post(
-//   "/send-email-auth",
-//   authMiddlewares.getFingerprint,
-//   verificationMiddlewares.verifySendEmailAuthParams,
-//   verificationMiddlewares.verifyWaitTime,
-//   verificationMiddlewares.sendEmailVerification,
-//   verificationControllers.response
-// );
-
-export default verify;
+export default verificationRoute;

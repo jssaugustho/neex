@@ -7,15 +7,13 @@ import response from "../../response/response.js";
 
 //db
 import prisma from "../../controllers/db.controller.js";
-import emailControllers from "../../controllers/email.controllers.js";
 
 class EmailType implements iValidateString {
   regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
   value: string;
 
   constructor(email: string) {
-    if (!emailControllers)
-      throw new errors.UserError(response.obrigatoryParam("email"));
+    if (!email) throw new errors.UserError(response.obrigatoryParam("email"));
 
     if (!this.regex.test(email) || typeof email != "string")
       throw new errors.UserError(response.invalidParam("email"));

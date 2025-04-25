@@ -9,7 +9,7 @@ class Response {
   }
   //email em uso
   emailInUse() {
-    return "Email em uso.";
+    return "Email indisponível.";
   }
   //tamanho da senha inválido
   invalidPasswdLength(min, max) {
@@ -56,7 +56,7 @@ class Response {
   userFound(n) {
     if (n > 1) return n + " usuários encontrados.";
     if (n == 0) return "Nenhum usuário encontrado.";
-    else return "1 usuário encontrado.";
+    else return "Usuário encontrado.";
   }
   leadFound(n) {
     if (n > 1) return n + " leads encontrados.";
@@ -139,6 +139,48 @@ class Response {
   }
   emailVerified() {
     return "Email verificado.";
+  }
+  sessionsFound(num: number) {
+    let response = "Nenhuma sessão encontrada.";
+
+    if (num === 1) response = "Sessão encontrada.";
+
+    if (num > 1) response = `${num} sessões encontradas.`;
+
+    return response;
+  }
+  sessionsInactived(num: number) {
+    let response = "Nenhuma sessão encontrada.";
+
+    if (num === 1) response = "Logout realizado na sessão.";
+
+    if (num > 1) response = `Logout realizado em ${num} sessões.`;
+
+    return response;
+  }
+  sessionsUnauthorized(num: number) {
+    let response = "Nenhuma sessão encontrada.";
+
+    if (num === 1) response = "Autorização revogada na sessão.";
+
+    if (num > 1) response = `${num} autorizações revogadas.`;
+
+    return response;
+  }
+  attemptLimit() {
+    return "Limite de tentativas excedido.";
+  }
+  sessionInactive() {
+    return "Sessão já inativa.";
+  }
+  invalidEmailToken() {
+    return "Token de email inválido.";
+  }
+  invalidQuery() {
+    return "Query invalida.";
+  }
+  phoneInUse() {
+    return "Número de celular indisponível.";
   }
 }
 

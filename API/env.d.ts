@@ -3,7 +3,9 @@ declare namespace NodeJS {
   interface ProcessEnv {
     NODE_ENV: "development" | "production";
     API_URL: string;
+    SPA_URL: string;
     JWT_SECRET: string;
+    JWT_VERIFICATION_SECRET: String;
     JWT_REFRESH_SECRET: string;
     CRYPTOGRAPHY_SECRET: string;
     CRYPTOGRAPHY_IV: string;
