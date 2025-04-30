@@ -50,9 +50,11 @@ model Session {
   id                      String         @id @default(auto()) @map("_id") @db.ObjectId
   createdAt               DateTime       @default(now())
   updatedAt               DateTime       @updatedAt
+  lastActivity            DateTime       @default(now())
   ip                      String
   location                Json           @default("{}")
   fingerprint             String
+  name                    String
   attempts                Json           @default("{}")
   token                   String         @default("")
   refreshToken            String         @default("")
@@ -188,13 +190,14 @@ model Transaction {
   type      Boolean
 }
 
-model EmailQueue {
+model TransacionalEmailQueue {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   to        String
   subject   String
   body      String
   status    String   @default("pending") // pending, sent, failed
   error     Json     @default("{}")
+  emailId   String   @default("")
   createdAt DateTime @default(now())
 }
 

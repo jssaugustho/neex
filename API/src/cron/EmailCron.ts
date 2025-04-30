@@ -1,17 +1,9 @@
-import nodemailer, { TransportOptions } from "nodemailer";
+import { Resend } from "resend";
 
 import prisma from "../controllers/db.controller.js";
 import cron from "node-cron";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: new Number(process.env.SMTP_PORT),
-  secure: new Boolean(process.env.SMTP_SECURE),
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWD,
-  },
-} as TransportOptions);
+const resend = new Resend(process.env.RESEND_API_TOKEN);
 
 let isRunning = false;
 
@@ -19,7 +11,7 @@ cron.schedule("*/20 * * * * *", () => {
   if (!isRunning) {
     isRunning = true;
     console.log("Verificando lista de emails...");
-    prisma.emailQueue
+    prisma.transacionalEmailQueue
       .findMany({
         where: {
           status: "pending",
@@ -32,7 +24,7 @@ cron.schedule("*/20 * * * * *", () => {
         if (emails.length === 0) console.log("Lista vazia.");
         else
           emails.forEach(async (email) => {
-            await prisma.emailQueue.update({
+            await prisma.transacionalEmailQueue.update({
               where: {
                 status: "pending",
                 id: email.id,
@@ -42,37 +34,36 @@ cron.schedule("*/20 * * * * *", () => {
               },
             });
 
-            transporter
-              .sendMail({
-                to: email.to,
-                subject: email.subject,
-                from: `Lux CRM © <${process.env.EMAIL_USER}>`,
-                html: email.body,
-              })
-              .then(async () => {
-                await prisma.emailQueue.update({
-                  where: {
-                    id: email.id,
-                  },
-                  data: {
-                    status: "success",
-                  },
-                });
-                console.log("Email enviado para: ", email.to);
-              })
-              .catch(async (err) => {
-                console.log("Não foi possível enviar email: ", email.to);
-                console.log(err);
-                await prisma.emailQueue.update({
-                  where: {
-                    id: email.id,
-                    error: err,
-                  },
-                  data: {
-                    status: "failed",
-                  },
-                });
+            const { data, error } = await resend.emails.send({
+              from: `Lux CRM © <${process.env.EMAIL_USER}>`,
+              to: email.to,
+              subject: email.subject,
+              html: email.body,
+            });
+
+            if (error) {
+              console.log("Não foi possível enviar email: ", email.to);
+              await prisma.transacionalEmailQueue.update({
+                where: {
+                  id: email.id,
+                  error: error as object,
+                },
+                data: {
+                  status: "failed",
+                },
               });
+            } else {
+              await prisma.transacionalEmailQueue.update({
+                where: {
+                  id: email.id,
+                },
+                data: {
+                  emailId: data?.id || "",
+                  status: "success",
+                },
+              });
+              console.log("Email enviado para: ", email.to);
+            }
           });
       });
     isRunning = false;

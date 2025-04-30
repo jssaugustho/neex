@@ -17,9 +17,7 @@ import iLookup from "../../@types/iLookup/iLookup.js";
 
 //external libs
 import iSessionAttempts from "../../@types/iSessionAttempt/iSessionAttempt.js";
-import { disconnect } from "process";
-import userControllers from "../../controllers/user.controllers.js";
-
+import { UAParser } from "ua-parser-js";
 class Session implements iSubject {
   observers: iObserver[] = [];
 
@@ -43,30 +41,16 @@ class Session implements iSubject {
   createSession(
     fingerprint: string,
     address: iLookup,
-    authorized: boolean,
+    userAgent: string,
     attempts?: object,
-    authorizedUsers?: string[],
-    token?: string,
-    refreshToken?: string
+    authorizedUsers?: string[]
   ): Promise<iSession> {
     return new Promise(async (resolve, reject) => {
-      let data: {
-        ip: string;
-        location: object;
-        fingerprint: string;
-        attempts?: object;
-        authorizedUsers?: {
-          connect: { id: string }[];
-        };
-        user?: {
-          connect: {
-            id: string;
-          };
-        };
-      } = {
+      let data: any = {
         ip: address.ip,
         location: address.location as object,
         fingerprint,
+        name: this.getDeviceNameFromUA(userAgent),
       };
       if (authorizedUsers) {
         data.authorizedUsers = {
@@ -98,6 +82,7 @@ class Session implements iSubject {
   identifySession(
     fingerprint: string,
     address: iLookup,
+    userAgent: string,
     sessionId?: string
   ): Promise<iSession> {
     return new Promise(async (resolve, reject) => {
@@ -117,6 +102,21 @@ class Session implements iSubject {
           .catch((err) => {
             return reject(new errors.AuthError(response.invalidSession()));
           })) as iSession;
+
+        await prisma.session
+          .update({
+            where: {
+              id: session.id,
+            },
+            data: {
+              lastActivity: new Date(),
+            },
+          })
+          .catch(() => {
+            return reject(
+              new errors.InternalServerError("Cannot update session in DB.")
+            );
+          });
 
         return resolve(session);
       } else {
@@ -138,7 +138,7 @@ class Session implements iSubject {
         let attempts = {};
         let authorizedUsers: string[] = [];
 
-        ipSessions.forEach((session) => {
+        ipSessions.forEach(async (session) => {
           if (
             session.fingerprint === fingerprint &&
             session.ip === address.ip &&
@@ -153,7 +153,7 @@ class Session implements iSubject {
               ...attempts,
               ...(session.attempts as object),
             };
-            authorizedUsers = session.authorizedUsersId;
+            authorizedUsers = authorizedUsers.concat(session.authorizedUsersId);
           }
         });
 
@@ -161,7 +161,7 @@ class Session implements iSubject {
           winnerSession = (await this.createSession(
             fingerprint,
             address,
-            false,
+            userAgent,
             attempts,
             authorizedUsers
           ).catch((err) => {
@@ -169,9 +169,43 @@ class Session implements iSubject {
           })) as iSession;
         }
 
+        await prisma.session
+          .update({
+            where: {
+              id: winnerSession.id,
+            },
+            data: {
+              lastActivity: new Date(),
+            },
+          })
+          .catch(() => {
+            return reject(
+              new errors.InternalServerError("Cannot update session in DB.")
+            );
+          });
+
         return resolve(winnerSession);
       }
     });
+  }
+
+  getDeviceNameFromUA(userAgent: string): string {
+    const parser = new UAParser(userAgent);
+
+    const result = parser.getResult();
+
+    const deviceType = result.device.type || "desktop"; // mobile, tablet, smarttv, wearable, embedded
+    const osName = result.os.name || "SO Desconhecido";
+    const browserName = result.browser.name || "Browser Desconhecido";
+    const browserVersion = result.browser.version?.split(".")[0] || "";
+
+    let deviceEmoji = "🖥️"; // Default desktop
+    if (deviceType === "mobile") deviceEmoji = "📱";
+    else if (deviceType === "tablet") deviceEmoji = "📱";
+    else if (deviceType === "smarttv") deviceEmoji = "📺";
+    else if (deviceType === "wearable") deviceEmoji = "⌚";
+
+    return `${deviceEmoji} ${osName} / ${browserName}`;
   }
 
   verifySessionAuthorization(

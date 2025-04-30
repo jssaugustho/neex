@@ -25,9 +25,12 @@ function errorHandler(
     statusCode = 401;
   }
 
+  let message =
+    process.env.NODE_ENV === "production" ? "Erro interno" : err.message;
+
   res.status(statusCode).send({
     status: err.name,
-    message: err.message,
+    message,
   });
 
   next();

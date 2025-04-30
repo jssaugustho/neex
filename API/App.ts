@@ -7,7 +7,6 @@ import cors from "cors";
 import userRoute from "./src/routes/user.route.js";
 import authRoute from "./src/routes/auth.route.js";
 
-import errors from "./src/errors/errors.js";
 import errorHandler from "./src/errors/errorHandler.js";
 import authMiddlewares from "./src/middlewares/auth.middlewares.js";
 

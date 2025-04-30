@@ -11,10 +11,7 @@ declare namespace NodeJS {
     CRYPTOGRAPHY_IV: string;
     DATABASE_URL: string;
     JOBS_DATABASE_URL: string;
-    SMTP_HOST: string;
-    SMTP_PORT: number;
-    SMTP_SECURE: boolean;
     EMAIL_USER: string;
-    EMAIL_PASSWD: string;
+    RESEND_API_TOKEN: string;
   }
 }

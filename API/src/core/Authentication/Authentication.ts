@@ -163,7 +163,7 @@ class Authentication implements iSubject {
     session: iSession,
     fingerprint: string,
     location: iLookup,
-    firstTime: boolean = false
+    userAgent: string
   ): Promise<{ token: string; refreshToken: string }> {
     return new Promise(async (resolve, reject) => {
       const token = jwt.sign(
@@ -233,6 +233,7 @@ class Authentication implements iSubject {
             token,
             refreshToken,
             attempts: sessionAttempts,
+            name: Session.getDeviceNameFromUA(userAgent),
             user: {
               connect: {
                 id: user.id,
@@ -246,7 +247,7 @@ class Authentication implements iSubject {
           },
         })
         .then((data) => {
-          if (!firstTime) this.notify({ session: data, user });
+          this.notify({ session: data, user });
           return resolve({ token, refreshToken });
         })
         .catch((err) => {

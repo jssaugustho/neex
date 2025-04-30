@@ -30,7 +30,7 @@ class Email {
   //core functions
   sendEmail(to: string, subject: string, body: string): Promise<EmailQueue> {
     return new Promise((resolve, reject) => {
-      prisma.emailQueue
+      prisma.transacionalEmailQueue
         .create({
           data: {
             to,

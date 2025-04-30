@@ -61,6 +61,8 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
 
   req.data.ipLookup = new IpType(req.ip as string).getLookup();
 
+  req.data.userAgent = (req.headers["user-agent"] as string) || "unknown";
+
   let sessionId = "";
 
   if (req.headers.session) {
@@ -72,6 +74,7 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
     req.session = await Session.identifySession(
       req.data.fingerprint,
       req.data.ipLookup,
+      req.data.userAgent,
       sessionId
     ).catch((err) => {
       throw err;
@@ -79,7 +82,8 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
   } else {
     req.session = await Session.identifySession(
       req.data.fingerprint,
-      req.data.ipLookup
+      req.data.ipLookup,
+      req.data.userAgent
     ).catch((err) => {
       throw err;
     });

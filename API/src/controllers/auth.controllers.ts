@@ -31,7 +31,7 @@ async function authenticate(
     req.session,
     req.data.fingerprint,
     address,
-    req.data.firstTime
+    req.data.userAgent
   )
     .then((data) => {
       const publicData = req.userData;
