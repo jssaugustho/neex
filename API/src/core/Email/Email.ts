@@ -1,11 +1,13 @@
 //types
-import { EmailQueue } from "@prisma/client";
+import { TransacionalEmailQueue } from "@prisma/client";
 import Observer from "../../@types/iObserver/iObserver.js";
 
 //db
 import prisma from "../../controllers/db.controller.js";
-import response from "../../response/response.js";
-import errors from "../../errors/errors.js";
+
+//external libs
+import { render } from "@react-email/render";
+import React from "react";
 
 class Email {
   observers: Observer[] = [];
@@ -28,14 +30,18 @@ class Email {
   }
 
   //core functions
-  sendEmail(to: string, subject: string, body: string): Promise<EmailQueue> {
-    return new Promise((resolve, reject) => {
+  sendEmail(
+    to: string,
+    subject: string,
+    body: React.JSX.Element
+  ): Promise<TransacionalEmailQueue> {
+    return new Promise(async (resolve, reject) => {
       prisma.transacionalEmailQueue
         .create({
           data: {
             to,
             subject,
-            body,
+            body: await render(body),
             status: "pending",
           },
         })

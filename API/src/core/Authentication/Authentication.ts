@@ -10,7 +10,6 @@ import jwt from "jsonwebtoken";
 
 //types
 import { Session as iSession, User as iUser } from "@prisma/client";
-import { VerifyErrors } from "jsonwebtoken";
 import User from "../User/User.js";
 import iObserver from "../../@types/iObserver/iObserver.js";
 import iSubject from "../../@types/iSubject/iSubject.js";
@@ -18,7 +17,7 @@ import iTokenPayload from "../../@types/iTokenPayload/iTokenPayload.js";
 import iLookup from "../../@types/iLookup/iLookup.js";
 
 //Observers
-import NotifyNewLoginUser from "../../observers/NotificateUser/EmailNewFingerprintDetected.js";
+import NotifyNewLoginUser from "../../observers/NotificateUser/EmailNewFingerprintDetected.jsx";
 import Session from "../Session/Session.js";
 import Token from "../Token/Token.js";
 import iSessionAttempts from "../../@types/iSessionAttempt/iSessionAttempt.js";

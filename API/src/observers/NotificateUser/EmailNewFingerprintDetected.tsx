@@ -2,9 +2,11 @@
 import iObserver from "../../@types/iObserver/iObserver.js";
 import { Session, User } from "@prisma/client";
 import { Lookup } from "geoip-lite";
+import React from "react";
 
 //core
 import Email from "../../core/Email/Email.js";
+import NewLoginDetected from "../../core/Email/models/newLoginDetected.jsx";
 
 class EmailNewFingerprintDetected implements iObserver {
   update(data: { session: Session; user: User }) {
@@ -12,8 +14,7 @@ class EmailNewFingerprintDetected implements iObserver {
     Email.sendEmail(
       data.user.email,
       "Novo Login Detectado | Lux CRM ©",
-      `<p>Novo login detectado na cidade de: <b>${sessionLocation.city}, ${sessionLocation.region}</b><br/>
-      Não foi você? Clique aqui</p>`
+      <NewLoginDetected user={data.user} session={data.session} />
     );
   }
 }

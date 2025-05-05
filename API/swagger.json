@@ -20,14 +20,19 @@
         "name": "Authentication"
       },
       "FingerprintID": {
-        "type": "apiKey",
+        "type": "string",
         "in": "header",
         "name": "Fingerprint"
       },
       "SessionID": {
-        "type": "apiKey",
+        "type": "string",
         "in": "header",
         "name": "Session"
+      },
+      "UserAgent": {
+        "type": "string",
+        "in": "header",
+        "name": "User-Agent"
       }
     },
     "schemas": {
@@ -124,6 +129,28 @@
           }
         }
       }
+    },
+    "parameters": {
+      "UserAgentHeader": {
+        "name": "User-Agent",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Identificação do cliente da requisição",
+        "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+      },
+      "SessionIdHeader": {
+        "name": "Session",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "ID opcional de sessão do usuário",
+        "value": "67fecf302cdddf231abdb1e6"
+      }
     }
   },
   "security": [
@@ -132,6 +159,26 @@
     },
     {
       "FingerprintID": []
+    }
+  ],
+  "parameters": [
+    {
+      "name": "User-Agent",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Identificador do navegador ou sistema do cliente"
+    },
+    {
+      "name": "sessionId",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string"
+      },
+      "description": "ID da sessão do usuário"
     }
   ],
   "paths": {
@@ -163,6 +210,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Ok",
@@ -289,6 +344,14 @@
         "security": [
           {
             "FingerprintID": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "requestBody": {
@@ -432,6 +495,19 @@
         "summary": "Verifica a disponibilidade do email",
         "description": "Verifica se um email está disponível..",
         "tags": ["User"],
+        "security": [
+          {
+            "FingerprintID": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Ok",
@@ -547,12 +623,31 @@
             "FingerprintID": []
           }
         ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/User"
+              },
+              "examples": {
+                "Criando novo usuário": {
+                  "value": {
+                    "name": "Usuário",
+                    "lastName": "de Testes",
+                    "email": "usuariodeteste@gmail.com",
+                    "phone": "(34) 99173-8493",
+                    "passwd": "123123456"
+                  }
+                }
               }
             }
           }
@@ -648,6 +743,14 @@
         "summary": "Retorna os dados usuário autenticado.",
         "tags": ["User"],
         "description": "Retorna o usuário autenticado com base no header Authorization.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Ok",
@@ -763,12 +866,32 @@
         "summary": "Atualiza o usuário autenticado.",
         "description": "Atualiza o usuário autenticado, não pode ser utilizada.",
         "tags": ["User"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PatchUser"
+              },
+              "examples": {
+                "Atualizando dados do usuário": {
+                  "value": {
+                    "name": "Usuário",
+                    "lastName": "de Testes",
+                    "email": "usuariodeteste@gmail.com",
+                    "phone": "(34) 99173-8493",
+                    "passwd": "123123456",
+                    "active": "true"
+                  }
+                }
               }
             }
           }
@@ -866,6 +989,28 @@
         "summary": "Edita o usuário com base no ID.",
         "description": "Edita o usuário autenticado com base no parametro ID.",
         "tags": ["User", "Support"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchUser"
+              },
+              "examples": {
+                "Atualizando dados do usuário": {
+                  "value": {
+                    "name": "Usuário",
+                    "lastName": "de Testes",
+                    "email": "usuariodeteste@gmail.com",
+                    "phone": "(34) 99173-8493",
+                    "passwd": "123123456",
+                    "active": "true"
+                  }
+                }
+              }
+            }
+          }
+        },
         "parameters": [
           {
             "name": "id",
@@ -876,6 +1021,12 @@
               "type": "string",
               "example": "usuariodeteste@gmail.com"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -1116,6 +1267,12 @@
               "type": "string",
               "example": "José"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -1358,6 +1515,12 @@
               "type": "string",
               "example": "José"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -1466,6 +1629,14 @@
         "security": [
           {
             "FingerprintID": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -1594,6 +1765,14 @@
         "security": [
           {
             "FingerprintID": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -1736,6 +1915,14 @@
         "summary": "Retorna a sessão atual.",
         "tags": ["Session"],
         "description": "Retorna a sessão atual.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Ok",
@@ -1873,6 +2060,12 @@
               "type": "string",
               "example": "6808908a1799308dc05632c4"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -1978,6 +2171,12 @@
               "type": "string",
               "example": "6808908a1799308dc05632c4"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -2093,6 +2292,12 @@
               "type": "number",
               "example": "100"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -2343,9 +2548,17 @@
     },
     "sessions/logout": {
       "get": {
-        "summary": "Faz o logout de todas sessões vinculadas ao usuário autenticado.",
+        "summary": "Faz o logout de todas sessões ativasdo usuário autenticado.",
         "tags": ["Session"],
-        "description": "Faz o logout de todas sessões vinculadas ao usuário autenticado com exceção da sessão autenticada no momento.",
+        "description": "Faz o logout de todas sessões ativas do usuário autenticado com exceção da sessão autenticada no momento.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Logout realizado em 3 sessões.",
@@ -2454,6 +2667,14 @@
         "summary": "Revoga a autorixação da autenticação de dois fatores das sessões vinculadas ao usuário autenticado.",
         "tags": ["Session"],
         "description": "Faz o logout de todas sessões vinculadas ao usuário autenticado com exceção da sessão autenticada no momento.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
+          }
+        ],
         "responses": {
           "200": {
             "description": "3 autorizações revogadas.",
@@ -2559,9 +2780,9 @@
     },
     "support/sessions/{userId}": {
       "get": {
-        "summary": "Retorna todas as sessões vinculadas ao usuário autenticado.",
+        "summary": "Retorna todas as sessões vinculadas ao usuário referenciado.",
         "tags": ["Session", "Support"],
-        "description": "Retorna todos as sessões vinculadas ao usuário autenticado.",
+        "description": "Retorna todos as sessões vinculadas ao usuário referenciado.",
         "parameters": [
           {
             "name": "skip",
@@ -2592,6 +2813,12 @@
               "type": "string",
               "example": "6808908a1799308dc05632c4"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -2844,9 +3071,9 @@
     },
     "support/sessions/logout/{userId}": {
       "get": {
-        "summary": "Faz o logout de todas sessões vinculadas ao usuário autenticado.",
+        "summary": "Faz o logout de todas sessões ativas do usuário referenciado.",
         "tags": ["Session"],
-        "description": "Faz o logout de todas sessões vinculadas ao usuário autenticado com exceção da sessão autenticada no momento.",
+        "description": "Faz o logout de todas sessões ativas usuário referenciado com exceção da sessão autenticada no momento.",
         "parameters": [
           {
             "name": "userId",
@@ -2857,6 +3084,12 @@
               "type": "string",
               "example": "6808908a1799308dc05632c4"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -2964,9 +3197,9 @@
     },
     "support/sessions/unauthorize/{userId}": {
       "get": {
-        "summary": "Revoga a autorixação da autenticação de dois fatores das sessões vinculadas ao usuário autenticado.",
+        "summary": "Revoga a autorixação da autenticação de dois fatores das sessões vinculadas ao usuário referenciado.",
         "tags": ["Session"],
-        "description": "Faz o logout de todas sessões vinculadas ao usuário autenticado com exceção da sessão autenticada no momento.",
+        "description": "Revoga a autorização de todas as sessões vinculadas ao usuário referenciado com exceção da sessão autenticada no momento.",
         "parameters": [
           {
             "name": "userId",
@@ -2977,6 +3210,12 @@
               "type": "string",
               "example": "6808908a1799308dc05632c4"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -3097,6 +3336,12 @@
               "type": "string",
               "example": "6808908a1799308dc05632c4"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {
@@ -3189,7 +3434,7 @@
     },
     "support/session/unauthorize/{userId}/{sessionId}": {
       "get": {
-        "summary": "Revoga a autenticação de dois fatores feita na sessão.",
+        "summary": "Revoga a autenticação de dois fatores do usuário referenciado feita na sessão referenciada.",
         "tags": ["Session"],
         "description": "Revoga a autenticação de dois fatores feita na sessão repassada pelo ID ou na sessão autenticada.",
         "parameters": [
@@ -3212,6 +3457,12 @@
               "type": "string",
               "example": "6808908a1799308dc05632c4"
             }
+          },
+          {
+            "$ref": "#/components/parameters/UserAgentHeader"
+          },
+          {
+            "$ref": "#/components/parameters/SessionIdHeader"
           }
         ],
         "responses": {

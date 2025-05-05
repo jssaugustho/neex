@@ -18,6 +18,7 @@ import errors from "../../errors/errors.js";
 import response from "../../response/response.js";
 import User from "../User/User.js";
 import { rejects } from "assert";
+import WelcomeMessage from "../../observers/Welcome/WelcomeMessage.jsx";
 
 class Verification implements iSubject {
   observers: iObserver[] = [];
@@ -91,7 +92,8 @@ class Verification implements iSubject {
 
   async generate2faLink(
     user: iUser,
-    session: iSession
+    session: iSession,
+    firstTime: boolean = false
   ): Promise<iVerification> {
     return new Promise(async (resolve, reject) => {
       const token = jwt.sign(
@@ -157,10 +159,12 @@ class Verification implements iSubject {
         });
       }
 
-      await this.notify({
-        user,
-        token,
-      });
+      if (!firstTime)
+        await this.notify({
+          user,
+          token,
+        });
+      else await this.notifyObserver(WelcomeMessage, { user, token });
 
       resolve(check);
     });

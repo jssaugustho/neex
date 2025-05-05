@@ -107,7 +107,7 @@ class Authentication implements Subject {
           );
         })) as iUser;
 
-      await Verification.generate2faLink(user, session);
+      await Verification.generate2faLink(user, session, true);
 
       resolve(user);
     });

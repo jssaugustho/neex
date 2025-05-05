@@ -9,7 +9,7 @@ Fingerprint: GOOGLE-CHROME
 {
     "name": "José",
     "lastName": "Augustho",
-    "email": "joseaugustholi2@gmail.com",
+    "email": "joseaugustholi@gmail.com",
     "phone": "34991718592",
     "passwd": "SenhaDeTeste@123"
 }
@@ -129,7 +129,7 @@ Content-Type: application/json
 fingerprint: GOOGLE-CHROME
 
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MDg5MDFhMTc5OTMwOGRjMDU2MzJjMSIsInNlc3Npb25JZCI6IjY4MGY4OWFjYTkxNjI3YTRmMzJlMzQ2ZCIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0NTg0ODkyMSwiZXhwIjoxNzQ2MTQ4OTIxfQ.CL0CWpOgHXmznZbJKj7L5NLUNRpRojQhIPBvZO0oOQY"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MTM5NTgzZGNiMWJlMDQ2MzI1YWY0NSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0NjEyODk5NSwiZXhwIjoxNzQ2NDI4OTk1fQ.km9hYwMQDuarCDn-a6AMzgzYaNga1ZBn51Z5gU9_QOg"
 }
 
 ### Rotas documentadas até aqui, ainda em teste.
