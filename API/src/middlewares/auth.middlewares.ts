@@ -235,6 +235,7 @@ async function validateSessionId(
   next: NextFunction
 ) {
   if (!req.userData) throw new errors.InternalServerError("Userdata error");
+  if (!req.session) throw new errors.InternalServerError("Session error");
 
   let sessionId = new ObjectIdType(
     req.params.sessionId,
@@ -245,13 +246,20 @@ async function validateSessionId(
     sessionId,
     req.data.acceptLanguage
   ).catch((err) => {
-    throw new errors.UserError(response.sessionNotFound());
+    throw new errors.UserError(
+      getMessage("sessionNotFound", req.session?.locale)
+    );
   });
 
-  if (!session) throw new errors.UserError(response.sessionNotFound());
+  if (!session)
+    throw new errors.UserError(
+      getMessage("sessionNotFound", req.session.locale)
+    );
 
   if (!Session.isActive(session))
-    throw new errors.UserError(response.sessionInactive());
+    throw new errors.UserError(
+      getMessage("inactiveSession", req.session.locale)
+    );
 
   let userPrivilege =
     req.userData.role === "ADMIN" || req.userData.role === "SUPPORT";
@@ -260,7 +268,11 @@ async function validateSessionId(
     req.session = session;
     next();
   } else {
-    throw new errors.AuthError(response.unauthorizated());
+    throw new errors.AuthError(
+      getMessage("requirePrivilege", req.session.locale, {
+        privilege: getMessage("ownerAndAdmin", req.session.locale),
+      })
+    );
   }
 }
 

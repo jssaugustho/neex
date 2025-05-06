@@ -7,6 +7,7 @@
   "noInactivatedSessions": "Nenhuma sessão inativada.",
   "inactivatedSession": "Sessão inativada com sucesso.",
   "inactivatedSessions": "{{count}} sessões inativadas com sucesso.",
+  "inactiveSession": "Sessão inativa.",
   "noUnauthorizedSessions": "Nenhuma sessão bloqueada.",
   "unauthorizedSession": "Sessão bloqueada com sucesso.",
   "unauthorizedSessions": "{{count}} sessões bloqueadas com sucesso.",
@@ -36,5 +37,6 @@
   "invalidHeaders": "Cabeçalhos HTTP inválidos.",
   "obrigatoryHeaders": "Cabeçalhos HTTP inválidos.",
   "attemptLimit": "Limite de tentativas atingido.",
-  "needEmail2fa": "Verifique o seu email."
+  "needEmail2fa": "Verifique o seu email.",
+  "ownerAndAdmin": "Proprietário, suporte ou administrador."
 }
