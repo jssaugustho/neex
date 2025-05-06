@@ -38,7 +38,7 @@ async function validateResend(
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error");
 
-  let email = new EmailType(req.body.email).getValue();
+  let email = new EmailType(req.body.email, req.session.locale).getValue();
 
   req.userData = await User.getUserByEmail(email).catch((err) => {
     throw new errors.UserError(response.emailNotExists());
@@ -127,7 +127,7 @@ async function validateEmailToken(
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
 
-  const token = new TokenType(req.body.token).getValue();
+  const token = new TokenType(req.body.token, req.session.locale).getValue();
 
   req.userData = (await Verification.verify2faToken(token, req.session).catch(
     (err) => {

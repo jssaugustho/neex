@@ -25,6 +25,10 @@ import IncrementSessionAttempts from "../observers/SessionAttempts/IncrementSess
 
 //db
 import prisma from "../controllers/db.controller.js";
+import UserAgentType from "../types/UserAgentType/UserAgentType.js";
+import LocaleType from "../types/LocaleType/LocaleType.js";
+import TimeZoneType from "../types/TimeZoneType/TimeZoneType.js";
+import { getMessage } from "../locales/getMessage.js";
 
 //verify if user-agent is in blcklist
 async function userAgentBlackList(
@@ -55,26 +59,47 @@ async function userAgentBlackList(
 async function getSession(req: iRequest, res: Response, next: NextFunction) {
   req.data = {};
 
-  req.data.fingerprint = new FingerprintType(
-    req.headers.fingerprint as string
+  req.data.acceptLanguage = new LocaleType(
+    req.headers["accept-language"] as string,
+    "pt-BR"
+  ).getValue() as string;
+
+  req.data.userAgent = new UserAgentType(
+    req.headers["user-agent"] as string,
+    req.data.acceptLanguage
   ).getValue();
 
-  req.data.ipLookup = new IpType(req.ip as string).getLookup();
+  req.data.timeZone = new TimeZoneType(
+    req.headers["x-timezone"] as string,
+    req.data.acceptLanguage
+  ).getValue();
 
-  req.data.userAgent = (req.headers["user-agent"] as string) || "unknown";
+  console.log(req.data.timeZone);
+
+  req.data.fingerprint = new FingerprintType(
+    req.headers["fingerprint"] as string,
+    req.data.acceptLanguage
+  ).getValue();
+
+  req.data.ipLookup = new IpType(
+    req.ip as string,
+    req.data.acceptLanguage
+  ).getLookup();
 
   let sessionId = "";
 
   if (req.headers.session) {
     sessionId = new ObjectIdType(
       req.headers.session as string,
-      new errors.AuthError(response.invalidSession())
+      req.data.acceptLanguage
     ).getValue();
 
     req.session = await Session.identifySession(
       req.data.fingerprint,
       req.data.ipLookup,
       req.data.userAgent,
+      req.data.timeZone,
+      req.data.acceptLanguage,
       sessionId
     ).catch((err) => {
       throw err;
@@ -83,7 +108,9 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
     req.session = await Session.identifySession(
       req.data.fingerprint,
       req.data.ipLookup,
-      req.data.userAgent
+      req.data.userAgent,
+      req.data.timeZone,
+      req.data.acceptLanguage
     ).catch((err) => {
       throw err;
     });
@@ -94,8 +121,14 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
 
 //verify login and send user id to next in req.id
 async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
-  const passwd = new PasswdType(req.body.passwd).getValue();
-  const email = new EmailType(req.body.email).getValue();
+  const passwd = new PasswdType(
+    req.body.passwd,
+    req.data.acceptLanguage
+  ).getValue();
+  const email = new EmailType(
+    req.body.email,
+    req.data.acceptLanguage
+  ).getValue();
 
   //baixa o usuario do banco de dados
   req.userData = await User.getUserByEmail(email).catch((err) => {
@@ -103,7 +136,9 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
   });
 
   if (!Session.verifyAttempts(req.session as iSession, req.userData))
-    throw new errors.SessionError(response.attemptLimit());
+    throw new errors.SessionError(
+      getMessage("attemptLimit", req.data.acceptLanguage)
+    );
 
   if (req.session)
     if (req.userData.passwd !== passwd) {
@@ -111,7 +146,9 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
         session: req.session,
         user: req.userData,
       });
-      throw new errors.AuthError(response.incorrectPasswd());
+      throw new errors.AuthError(
+        getMessage("wrongPassword", req.data.acceptLanguage)
+      );
     }
 
   //verifica se essa sessão necessita de 2fa autorizá-la.
@@ -123,7 +160,9 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
   })) as boolean;
 
   if (!authorized) {
-    throw new errors.SessionError(response.needVerifyEmail());
+    throw new errors.SessionError(
+      getMessage("needEmail2fa", req.data.acceptLanguage)
+    );
   }
 
   next();
@@ -133,15 +172,19 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
 async function verifyToken(req: iRequest, res: Response, next: NextFunction) {
   //verify if header exists
   if (!req.headers["authorization"])
-    throw new errors.AuthError(response.needAuth());
+    throw new errors.AuthError(
+      getMessage("obrigatoryHeaders", req.data.acceptLanguage)
+    );
   //get token
   let token = new TokenType(
-    req.headers["authorization"].split(" ")[1]
+    req.headers["authorization"].split(" ")[1],
+    req.data.acceptLanguage
   ).getValue();
 
   const user = await Authentication.verifyToken(
     token,
-    req.session as iSession
+    req.session as iSession,
+    req.data.acceptLanguage
   ).catch((err) => {
     throw err;
   });
@@ -161,15 +204,21 @@ async function verifyRefreshToken(
 
   //verifify if token exists
   if (!req.body.refreshToken) {
-    throw new errors.UserError(response.obrigatoryParam("refreshToken"));
+    throw new errors.UserError(
+      getMessage("obrigatoryParams", req.data.acceptLanguage)
+    );
   }
 
   //get token
-  let refreshToken = new TokenType(req.body.refreshToken).getValue();
+  let refreshToken = new TokenType(
+    req.body.refreshToken,
+    req.data.acceptLanguage
+  ).getValue();
 
   const user = await Authentication.verifyRefreshToken(
     refreshToken,
-    req.session as iSession
+    req.session as iSession,
+    req.data.acceptLanguage
   ).catch((err) => {
     throw err;
   });
@@ -187,9 +236,15 @@ async function validateSessionId(
 ) {
   if (!req.userData) throw new errors.InternalServerError("Userdata error");
 
-  let sessionId = new ObjectIdType(req.params.sessionId).getValue();
+  let sessionId = new ObjectIdType(
+    req.params.sessionId,
+    req.data.acceptLanguage
+  ).getValue();
 
-  const session = await Session.getSessionById(sessionId).catch((err) => {
+  const session = await Session.getSessionById(
+    sessionId,
+    req.data.acceptLanguage
+  ).catch((err) => {
     throw new errors.UserError(response.sessionNotFound());
   });
 
@@ -224,7 +279,10 @@ async function validateUserId(
   )
     throw new errors.UserError(response.unauthorizated());
 
-  req.data.userId = new ObjectIdType(req.params?.userId as string).getValue();
+  req.data.userId = new ObjectIdType(
+    req.params?.userId as string,
+    req.data.acceptLanguage
+  ).getValue();
 
   req.userData = (await User.getUserById(req.data.userId).catch((err) => {
     throw new errors.UserError(response.userNotFound());

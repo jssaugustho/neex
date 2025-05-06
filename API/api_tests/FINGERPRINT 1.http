@@ -20,8 +20,10 @@ Fingerprint: GOOGLE-CHROME
 # @name login
 POST {{host}}/login HTTP/1.1
 Content-Type: application/json
-Fingerprint: GOOGLE-CHROME
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 {
     "email": "joseaugustholi@gmail.com",
@@ -114,8 +116,10 @@ fingerprint: GOOGLE-CHROME
 
 POST {{host}}/resend HTTP/1.1
 Content-Type: application/json
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 {
     "email": "joseaugustholi@gmail.com"
@@ -124,12 +128,14 @@ fingerprint: GOOGLE-CHROME
 ###
 
 POST {{host}}/2fa
-Authorization: {{token}}
 Content-Type: application/json
-fingerprint: GOOGLE-CHROME
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MTM5NTgzZGNiMWJlMDQ2MzI1YWY0NSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0NjEyODk5NSwiZXhwIjoxNzQ2NDI4OTk1fQ.km9hYwMQDuarCDn-a6AMzgzYaNga1ZBn51Z5gU9_QOg"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MTkyMTU4ODAxNmRmMGQxNDc3NjcxMCIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0NjQ3NzY2MSwiZXhwIjoxNzQ2Nzc3NjYxfQ.jKIfVALr1014FZesAcyKLIA1wPnFFYMtAJ0rCpKBTOY"
 }
 
 ### Rotas documentadas até aqui, ainda em teste.

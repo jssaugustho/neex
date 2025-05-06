@@ -7,22 +7,24 @@ import response from "../../response/response.js";
 
 //core
 import Cryptography from "../../core/Cryptography/Cryptography.js";
+import { getMessage } from "../../locales/getMessage.js";
 
 class PasswdType implements iValidateString {
   regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
   value: string;
 
-  constructor(passwd: string) {
-    if (!passwd || typeof passwd != "string")
-      throw new errors.UserError(response.obrigatoryParam("passwd"));
+  constructor(passwd: string, locale: string) {
+    if (!passwd)
+      throw new errors.UserError(getMessage("obrigatoryParams", locale));
 
     if (passwd.length < 8 || passwd.length > 64)
-      throw new errors.UserError(response.invalidPasswdLength(8, 64));
+      throw new errors.UserError(getMessage("invalidPasswd", locale));
 
     //verify passwd sec with regex
     let validate = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*(),.?":{}|<>]).+$/;
 
-    if (!validate.test(passwd)) throw new errors.UserError("Senha fraca.");
+    if (!validate.test(passwd))
+      throw new errors.UserError(getMessage("easyPassword", locale));
 
     this.value = Cryptography.encrypt(passwd);
   }

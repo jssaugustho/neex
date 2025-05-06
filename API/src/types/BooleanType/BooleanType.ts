@@ -5,16 +5,17 @@ import iValidateString from "../../@types/iValidateString/iValidateString.js";
 //errors
 import errors from "../../errors/errors.js";
 import response from "../../response/response.js";
+import { getMessage } from "../../locales/getMessage.js";
 
-class BooleanType implements iValidateString {
+class BooleanType {
   regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
-  value: string;
+  value: boolean;
 
-  constructor(text: string) {
-    if (!text) throw new errors.UserError(response.obrigatoryParam("id"));
+  constructor(text: boolean) {
+    if (!text) throw new errors.UserError(getMessage("obrigatoryParams"));
 
     if (typeof text != "boolean")
-      throw new errors.UserError(response.invalidParam("id"));
+      throw new errors.UserError(getMessage("invalidParams"));
 
     this.value = text;
   }

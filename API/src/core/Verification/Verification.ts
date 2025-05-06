@@ -19,6 +19,7 @@ import response from "../../response/response.js";
 import User from "../User/User.js";
 import { rejects } from "assert";
 import WelcomeMessage from "../../observers/Welcome/WelcomeMessage.jsx";
+import { getMessage } from "../../locales/getMessage.js";
 
 class Verification implements iSubject {
   observers: iObserver[] = [];
@@ -164,7 +165,7 @@ class Verification implements iSubject {
           user,
           token,
         });
-      else await this.notifyObserver(WelcomeMessage, { user, token });
+      else this.notifyObserver(WelcomeMessage, { user, token });
 
       resolve(check);
     });
@@ -196,21 +197,26 @@ class Verification implements iSubject {
 
   async verify2faToken(token: string, session: iSession): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
-      const error = new errors.AuthError(response.invalidEmailToken());
       const payload = await Token.loadPayload(token, "emailToken").catch(
         (err) => {
           return reject(err);
         }
       );
 
-      if (!payload) return reject(error);
+      if (!payload)
+        return reject(
+          new errors.AuthError(getMessage("invalidToken", session.locale))
+        );
 
-      if (payload.sessionId !== session.id) return reject(error);
-
-      if (!payload.id) return reject(error);
+      if (!payload.id)
+        return reject(
+          new errors.AuthError(getMessage("invalidToken", session.locale))
+        );
 
       const user = (await User.getUserById(payload.id).catch((err) => {
-        return reject(error);
+        return reject(
+          new errors.AuthError(getMessage("invalidToken", session.locale))
+        );
       })) as iUser;
 
       let verification = (await prisma.verification
@@ -220,11 +226,15 @@ class Verification implements iSubject {
           },
         })
         .catch(() => {
-          return reject(error);
+          return reject(
+            new errors.AuthError(getMessage("invalidToken", session.locale))
+          );
         })) as iVerification;
 
       if (verification.token !== token || verification.used)
-        return reject(error);
+        return reject(
+          new errors.AuthError(getMessage("invalidToken", session.locale))
+        );
 
       verification = (await prisma.verification
         .update({
@@ -236,7 +246,9 @@ class Verification implements iSubject {
           },
         })
         .catch(() => {
-          return reject(error);
+          return reject(
+            new errors.AuthError(getMessage("invalidToken", session.locale))
+          );
         })) as iVerification;
 
       await prisma.session
@@ -249,7 +261,9 @@ class Verification implements iSubject {
           },
         })
         .catch(() => {
-          return reject(error);
+          return reject(
+            new errors.AuthError(getMessage("invalidToken", session.locale))
+          );
         });
 
       return resolve(user);

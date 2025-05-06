@@ -54,6 +54,9 @@ model Session {
   ip                      String
   location                Json           @default("{}")
   fingerprint             String
+  userAgent               String
+  locale                  String
+  timeZone                String
   name                    String
   attempts                Json           @default("{}")
   token                   String         @default("")

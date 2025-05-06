@@ -1,6 +1,7 @@
 import iValidateString from "../../@types/iValidateString/iValidateString.js";
 import prisma from "../../controllers/db.controller.js";
 import errors from "../../errors/errors.js";
+import { getMessage } from "../../locales/getMessage.js";
 import response from "../../response/response.js";
 
 class PhoneType implements iValidateString {
@@ -8,9 +9,14 @@ class PhoneType implements iValidateString {
   onlyNumbers: string = "";
   pretty: string = "";
   value: string = "";
+  locale = "pt-BR";
 
   //get phone value exactly
-  constructor(phone: string) {
+  constructor(phone: string, locale: string) {
+    if (!phone)
+      throw new errors.UserError(getMessage("obrigatoryParams", locale));
+
+    this.locale = locale;
     this.value = phone;
     this.onlyNumbers = this.validateOnlyNumbers(phone);
     this.pretty = this.prettify();
@@ -19,7 +25,8 @@ class PhoneType implements iValidateString {
   validateOnlyNumbers(phone: string): string {
     const match = phone.match(this.regex);
 
-    if (!match) throw new errors.UserError(response.invalidParam("phone"));
+    if (!match)
+      throw new errors.UserError(getMessage("invalidParams", this.locale));
 
     return match[0];
   }
@@ -36,7 +43,7 @@ class PhoneType implements iValidateString {
         6
       )}-${this.onlyNumbers.slice(6)}`;
     } else {
-      throw new errors.UserError(response.invalidParam("phone"));
+      throw new errors.UserError(getMessage("invalidParams", this.locale));
     }
   }
 
@@ -59,7 +66,9 @@ class PhoneType implements iValidateString {
 
       //verify if email exists
       if (findEmail) {
-        return reject(new errors.UserError(response.phoneInUse()));
+        return reject(
+          new errors.UserError(getMessage("phoneInUse", this.locale))
+        );
       }
 
       //check if email exists

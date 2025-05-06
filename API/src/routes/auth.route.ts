@@ -7,7 +7,29 @@ import commonMiddlewares from "../middlewares/common.middlewares.js";
 
 const auth = Router();
 
-//login
+/**
+ *  @swagger
+ *  /login:
+ *    post:
+ *      summary: Fazer login.
+ *      tags:
+ *        - Authentication
+ *      description: Faça seu login e receba de volta um token e um refresh token.
+ *      requestBody:
+ *        $ref: "#/components/requestBodies/Login"
+ *      parameters:
+ *        - $ref: "#/components/parameters/FingerprintIdHeader"
+ *        - $ref: "#/components/parameters/TimeZoneHeader"
+ *        - $ref: "#/components/parameters/UserAgentHeader"
+ *        - $ref: "#/components/parameters/AcceptLanguageHeader"
+ *        - $ref: "#/components/parameters/SessionIdHeader"
+ *      responses:
+ *        - $ref: "#/components/responses/LoginResponse"
+ *        - $ref: "#/components/responses/UserError"
+ *        - $ref: "#/components/responses/AuthError"
+ *        - $ref: "#/components/responses/InternalServerError"
+ */
+
 auth.post("/login", authMiddlewares.verifyLogin, authControllers.authenticate);
 
 //refresh token

@@ -18,6 +18,7 @@ import iLookup from "../../@types/iLookup/iLookup.js";
 //external libs
 import iSessionAttempts from "../../@types/iSessionAttempt/iSessionAttempt.js";
 import { UAParser } from "ua-parser-js";
+import { getMessage } from "../../locales/getMessage.js";
 class Session implements iSubject {
   observers: iObserver[] = [];
 
@@ -42,6 +43,8 @@ class Session implements iSubject {
     fingerprint: string,
     address: iLookup,
     userAgent: string,
+    timeZone: string,
+    locale: string,
     attempts?: object,
     authorizedUsers?: string[]
   ): Promise<iSession> {
@@ -50,8 +53,12 @@ class Session implements iSubject {
         ip: address.ip,
         location: address.location as object,
         fingerprint,
+        locale,
+        userAgent,
+        timeZone,
         name: this.getDeviceNameFromUA(userAgent),
       };
+
       if (authorizedUsers) {
         data.authorizedUsers = {
           connect: [],
@@ -83,6 +90,8 @@ class Session implements iSubject {
     fingerprint: string,
     address: iLookup,
     userAgent: string,
+    timeZone: string,
+    locale: string,
     sessionId?: string
   ): Promise<iSession> {
     return new Promise(async (resolve, reject) => {
@@ -100,7 +109,9 @@ class Session implements iSubject {
             },
           })
           .catch((err) => {
-            return reject(new errors.AuthError(response.invalidSession()));
+            return reject(
+              new errors.AuthError(getMessage("invalidSession", locale))
+            );
           })) as iSession;
 
         await prisma.session
@@ -162,6 +173,8 @@ class Session implements iSubject {
             fingerprint,
             address,
             userAgent,
+            timeZone,
+            locale,
             attempts,
             authorizedUsers
           ).catch((err) => {
@@ -176,6 +189,9 @@ class Session implements iSubject {
             },
             data: {
               lastActivity: new Date(),
+              userAgent,
+              locale,
+              timeZone,
             },
           })
           .catch(() => {
@@ -282,7 +298,11 @@ class Session implements iSubject {
     });
   }
 
-  getSessionById(sessionId: string, userData?: iUser): Promise<iSession> {
+  getSessionById(
+    sessionId: string,
+    locale: string,
+    userData?: iUser
+  ): Promise<iSession> {
     return new Promise((resolve, reject) => {
       let query: { id: string; userId?: string } = {
         id: sessionId,
@@ -298,7 +318,9 @@ class Session implements iSubject {
           return resolve(result);
         })
         .catch(() => {
-          return reject(new errors.UserError(response.sessionNotFound()));
+          return reject(
+            new errors.UserError(getMessage("sessionNotFound", locale))
+          );
         });
     });
   }

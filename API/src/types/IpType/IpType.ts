@@ -9,7 +9,7 @@ class IpType implements iValidateString {
   location: Lookup | null;
 
   //get ip value exactly
-  constructor(ip: string) {
+  constructor(ip: string, locale: string) {
     this.value = this.validate(ip);
     this.location = null;
   }
@@ -19,7 +19,8 @@ class IpType implements iValidateString {
 
     const match = ip.match(this.regex);
 
-    if (!match) throw new errors.InternalServerError("Invalid IP address.");
+    if (!match)
+      throw new errors.InternalServerError("Ip not matched with validation..");
 
     if (match[0] === "127.0.0.1") return "181.222.238.8";
 

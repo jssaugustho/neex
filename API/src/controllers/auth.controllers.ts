@@ -24,14 +24,16 @@ async function authenticate(
   if (!req.data.fingerprint)
     throw new errors.UserError(response.needFingerprintHeader());
 
-  let address = new IpType(req.ip as string).getLookup();
+  let address = new IpType(
+    req.ip as string,
+    req.data.acceptLanguage
+  ).getLookup();
 
   Authentication.authenticate(
     req.userData,
     req.session,
     req.data.fingerprint,
-    address,
-    req.data.userAgent
+    address
   )
     .then((data) => {
       const publicData = req.userData;

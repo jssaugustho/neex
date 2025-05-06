@@ -21,6 +21,7 @@ import NotifyNewLoginUser from "../../observers/NotificateUser/EmailNewFingerpri
 import Session from "../Session/Session.js";
 import Token from "../Token/Token.js";
 import iSessionAttempts from "../../@types/iSessionAttempt/iSessionAttempt.js";
+import { getMessage } from "../../locales/getMessage.js";
 
 class Authentication implements iSubject {
   observers: iObserver[] = [];
@@ -47,38 +48,56 @@ class Authentication implements iSubject {
   }
 
   //core
-  verifyToken(token: string, session: iSession): Promise<iUser> {
+  verifyToken(
+    token: string,
+    session: iSession,
+    locale: string
+  ): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const decoded = (await Token.loadPayload(token).catch((err) => {
         return reject(err);
       })) as iTokenPayload;
 
       if (!decoded)
-        return reject(new errors.TokenError(response.invalidToken()));
+        return reject(
+          new errors.TokenError(getMessage("invalidToken", locale))
+        );
 
       if (decoded?.type !== "Token")
-        return reject(new errors.TokenError(response.invalidToken()));
+        return reject(
+          new errors.TokenError(getMessage("invalidToken", locale))
+        );
 
       if (session.id !== decoded?.sessionId)
-        return reject(new errors.TokenError(response.invalidToken()));
+        return reject(
+          new errors.TokenError(getMessage("invalidToken", locale))
+        );
 
       const tokenUser = (await User.getUserById(decoded.id as string).catch(
         (err) => {
-          return reject(new errors.TokenError(response.invalidToken()));
+          return reject(
+            new errors.TokenError(getMessage("invalidToken", locale))
+          );
         }
       )) as iUser;
 
       const tokenSession = (await Session.getSessionById(
         decoded.sessionId as string
       ).catch((err) => {
-        return reject(new errors.TokenError(response.invalidToken()));
+        return reject(
+          new errors.TokenError(getMessage("invalidToken", locale))
+        );
       })) as iSession;
 
       if (!Session.isActive(tokenSession) || !tokenSession || !tokenUser)
-        return reject(new errors.TokenError(response.invalidSession()));
+        return reject(
+          new errors.TokenError(getMessage("invalidSession", locale))
+        );
 
       if (token !== tokenSession.token)
-        return reject(new errors.TokenError(response.invalidToken()));
+        return reject(
+          new errors.TokenError(getMessage("invalidToken", locale))
+        );
 
       const authorized = await Session.verifySessionAuthorization(
         tokenUser,
@@ -93,13 +112,15 @@ class Authentication implements iSubject {
       });
 
       if (!authorized)
-        return reject(new errors.SessionError(response.needVerifyEmail()));
+        return reject(
+          new errors.SessionError(getMessage("needEmail2fa", locale))
+        );
 
       return resolve(tokenUser as iUser);
     });
   }
 
-  verifyRefreshToken(token: string, session: iSession): Promise<iUser> {
+  verifyRefreshToken(token: string, session: iSession, locale): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const decoded = (await Token.loadPayload(token, "refreshToken").catch(
         (err) => {
@@ -108,24 +129,34 @@ class Authentication implements iSubject {
       )) as iTokenPayload;
 
       if (!decoded)
-        return reject(new errors.AuthError(response.invalidRefreshToken()));
+        return reject(
+          new errors.AuthError(getMessage("invalidRefreshToken", locale))
+        );
 
       if (decoded.type !== "RefreshToken")
-        return reject(new errors.AuthError(response.invalidRefreshToken()));
+        return reject(
+          new errors.AuthError(getMessage("invalidRefreshToken", locale))
+        );
 
       if (session.id !== decoded.sessionId)
-        return reject(new errors.TokenError(response.invalidSession()));
+        return reject(
+          new errors.TokenError(getMessage("invalidSession", locale))
+        );
 
       const refreshTokenUser = (await User.getUserById(
         decoded.id as string
       ).catch((err) => {
-        return reject(new errors.AuthError(response.invalidRefreshToken()));
+        return reject(
+          new errors.AuthError(getMessage("invalidRefreshToken", locale))
+        );
       })) as iUser;
 
       const refreshTokenSession = (await Session.getSessionById(
         decoded.sessionId as string
       ).catch((err) => {
-        return reject(new errors.AuthError(response.invalidRefreshToken()));
+        return reject(
+          new errors.AuthError(getMessage("invalidRefreshToken", locale))
+        );
       })) as iSession;
 
       if (
@@ -133,10 +164,14 @@ class Authentication implements iSubject {
         !refreshTokenSession ||
         !refreshTokenUser
       )
-        return reject(new errors.TokenError(response.invalidSession()));
+        return reject(
+          new errors.TokenError(getMessage("invalidSession", locale))
+        );
 
       if (token !== refreshTokenSession.refreshToken)
-        return reject(new errors.AuthError(response.invalidRefreshToken()));
+        return reject(
+          new errors.AuthError(getMessage("invalidRefreshToken", locale))
+        );
 
       const authorized = await Session.verifySessionAuthorization(
         refreshTokenUser,
@@ -151,7 +186,9 @@ class Authentication implements iSubject {
       });
 
       if (!authorized)
-        return reject(new errors.SessionError(response.needVerifyEmail()));
+        return reject(
+          new errors.SessionError(getMessage("needEmail2fa", locale))
+        );
 
       return resolve(refreshTokenUser);
     });
@@ -161,8 +198,7 @@ class Authentication implements iSubject {
     user: iUser,
     session: iSession,
     fingerprint: string,
-    location: iLookup,
-    userAgent: string
+    location: iLookup
   ): Promise<{ token: string; refreshToken: string }> {
     return new Promise(async (resolve, reject) => {
       const token = jwt.sign(
@@ -232,7 +268,6 @@ class Authentication implements iSubject {
             token,
             refreshToken,
             attempts: sessionAttempts,
-            name: Session.getDeviceNameFromUA(userAgent),
             user: {
               connect: {
                 id: user.id,

@@ -11,7 +11,7 @@ import errorHandler from "./src/errors/errorHandler.js";
 import authMiddlewares from "./src/middlewares/auth.middlewares.js";
 
 import swaggerUi from "swagger-ui-express";
-import swaggerDocument from "./swagger.json" assert { type: "json" };
+import swaggerSpec from "./src/config/swaggerSpec.js";
 import verificationRoute from "./src/routes/verification.route.js";
 
 class App {
@@ -31,7 +31,7 @@ class App {
       console.log("Development mode detected");
       console.log("Documentation http://localhost:3000/docs");
       console.log("---------------------------------------------");
-      this.app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+      this.app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     }
 
     const corsOptions = {
@@ -51,7 +51,7 @@ class App {
   }
 
   routes() {
-    //rotas
+    //rotas V1
     this.app.use("/V1/", authRoute);
     this.app.use("/V1/", userRoute);
     this.app.use("/V1/", verificationRoute);

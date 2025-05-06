@@ -7,16 +7,21 @@ import response from "../../response/response.js";
 
 //db
 import prisma from "../../controllers/db.controller.js";
+import { getMessage } from "../../locales/getMessage.js";
 
 class EmailType implements iValidateString {
   regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
   value: string;
+  locale: string;
 
-  constructor(email: string) {
-    if (!email) throw new errors.UserError(response.obrigatoryParam("email"));
+  constructor(email: string, locale: string) {
+    this.locale = locale;
+
+    if (!email)
+      throw new errors.UserError(getMessage("obrigatoryParams", locale));
 
     if (!this.regex.test(email) || typeof email != "string")
-      throw new errors.UserError(response.invalidParam("email"));
+      throw new errors.UserError(getMessage("invalidParams", locale));
 
     this.value = email;
   }
@@ -40,7 +45,9 @@ class EmailType implements iValidateString {
 
       //verify if email exists
       if (findEmail) {
-        return reject(new errors.UserError(response.emailInUse()));
+        return reject(
+          new errors.UserError(getMessage("emailInUse", this.locale))
+        );
       }
 
       //check if email exists
