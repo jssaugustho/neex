@@ -20,14 +20,16 @@ import iLookup from "../../@types/iLookup/iLookup.js";
 import NotifyNewLoginUser from "../../observers/NotificateUser/EmailNewFingerprintDetected.jsx";
 import Session from "../Session/Session.js";
 import Token from "../Token/Token.js";
-import iSessionAttempts from "../../@types/iSessionAttempt/iSessionAttempt.js";
+import iSessionAttempts from "../../@types/iSessionWithAttempt/iSessionWithAttempt.js";
 import { getMessage } from "../../locales/getMessage.js";
+import ResetSessionAttempts from "../../observers/SessionAttempts/ResetSessionAttempts.js";
 
 class Authentication implements iSubject {
   observers: iObserver[] = [];
 
   constructor() {
     this.registerObserver(NotifyNewLoginUser);
+    this.registerObserver(ResetSessionAttempts);
   }
 
   //observer functions
@@ -48,11 +50,7 @@ class Authentication implements iSubject {
   }
 
   //core
-  verifyToken(
-    token: string,
-    session: iSession,
-    locale: string
-  ): Promise<iUser> {
+  verifyToken(token: string, session: iSession): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const decoded = (await Token.loadPayload(token).catch((err) => {
         return reject(err);
@@ -60,44 +58,30 @@ class Authentication implements iSubject {
 
       if (!decoded)
         return reject(
-          new errors.TokenError(getMessage("invalidToken", locale))
+          new errors.TokenError(getMessage("invalidToken", session.locale))
         );
 
       if (decoded?.type !== "Token")
         return reject(
-          new errors.TokenError(getMessage("invalidToken", locale))
-        );
-
-      if (session.id !== decoded?.sessionId)
-        return reject(
-          new errors.TokenError(getMessage("invalidToken", locale))
+          new errors.TokenError(getMessage("invalidToken", session.locale))
         );
 
       const tokenUser = (await User.getUserById(decoded.id as string).catch(
         (err) => {
           return reject(
-            new errors.TokenError(getMessage("invalidToken", locale))
+            new errors.TokenError(getMessage("invalidToken", session.locale))
           );
         }
       )) as iUser;
 
       const tokenSession = (await Session.getSessionById(
-        decoded.sessionId as string
+        decoded.sessionId as string,
+        session.locale
       ).catch((err) => {
         return reject(
-          new errors.TokenError(getMessage("invalidToken", locale))
+          new errors.TokenError(getMessage("invalidToken", session.locale))
         );
       })) as iSession;
-
-      if (!Session.isActive(tokenSession) || !tokenSession || !tokenUser)
-        return reject(
-          new errors.TokenError(getMessage("invalidSession", locale))
-        );
-
-      if (token !== tokenSession.token)
-        return reject(
-          new errors.TokenError(getMessage("invalidToken", locale))
-        );
 
       const authorized = await Session.verifySessionAuthorization(
         tokenUser,
@@ -113,14 +97,22 @@ class Authentication implements iSubject {
 
       if (!authorized)
         return reject(
-          new errors.SessionError(getMessage("needEmail2fa", locale))
+          new errors.SessionError(getMessage("needEmail2fa", session.locale))
         );
+
+      if (session.id !== tokenSession.id) {
+        await prisma.session.delete({
+          where: {
+            id: tokenSession.id,
+          },
+        });
+      }
 
       return resolve(tokenUser as iUser);
     });
   }
 
-  verifyRefreshToken(token: string, session: iSession, locale): Promise<iUser> {
+  verifyRefreshToken(token: string, session: iSession): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const decoded = (await Token.loadPayload(token, "refreshToken").catch(
         (err) => {
@@ -130,32 +122,36 @@ class Authentication implements iSubject {
 
       if (!decoded)
         return reject(
-          new errors.AuthError(getMessage("invalidRefreshToken", locale))
+          new errors.AuthError(
+            getMessage("invalidRefreshToken", session.locale)
+          )
         );
 
       if (decoded.type !== "RefreshToken")
         return reject(
-          new errors.AuthError(getMessage("invalidRefreshToken", locale))
-        );
-
-      if (session.id !== decoded.sessionId)
-        return reject(
-          new errors.TokenError(getMessage("invalidSession", locale))
+          new errors.AuthError(
+            getMessage("invalidRefreshToken", session.locale)
+          )
         );
 
       const refreshTokenUser = (await User.getUserById(
         decoded.id as string
       ).catch((err) => {
         return reject(
-          new errors.AuthError(getMessage("invalidRefreshToken", locale))
+          new errors.AuthError(
+            getMessage("invalidRefreshToken", session.locale)
+          )
         );
       })) as iUser;
 
       const refreshTokenSession = (await Session.getSessionById(
-        decoded.sessionId as string
+        decoded.sessionId as string,
+        session.locale
       ).catch((err) => {
         return reject(
-          new errors.AuthError(getMessage("invalidRefreshToken", locale))
+          new errors.AuthError(
+            getMessage("invalidRefreshToken", session.locale)
+          )
         );
       })) as iSession;
 
@@ -165,12 +161,14 @@ class Authentication implements iSubject {
         !refreshTokenUser
       )
         return reject(
-          new errors.TokenError(getMessage("invalidSession", locale))
+          new errors.TokenError(getMessage("invalidSession", session.locale))
         );
 
       if (token !== refreshTokenSession.refreshToken)
         return reject(
-          new errors.AuthError(getMessage("invalidRefreshToken", locale))
+          new errors.AuthError(
+            getMessage("invalidRefreshToken", session.locale)
+          )
         );
 
       const authorized = await Session.verifySessionAuthorization(
@@ -187,8 +185,16 @@ class Authentication implements iSubject {
 
       if (!authorized)
         return reject(
-          new errors.SessionError(getMessage("needEmail2fa", locale))
+          new errors.SessionError(getMessage("needEmail2fa", session.locale))
         );
+
+      if (session.id !== refreshTokenSession.id) {
+        await prisma.session.delete({
+          where: {
+            id: refreshTokenSession.id,
+          },
+        });
+      }
 
       return resolve(refreshTokenUser);
     });
@@ -198,7 +204,8 @@ class Authentication implements iSubject {
     user: iUser,
     session: iSession,
     fingerprint: string,
-    location: iLookup
+    location: iLookup,
+    silent = false
   ): Promise<{ token: string; refreshToken: string }> {
     return new Promise(async (resolve, reject) => {
       const token = jwt.sign(
@@ -224,20 +231,6 @@ class Authentication implements iSubject {
           expiresIn: 1000 * 60 * 60 * 24 * 2, //2 dias
         }
       );
-
-      let sessionAttempts: iSessionAttempts = {};
-
-      sessionAttempts[user.id] = {
-        attempts: 0,
-        timeStamp: Date.now(),
-      };
-
-      if (session.attempts) {
-        sessionAttempts = {
-          ...(session.attempts as iSessionAttempts),
-          ...sessionAttempts,
-        };
-      }
 
       if (!user.active) {
         await prisma.user
@@ -267,7 +260,6 @@ class Authentication implements iSubject {
             fingerprint,
             token,
             refreshToken,
-            attempts: sessionAttempts,
             user: {
               connect: {
                 id: user.id,
@@ -281,7 +273,8 @@ class Authentication implements iSubject {
           },
         })
         .then((data) => {
-          this.notify({ session: data, user });
+          if (!silent) this.notify({ session: data, user });
+
           return resolve({ token, refreshToken });
         })
         .catch((err) => {

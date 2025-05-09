@@ -33,7 +33,8 @@ async function authenticate(
     req.userData,
     req.session,
     req.data.fingerprint,
-    address
+    address,
+    req.data?.silent || false
   )
     .then((data) => {
       const publicData = req.userData;
@@ -46,7 +47,7 @@ async function authenticate(
           message: response.succesAuth(),
           token: "Bearer " + data.token,
           refreshToken: data.refreshToken,
-          sessionId: req.session?.id as string,
+          session: req.session?.id as string,
           data: publicData,
         },
       };

@@ -3,7 +3,7 @@ interface iResponse {
   output: {
     status: "Ok";
     message: string;
-    sessionId?: string;
+    session?: string;
     token?: string;
     refreshToken?: string;
     data?: any | any[];

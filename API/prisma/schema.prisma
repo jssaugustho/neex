@@ -44,29 +44,39 @@ model User {
   SupportAccounts      Support[]
   Accounts             Account[]
   Session              Session[]      @relation("authenticatedUser")
+  Attempt              Attempt[]
 }
 
 model Session {
-  id                      String         @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
-  lastActivity            DateTime       @default(now())
+  id                      String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  lastActivity            DateTime  @default(now())
   ip                      String
-  location                Json           @default("{}")
+  location                Json      @default("{}")
   fingerprint             String
   userAgent               String
   locale                  String
   timeZone                String
   name                    String
-  attempts                Json           @default("{}")
-  token                   String         @default("")
-  refreshToken            String         @default("")
-  exponencialEmailExpires Int            @default(-1)
-  user                    User?          @relation("authenticatedUser", fields: [userId], references: [id])
-  userId                  String?        @db.ObjectId
-  VerificationCode        Verification[]
-  authorizedUsers         User[]         @relation("AuthorizedSessions", fields: [authorizedUsersId], references: [id])
-  authorizedUsersId       String[]       @db.ObjectId
+  token                   String    @default("")
+  refreshToken            String    @default("")
+  exponencialEmailExpires Int       @default(-1)
+  user                    User?     @relation("authenticatedUser", fields: [userId], references: [id])
+  userId                  String?   @db.ObjectId
+  authorizedUsers         User[]    @relation("AuthorizedSessions", fields: [authorizedUsersId], references: [id])
+  authorizedUsersId       String[]  @db.ObjectId
+  attempts                Attempt[]
+}
+
+model Attempt {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  session   Session  @relation(fields: [sessionId], references: [id])
+  sessionId String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  active    Boolean  @default(true)
 }
 
 model Account {
@@ -133,10 +143,8 @@ model Verification {
   updatedAt DateTime @updatedAt
   used      Boolean  @default(false)
   token     String
-  session   Session  @relation(fields: [sessionId], references: [id])
-  sessionId String   @db.ObjectId
-  user      User?    @relation(fields: [userId], references: [id])
-  userId    String?  @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
 }
 
 //quiz & leads

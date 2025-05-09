@@ -24,9 +24,6 @@ class App {
     //usar json
     this.app.use(express.json());
 
-    //bloqueio de user-agents da blacklist
-    this.app.use(authMiddlewares.userAgentBlackList);
-
     if (process.env.NODE_ENV === "development") {
       console.log("Development mode detected");
       console.log("Documentation http://localhost:3000/docs");
@@ -41,7 +38,11 @@ class App {
 
     this.app.use(cors(corsOptions));
 
+    //identificador de sessão
     this.app.use(authMiddlewares.getSession);
+
+    //bloqueio de user-agents da blacklist
+    this.app.use(authMiddlewares.userAgentBlackList);
 
     //chamar rotas
     this.routes();

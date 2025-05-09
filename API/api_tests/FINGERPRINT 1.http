@@ -4,13 +4,16 @@
 # @name register
 POST {{host}}/user HTTP/1.1
 Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 Fingerprint: GOOGLE-CHROME
 
 {
     "name": "José",
     "lastName": "Augustho",
-    "email": "joseaugustholi@gmail.com",
-    "phone": "34991718592",
+    "email": "joseaugustholis@gmail.com",
+    "phone": "34991718292",
     "passwd": "SenhaDeTeste@123"
 }
 
@@ -40,7 +43,10 @@ Fingerprint: GOOGLE-CHROME
 //refresh token
 POST {{host}}/refresh HTTP/1.1
 Content-Type: application/json
-Fingerprint: GOOGLE-CHROME
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROMEs
 
 {
     "refreshToken": "{{refreshToken}}"
@@ -50,9 +56,12 @@ Fingerprint: GOOGLE-CHROME
 
 //get logged user
 GET {{host}}/user HTTP/1.1
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
 Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROMEs
 
 ###
 
@@ -135,15 +144,18 @@ User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 Fingerprint: GOOGLE-CHROME
 
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MTkyMTU4ODAxNmRmMGQxNDc3NjcxMCIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0NjQ3NzY2MSwiZXhwIjoxNzQ2Nzc3NjYxfQ.jKIfVALr1014FZesAcyKLIA1wPnFFYMtAJ0rCpKBTOY"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MWUxYmY5NGNiM2UyMDAxMjUxNjVkMSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0NjgwOTI2OSwiZXhwIjoxNzQ3MTA5MjY5fQ.dKFkFYLj7JNtnp26f3thla7lpC8ysNrKjsOgNU99dBE"
 }
 
 ### Rotas documentadas até aqui, ainda em teste.
 
 GET {{host}}/session HTTP/1.1
-Content-Type: application/json
 Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 ###
 

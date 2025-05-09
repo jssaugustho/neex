@@ -7,7 +7,7 @@ import commonMiddlewares from "../middlewares/common.middlewares.js";
 
 const auth = Router();
 
-/**
+/** Rota de login
  *  @swagger
  *  /login:
  *    post:
@@ -24,22 +24,76 @@ const auth = Router();
  *        - $ref: "#/components/parameters/AcceptLanguageHeader"
  *        - $ref: "#/components/parameters/SessionIdHeader"
  *      responses:
- *        - $ref: "#/components/responses/LoginResponse"
- *        - $ref: "#/components/responses/UserError"
- *        - $ref: "#/components/responses/AuthError"
- *        - $ref: "#/components/responses/InternalServerError"
+ *        200:
+ *          $ref: "#/components/responses/AuthResponse"
+ *        400:
+ *          $ref: "#/components/responses/UserError"
+ *        401:
+ *          $ref: "#/components/responses/AuthError"
+ *        502:
+ *          $ref: "#/components/responses/InternalServerError"
  */
 
 auth.post("/login", authMiddlewares.verifyLogin, authControllers.authenticate);
 
-//refresh token
+/** Refresh Token
+ *  @swagger
+ *  /refresh:
+ *    post:
+ *      summary: Gerar novo token com o refresh token.
+ *      tags:
+ *        - Authentication
+ *      description: Envie um refresh token válido e receba de volta um token e um refresh token.
+ *      requestBody:
+ *        $ref: "#/components/requestBodies/RefreshToken"
+ *      parameters:
+ *        - $ref: "#/components/parameters/FingerprintIdHeader"
+ *        - $ref: "#/components/parameters/TimeZoneHeader"
+ *        - $ref: "#/components/parameters/UserAgentHeader"
+ *        - $ref: "#/components/parameters/AcceptLanguageHeader"
+ *        - $ref: "#/components/parameters/SessionIdHeader"
+ *      responses:
+ *        200:
+ *          $ref: "#/components/responses/AuthResponse"
+ *        400:
+ *          $ref: "#/components/responses/UserError"
+ *        401:
+ *          $ref: "#/components/responses/AuthError"
+ *        502:
+ *          $ref: "#/components/responses/InternalServerError"
+ */
+
 auth.post(
   "/refresh",
   authMiddlewares.verifyRefreshToken,
   authControllers.authenticate
 );
 
-//retorna a sessão atual
+/** get atual session
+ *  @swagger
+ *  /session:
+ *    get:
+ *      summary: Retorna os dados da sessão atual.
+ *      tags:
+ *        - Sessions
+ *      description: Retorna os dados da sessão atual.
+ *      parameters:
+ *        - $ref: "#/components/parameters/FingerprintIdHeader"
+ *        - $ref: "#/components/parameters/TimeZoneHeader"
+ *        - $ref: "#/components/parameters/UserAgentHeader"
+ *        - $ref: "#/components/parameters/AcceptLanguageHeader"
+ *        - $ref: "#/components/parameters/SessionIdHeader"
+ *      responses:
+ *        200:
+ *          $ref: "#/components/responses/UniqueSession"
+ *        400:
+ *          $ref: "#/components/responses/UserError"
+ *        401:
+ *          $ref: "#/components/responses/AuthError"
+ *        502:
+ *          $ref: "#/components/responses/InternalServerError"
+ */
+
 auth.get(
   "/session",
   authMiddlewares.verifyToken,

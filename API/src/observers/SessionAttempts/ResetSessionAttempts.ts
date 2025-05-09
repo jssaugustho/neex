@@ -1,25 +1,21 @@
 //types
-import { Session as iSession } from "@prisma/client";
+import { Session as iSession, User as iUser } from "@prisma/client";
 import iObserver from "../../@types/iObserver/iObserver.js";
 
 //db
 import prisma from "../../controllers/db.controller.js";
 
 class ResetSessionAttempts implements iObserver {
-  async update(data?: { session: iSession }) {
-    //verify if is correctly passwd
-    await prisma.session
-      .update({
-        where: {
-          id: data?.session.id,
-        },
-        data: {
-          exponencialEmailExpires: 0,
-        },
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  async update(data: { session: iSession; user: iUser }) {
+    await prisma.attempt.updateMany({
+      where: {
+        sessionId: data.session.id,
+        userId: data.user.id,
+      },
+      data: {
+        active: false,
+      },
+    });
   }
 }
 

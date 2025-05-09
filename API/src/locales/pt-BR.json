@@ -31,12 +31,12 @@
   "invalidPhone": "Número de celular inválido.",
   "invalidPassword": "Senha inválida.",
   "easyPassword": "Senha fraca.",
-  "requirePrivilege": "Requer privilégios de {{privilege}}.",
+  "requirePrivilege": "Requer privilégios: {{privilege}}.",
+  "ownerSupportOrAdmin": "Proprietário, suporte ou administrador.",
   "emailInUse": "E-mail já está em uso.",
   "phoneInUse": "Número de celular já está em uso.",
   "invalidHeaders": "Cabeçalhos HTTP inválidos.",
   "obrigatoryHeaders": "Cabeçalhos HTTP inválidos.",
   "attemptLimit": "Limite de tentativas atingido.",
-  "needEmail2fa": "Verifique o seu email.",
-  "ownerAndAdmin": "Proprietário, suporte ou administrador."
+  "needEmail2fa": "Verifique o seu email."
 }

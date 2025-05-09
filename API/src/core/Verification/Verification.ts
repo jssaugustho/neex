@@ -73,9 +73,12 @@ class Verification implements iSubject {
 
   async getTimeLeft(session: iSession, user: iUser): Promise<number> {
     return new Promise(async (resolve, reject) => {
-      const verification = await prisma.verification.findUnique({
+      const verification = await prisma.verification.findFirst({
         where: {
           userId: user.id,
+        },
+        orderBy: {
+          updatedAt: "desc",
         },
       });
 
@@ -109,56 +112,17 @@ class Verification implements iSubject {
         }
       );
 
-      let check = (await prisma.verification
-        .findUnique({
-          where: {
-            userId: user.id,
-          },
-        })
-        .catch((err) => {
-          return reject(
-            new errors.InternalServerError("Cannot get verification in DB.")
-          );
-        })) as iVerification;
-
-      if (!check) {
-        check = (await prisma.verification.create({
-          data: {
-            token,
-            used: false,
-            session: {
-              connect: {
-                id: session.id,
-              },
-            },
-            user: {
-              connect: {
-                id: user.id,
-              },
+      let verification = (await prisma.verification.create({
+        data: {
+          token,
+          used: false,
+          user: {
+            connect: {
+              id: user.id,
             },
           },
-        })) as iVerification;
-      } else {
-        await prisma.verification.update({
-          where: {
-            userId: user.id,
-          },
-          data: {
-            token,
-            used: false,
-            session: {
-              connect: {
-                id: session.id,
-              },
-            },
-            user: {
-              connect: {
-                id: user.id,
-              },
-            },
-          },
-        });
-      }
+        },
+      })) as iVerification;
 
       if (!firstTime)
         await this.notify({
@@ -167,35 +131,36 @@ class Verification implements iSubject {
         });
       else this.notifyObserver(WelcomeMessage, { user, token });
 
-      resolve(check);
+      resolve(verification);
     });
   }
 
-  async verifyLastAttempt(user: iUser): Promise<boolean> {
-    return new Promise(async (resolve, reject) => {
-      let verification = await prisma.verification
-        .findUnique({
-          where: {
-            userId: user.id,
-          },
-        })
-        .catch(() => {
-          throw new errors.InternalServerError(
-            "Cannot get verification in DB."
-          );
-        });
+  // async verifyLastAttempt(user: iUser, token: string): Promise<boolean> {
+  //   return new Promise(async (resolve, reject) => {
+  //     let verification = await prisma.verification
+  //       .findFirst({
+  //         where: {
+  //           userId: user.id,
+  //           token,
+  //         },
+  //       })
+  //       .catch(() => {
+  //         throw new errors.InternalServerError(
+  //           "Cannot get verification in DB."
+  //         );
+  //       });
 
-      if (!verification) return resolve(true);
+  //     if (!verification) return resolve(true);
 
-      let lastAttempt = new Date(verification.updatedAt).getTime();
+  //     let lastAttempt = new Date(verification.updatedAt).getTime();
 
-      if (lastAttempt > Date.now() - 60 * 1000 * 60) return reject(false);
+  //     if (lastAttempt > Date.now() - 60 * 1000 * 60) return reject(false);
 
-      return resolve(true);
-    });
-  }
+  //     return resolve(true);
+  //   });
+  // }
 
-  async verify2faToken(token: string, session: iSession): Promise<iUser> {
+  async verifyEmailToken(token: string, session: iSession): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const payload = await Token.loadPayload(token, "emailToken").catch(
         (err) => {
@@ -220,9 +185,10 @@ class Verification implements iSubject {
       })) as iUser;
 
       let verification = (await prisma.verification
-        .findUniqueOrThrow({
+        .findFirstOrThrow({
           where: {
             userId: user.id,
+            token,
           },
         })
         .catch(() => {

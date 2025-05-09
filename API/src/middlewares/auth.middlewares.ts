@@ -30,12 +30,13 @@ import LocaleType from "../types/LocaleType/LocaleType.js";
 import TimeZoneType from "../types/TimeZoneType/TimeZoneType.js";
 import { getMessage } from "../locales/getMessage.js";
 
-//verify if user-agent is in blcklist
 async function userAgentBlackList(
   req: iRequest,
   res: Response,
   next: NextFunction
 ) {
+  if (!req.session) throw new errors.InternalServerError("Session error.");
+
   const blockedUserAgents = [
     "curl",
     "python-requests",
@@ -50,7 +51,9 @@ async function userAgentBlackList(
       req.headers["user-agent"]?.includes(ua) ||
       req.headers["user-agent"] === ""
     )
-      throw new errors.AuthError(response.blockedUserAgent());
+      throw new errors.AuthError(
+        getMessage("unauthorized", req.session?.locale)
+      );
   });
 
   next();
@@ -73,8 +76,6 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
     req.headers["x-timezone"] as string,
     req.data.acceptLanguage
   ).getValue();
-
-  console.log(req.data.timeZone);
 
   req.data.fingerprint = new FingerprintType(
     req.headers["fingerprint"] as string,
@@ -119,8 +120,9 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
   next();
 }
 
-//verify login and send user id to next in req.id
 async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.session) throw new errors.InternalServerError("Session error.");
+
   const passwd = new PasswdType(
     req.body.passwd,
     req.data.acceptLanguage
@@ -135,10 +137,10 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
     throw err;
   });
 
-  if (!Session.verifyAttempts(req.session as iSession, req.userData))
-    throw new errors.SessionError(
-      getMessage("attemptLimit", req.data.acceptLanguage)
-    );
+  // if (!Session.verifyAttempts(req.session as iSession, req.userData))
+  //   throw new errors.SessionError(
+  //     getMessage("attemptLimit", req.session.locale)
+  //   );
 
   if (req.session)
     if (req.userData.passwd !== passwd) {
@@ -147,7 +149,7 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
         user: req.userData,
       });
       throw new errors.AuthError(
-        getMessage("wrongPassword", req.data.acceptLanguage)
+        getMessage("wrongPassword", req.session.locale)
       );
     }
 
@@ -161,14 +163,13 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
 
   if (!authorized) {
     throw new errors.SessionError(
-      getMessage("needEmail2fa", req.data.acceptLanguage)
+      getMessage("needEmail2fa", req.session.locale)
     );
   }
 
   next();
 }
 
-//verify active token and send id to next in req.userData
 async function verifyToken(req: iRequest, res: Response, next: NextFunction) {
   //verify if header exists
   if (!req.headers["authorization"])
@@ -183,8 +184,7 @@ async function verifyToken(req: iRequest, res: Response, next: NextFunction) {
 
   const user = await Authentication.verifyToken(
     token,
-    req.session as iSession,
-    req.data.acceptLanguage
+    req.session as iSession
   ).catch((err) => {
     throw err;
   });
@@ -194,36 +194,35 @@ async function verifyToken(req: iRequest, res: Response, next: NextFunction) {
   next();
 }
 
-//verify token and send id to next in req.id
 async function verifyRefreshToken(
   req: iRequest,
   res: Response,
   next: NextFunction
 ) {
-  //captura o refresh token da requisição
+  if (!req.session) throw new errors.InternalServerError("Session error.");
 
   //verifify if token exists
   if (!req.body.refreshToken) {
     throw new errors.UserError(
-      getMessage("obrigatoryParams", req.data.acceptLanguage)
+      getMessage("obrigatoryParams", req.session.locale)
     );
   }
 
   //get token
   let refreshToken = new TokenType(
     req.body.refreshToken,
-    req.data.acceptLanguage
+    req.session.locale
   ).getValue();
 
   const user = await Authentication.verifyRefreshToken(
     refreshToken,
-    req.session as iSession,
-    req.data.acceptLanguage
+    req.session as iSession
   ).catch((err) => {
     throw err;
   });
 
   req.userData = user;
+  req.data.silent = true;
 
   next();
 }
@@ -270,7 +269,7 @@ async function validateSessionId(
   } else {
     throw new errors.AuthError(
       getMessage("requirePrivilege", req.session.locale, {
-        privilege: getMessage("ownerAndAdmin", req.session.locale),
+        privilege: getMessage("ownerSupportOrAdmin", req.session.locale),
       })
     );
   }

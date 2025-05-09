@@ -1,7 +1,11 @@
 //db
 import prisma from "../../controllers/db.controller.js";
 
-import { User as iUser, Session as iSession } from "@prisma/client";
+import {
+  User as iUser,
+  Session as iSession,
+  Attempt as iAttempt,
+} from "@prisma/client";
 
 //errors
 import errors from "../../errors/errors.js";
@@ -16,9 +20,10 @@ import iSubject from "../../@types/iSubject/iSubject.js";
 import iLookup from "../../@types/iLookup/iLookup.js";
 
 //external libs
-import iSessionAttempts from "../../@types/iSessionAttempt/iSessionAttempt.js";
+import iSessionAttempts from "../../@types/iSessionWithAttempt/iSessionWithAttempt.js";
 import { UAParser } from "ua-parser-js";
 import { getMessage } from "../../locales/getMessage.js";
+import iSessionWithAttempts from "../../@types/iSessionWithAttempt/iSessionWithAttempt.js";
 class Session implements iSubject {
   observers: iObserver[] = [];
 
@@ -45,7 +50,7 @@ class Session implements iSubject {
     userAgent: string,
     timeZone: string,
     locale: string,
-    attempts?: object,
+    attempts?: iAttempt[],
     authorizedUsers?: string[]
   ): Promise<iSession> {
     return new Promise(async (resolve, reject) => {
@@ -68,11 +73,22 @@ class Session implements iSubject {
           return { id: atual };
         });
       }
-      if (attempts) data.attempts = attempts;
+
+      if (attempts) {
+        data.attempts = {
+          connect: [],
+        };
+        data.attempts.connect = attempts.map((attempt) => {
+          return { id: attempt.id };
+        });
+      }
 
       await prisma.session
         .create({
           data,
+          include: {
+            attempts: true,
+          },
         })
         .then((session) => {
           return resolve(session);
@@ -114,24 +130,30 @@ class Session implements iSubject {
             );
           })) as iSession;
 
-        await prisma.session
+        session = (await prisma.session
           .update({
             where: {
               id: session.id,
             },
             data: {
               lastActivity: new Date(),
+              userAgent,
+              locale,
+              timeZone,
+            },
+            include: {
+              attempts: true,
             },
           })
           .catch(() => {
             return reject(
               new errors.InternalServerError("Cannot update session in DB.")
             );
-          });
+          })) as iSession;
 
         return resolve(session);
       } else {
-        let ipSessions = await prisma.session.findMany({
+        let ipSessions = (await prisma.session.findMany({
           where: {
             OR: [
               { ip: address.ip },
@@ -143,10 +165,13 @@ class Session implements iSubject {
           orderBy: {
             updatedAt: "desc",
           },
-        });
+          include: {
+            attempts: true,
+          },
+        })) as (iSession & { attempts: iAttempt[] })[];
 
         let winnerSession: iSession | null = null;
-        let attempts = {};
+        let attempts: iAttempt[] = [];
         let authorizedUsers: string[] = [];
 
         ipSessions.forEach(async (session) => {
@@ -160,11 +185,11 @@ class Session implements iSubject {
           }
 
           if (session.ip === address.ip) {
-            attempts = {
-              ...attempts,
-              ...(session.attempts as object),
-            };
             authorizedUsers = authorizedUsers.concat(session.authorizedUsersId);
+
+            if (session.attempts) {
+              attempts = attempts.concat(session.attempts);
+            }
           }
         });
 
@@ -258,9 +283,9 @@ class Session implements iSubject {
           );
         })) as iSession[];
 
-      sessions.forEach((session) => {
+      sessions.forEach(async (session) => {
         if (
-          this.verifyAttempts(session, user) &&
+          (await this.verifyAttempts(session, user)) &&
           session.authorizedUsersId.includes(user.id)
         )
           authorized = true;
@@ -313,6 +338,9 @@ class Session implements iSubject {
       prisma.session
         .findUniqueOrThrow({
           where: query,
+          include: {
+            attempts: true,
+          },
         })
         .then((result) => {
           return resolve(result);
@@ -500,15 +528,28 @@ class Session implements iSubject {
     return true;
   }
 
-  verifyAttempts(session: iSession, user: iUser) {
-    let attempts = session?.attempts as object as iSessionAttempts;
+  async verifyAttempts(session: iSession, user: iUser) {
+    const attempts = await prisma.attempt.findMany({
+      where: {
+        sessionId: session.id,
+        userId: user.id,
+        active: true,
+      },
+    });
 
-    if (
-      attempts[user.id] &&
-      Date.now() - attempts[user.id].timeStamp < 10 * 1000 * 60 &&
-      attempts[user.id].attempts >= 10
-    )
-      return false;
+    const validAttempts: iAttempt[] = [];
+
+    attempts.forEach((attempt) => {
+      const now = new Date();
+      const createdAt = new Date(attempt.createdAt);
+      const interval = 1000 * 60 * 60;
+
+      if (now.getTime() - createdAt.getTime() < interval) {
+        validAttempts.push(attempt);
+      }
+    });
+
+    if (validAttempts.length >= 10) return false;
 
     return true;
   }

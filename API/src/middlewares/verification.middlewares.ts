@@ -27,7 +27,7 @@ import IncrementSessionAttempts from "../observers/SessionAttempts/IncrementSess
 import prisma from "../controllers/db.controller.js";
 import Email from "../core/Email/Email.js";
 import Verification from "../core/Verification/Verification.js";
-import iSessionAttempts from "../@types/iSessionAttempt/iSessionAttempt.js";
+import iSessionAttempts from "../@types/iSessionWithAttempt/iSessionWithAttempt.js";
 import Token from "../core/Token/Token.js";
 import iTokenPayload from "../@types/iTokenPayload/iTokenPayload.js";
 
@@ -129,7 +129,7 @@ async function validateEmailToken(
 
   const token = new TokenType(req.body.token, req.session.locale).getValue();
 
-  req.userData = (await Verification.verify2faToken(token, req.session).catch(
+  req.userData = (await Verification.verifyEmailToken(token, req.session).catch(
     (err) => {
       throw err;
     }
