@@ -15,37 +15,26 @@ class IpType implements iValidateString {
   }
 
   validate(ip: string) {
-    if (ip === "::1") return "181.222.238.9";
+    if (process.env.NODE_ENV === "development") return "187.94.56.100";
 
     const match = ip.match(this.regex);
 
     if (!match)
       throw new errors.InternalServerError("Ip not matched with validation..");
 
-    if (match[0] === "127.0.0.1") return "181.222.238.8";
-
     return match[0];
   }
 
   getLookup(): iLookup {
-    this.location = geoip.lookup(this.value);
-
-    if (!this.location)
-      this.location = {
-        range: [0, 0],
-        country: "BR",
-        region: "BR",
-        eu: "0",
-        timezone: "Desconhecido",
-        city: "Desconhecido",
-        ll: [0, 0],
-        metro: 0,
-        area: 0,
-      };
+    let lookup = geoip.lookup(this.value);
 
     return {
       ip: this.value,
-      location: this.location,
+      city: lookup?.city || "São Paulo",
+      region: lookup?.region || "SP",
+      country: lookup?.country || "BR",
+      timezone: lookup?.timezone || "America/Sao_Paulo",
+      ll: lookup?.ll || [-23.5505, -46.6333],
     };
   }
 

@@ -5,11 +5,12 @@ import {
   User as iUser,
   Session as iSession,
   Attempt as iAttempt,
+  Ip as iIp,
 } from "@prisma/client";
 
 //errors
 import errors from "../../errors/errors.js";
-import response from "../../response/response.js";
+import { getMessage } from "../../locales/getMessage.js";
 
 //observers
 import IncrementSessionAttempts from "../../observers/SessionAttempts/IncrementSessionAttempts.js";
@@ -18,12 +19,14 @@ import IncrementSessionAttempts from "../../observers/SessionAttempts/IncrementS
 import iObserver from "../../@types/iObserver/iObserver.js";
 import iSubject from "../../@types/iSubject/iSubject.js";
 import iLookup from "../../@types/iLookup/iLookup.js";
+import iSessionPayload from "../../@types/iSessionPayload/iSessionPayload.js";
 
 //external libs
-import iSessionAttempts from "../../@types/iSessionWithAttempt/iSessionWithAttempt.js";
 import { UAParser } from "ua-parser-js";
-import { getMessage } from "../../locales/getMessage.js";
-import iSessionWithAttempts from "../../@types/iSessionWithAttempt/iSessionWithAttempt.js";
+import { create } from "domain";
+import { ad } from "google-ads-api/build/src/protos/autogen/resourceNames.js";
+import Ip from "../Ip/Ip.js";
+
 class Session implements iSubject {
   observers: iObserver[] = [];
 
@@ -46,52 +49,45 @@ class Session implements iSubject {
 
   createSession(
     fingerprint: string,
-    address: iLookup,
+    ip: iIp,
     userAgent: string,
-    timeZone: string,
     locale: string,
-    attempts?: iAttempt[],
-    authorizedUsers?: string[]
-  ): Promise<iSession> {
+    timeZone?: string
+  ): Promise<iSessionPayload> {
     return new Promise(async (resolve, reject) => {
       let data: any = {
-        ip: address.ip,
-        location: address.location as object,
+        ip: {
+          connect: {
+            id: ip.id,
+          },
+        },
         fingerprint,
         locale,
         userAgent,
-        timeZone,
+        timeZone: timeZone || ip.timeZone,
         name: this.getDeviceNameFromUA(userAgent),
       };
 
-      if (authorizedUsers) {
-        data.authorizedUsers = {
-          connect: [],
-        };
-
-        data.authorizedUsers.connect = authorizedUsers.map((atual: string) => {
-          return { id: atual };
-        });
-      }
-
-      if (attempts) {
-        data.attempts = {
-          connect: [],
-        };
-        data.attempts.connect = attempts.map((attempt) => {
-          return { id: attempt.id };
-        });
-      }
-
-      await prisma.session
+      const session = await prisma.session
         .create({
-          data,
+          data: {
+            ip: {
+              connect: {
+                id: ip.id,
+              },
+            },
+            fingerprint,
+            locale,
+            userAgent,
+            timeZone: timeZone || ip.timeZone,
+            name: this.getDeviceNameFromUA(userAgent),
+          },
           include: {
-            attempts: true,
+            ip: true,
           },
         })
         .then((session) => {
-          return resolve(session);
+          return resolve(session as iSessionPayload);
         })
         .catch((err) => {
           console.log(err);
@@ -104,31 +100,29 @@ class Session implements iSubject {
 
   identifySession(
     fingerprint: string,
-    address: iLookup,
+    ip: iIp,
     userAgent: string,
     timeZone: string,
     locale: string,
     sessionId?: string
-  ): Promise<iSession> {
+  ): Promise<iSessionPayload> {
     return new Promise(async (resolve, reject) => {
       if (sessionId) {
         let session = (await prisma.session
           .findUniqueOrThrow({
             where: {
               id: sessionId,
-              OR: [
-                { fingerprint },
-                {
-                  ip: address.ip,
-                },
-              ],
+              fingerprint: fingerprint,
+            },
+            include: {
+              ip: true,
             },
           })
           .catch((err) => {
             return reject(
               new errors.AuthError(getMessage("invalidSession", locale))
             );
-          })) as iSession;
+          })) as iSessionPayload;
 
         session = (await prisma.session
           .update({
@@ -142,81 +136,66 @@ class Session implements iSubject {
               timeZone,
             },
             include: {
-              attempts: true,
+              ip: true,
             },
           })
           .catch(() => {
             return reject(
               new errors.InternalServerError("Cannot update session in DB.")
             );
-          })) as iSession;
+          })) as iSessionPayload;
 
         return resolve(session);
       } else {
-        let ipSessions = (await prisma.session.findMany({
+        let session = (await prisma.session.findFirst({
           where: {
-            OR: [
-              { ip: address.ip },
-              {
-                fingerprint: fingerprint,
-              },
-            ],
+            fingerprint: fingerprint,
           },
           orderBy: {
             updatedAt: "desc",
           },
           include: {
-            attempts: true,
+            ip: true,
           },
-        })) as (iSession & { attempts: iAttempt[] })[];
+        })) as iSessionPayload;
 
-        let winnerSession: iSession | null = null;
-        let attempts: iAttempt[] = [];
-        let authorizedUsers: string[] = [];
-
-        ipSessions.forEach(async (session) => {
-          if (
-            session.fingerprint === fingerprint &&
-            session.ip === address.ip &&
-            !winnerSession
-          ) {
-            winnerSession = session;
-            return;
-          }
-
-          if (session.ip === address.ip) {
-            authorizedUsers = authorizedUsers.concat(session.authorizedUsersId);
-
-            if (session.attempts) {
-              attempts = attempts.concat(session.attempts);
-            }
-          }
-        });
-
-        if (!winnerSession) {
-          winnerSession = (await this.createSession(
+        if (!session) {
+          session = (await this.createSession(
             fingerprint,
-            address,
+            ip,
             userAgent,
-            timeZone,
             locale,
-            attempts,
-            authorizedUsers
+            timeZone
           ).catch((err) => {
             return reject(err);
-          })) as iSession;
+          })) as iSessionPayload;
+        }
+
+        if (session.ipId !== ip.id) {
+          session = (await this.createSession(
+            fingerprint,
+            ip,
+            userAgent,
+            locale,
+            timeZone
+          ).catch((err) => {
+            return reject(err);
+          })) as iSessionPayload;
         }
 
         await prisma.session
           .update({
             where: {
-              id: winnerSession.id,
+              id: session.id,
             },
             data: {
               lastActivity: new Date(),
               userAgent,
               locale,
               timeZone,
+            },
+            include: {
+              ip: true,
             },
           })
           .catch(() => {
@@ -225,70 +204,54 @@ class Session implements iSubject {
             );
           });
 
-        return resolve(winnerSession);
+        return resolve(session as iSessionPayload);
       }
     });
   }
 
-  getDeviceNameFromUA(userAgent: string): string {
-    const parser = new UAParser(userAgent);
-
-    const result = parser.getResult();
-
-    const deviceType = result.device.type || "desktop"; // mobile, tablet, smarttv, wearable, embedded
-    const osName = result.os.name || "SO Desconhecido";
-    const browserName = result.browser.name || "Browser Desconhecido";
-    const browserVersion = result.browser.version?.split(".")[0] || "";
-
-    let deviceEmoji = "🖥️"; // Default desktop
-    if (deviceType === "mobile") deviceEmoji = "📱";
-    else if (deviceType === "tablet") deviceEmoji = "📱";
-    else if (deviceType === "smarttv") deviceEmoji = "📺";
-    else if (deviceType === "wearable") deviceEmoji = "⌚";
-
-    return `${deviceEmoji} ${osName} / ${browserName}`;
-  }
-
   verifySessionAuthorization(
     user: iUser,
-    session: iSession,
-    allowFingerprint = true
+    session: iSessionPayload
   ): Promise<Boolean> {
     return new Promise(async (resolve, reject) => {
       let authorized = false;
 
-      let where: object = {
-        ip: session.ip,
-      };
+      const attemptsCheck = await this.verifyAttempts(session.ip, user);
 
-      if (!allowFingerprint)
-        where = {
-          OR: [
-            {
-              ip: session.ip,
-            },
-            {
-              fingerprint: session.fingerprint,
-            },
-          ],
-        };
+      if (!attemptsCheck) return resolve(false);
 
-      const sessions = (await prisma.session
+      if (session.ip.authorizedUsersId.includes(user.id)) {
+        return resolve(true);
+      }
+
+      const fingerprintSessions = (await prisma.session
         .findMany({
-          where,
+          where: {
+            fingerprint: session.fingerprint,
+            ip: {
+              authorizedUsersId: {
+                has: user.id,
+              },
+            },
+          },
+          include: {
+            ip: true,
+          },
         })
         .catch((err) => {
           return reject(
             new errors.InternalServerError("Cannot get sessions in DB.")
           );
-        })) as iSession[];
+        })) as iSessionPayload[];
 
-      sessions.forEach(async (session) => {
-        if (
-          (await this.verifyAttempts(session, user)) &&
-          session.authorizedUsersId.includes(user.id)
-        )
-          authorized = true;
+      if (fingerprintSessions.length > 0) {
+        authorized = true;
+      }
+
+      fingerprintSessions.forEach(async (session) => {
+        const check = await this.verifyAttempts(session.ip, user);
+
+        if (!check) authorized = false;
       });
 
       if (!authorized)
@@ -298,7 +261,7 @@ class Session implements iSubject {
     });
   }
 
-  getAllUserSessions(userData: iUser): Promise<iSession[]> {
+  getAllUserSessions(userData: iUser): Promise<iSessionPayload[]> {
     return new Promise((resolve, reject) => {
       let query: object = {
         where: {
@@ -308,12 +271,16 @@ class Session implements iSubject {
             },
           },
         },
+        include: {
+          ip: true,
+          attempts: true,
+        },
       };
 
       prisma.session
         .findMany(query)
         .then((results) => {
-          return resolve(results);
+          return resolve(results as iSessionPayload[]);
         })
         .catch((err) => {
           return reject(
@@ -327,7 +294,7 @@ class Session implements iSubject {
     sessionId: string,
     locale: string,
     userData?: iUser
-  ): Promise<iSession> {
+  ): Promise<iSessionPayload> {
     return new Promise((resolve, reject) => {
       let query: { id: string; userId?: string } = {
         id: sessionId,
@@ -339,11 +306,11 @@ class Session implements iSubject {
         .findUniqueOrThrow({
           where: query,
           include: {
-            attempts: true,
+            ip: true,
           },
         })
         .then((result) => {
-          return resolve(result);
+          return resolve(result as iSessionPayload);
         })
         .catch(() => {
           return reject(
@@ -464,11 +431,27 @@ class Session implements iSubject {
               id: session.id,
             },
             data: {
-              authorizedUsers: {
-                disconnect: { id: userData.id },
-              },
               user: {
                 disconnect: true,
+              },
+            },
+          })
+          .catch(() => {
+            return reject(
+              new errors.InternalServerError(
+                "Cannot update session: " + session.id
+              )
+            );
+          });
+
+        await prisma.ip
+          .update({
+            where: {
+              id: session.ipId,
+            },
+            data: {
+              authorizedUsers: {
+                disconnect: { id: userData.id },
               },
             },
           })
@@ -528,30 +511,53 @@ class Session implements iSubject {
     return true;
   }
 
-  async verifyAttempts(session: iSession, user: iUser) {
-    const attempts = await prisma.attempt.findMany({
-      where: {
-        sessionId: session.id,
-        userId: user.id,
-        active: true,
-      },
+  getDeviceNameFromUA(userAgent: string): string {
+    const parser = new UAParser(userAgent);
+
+    const result = parser.getResult();
+
+    const deviceType = result.device.type || "desktop"; // mobile, tablet, smarttv, wearable, embedded
+    const osName = result.os.name || "SO Desconhecido";
+    const browserName = result.browser.name || "Browser Desconhecido";
+    const browserVersion = result.browser.version?.split(".")[0] || "";
+
+    let deviceEmoji = "🖥️"; // Default desktop
+    if (deviceType === "mobile") deviceEmoji = "📱";
+    else if (deviceType === "tablet") deviceEmoji = "📱";
+    else if (deviceType === "smarttv") deviceEmoji = "📺";
+    else if (deviceType === "wearable") deviceEmoji = "⌚";
+
+    return `${deviceEmoji} ${osName} / ${browserName}`;
+  }
+
+  verifyAttempts(ip: iIp, user: iUser): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+      const attempts = await prisma.attempt.findMany({
+        where: {
+          ipId: ip.id,
+          userId: user.id,
+          active: true,
+        },
+      });
+
+      const validAttempts: iAttempt[] = [];
+
+      attempts.forEach((attempt) => {
+        const now = new Date();
+        const createdAt = new Date(attempt.createdAt);
+        const maxInterval = 1000 * 60 * 60;
+
+        const interval = now.getTime() - createdAt.getTime();
+
+        if (interval < maxInterval) {
+          validAttempts.push(attempt);
+        }
+      });
+
+      if (validAttempts.length >= 10) return resolve(false);
+
+      return resolve(true);
     });
-
-    const validAttempts: iAttempt[] = [];
-
-    attempts.forEach((attempt) => {
-      const now = new Date();
-      const createdAt = new Date(attempt.createdAt);
-      const interval = 1000 * 60 * 60;
-
-      if (now.getTime() - createdAt.getTime() < interval) {
-        validAttempts.push(attempt);
-      }
-    });
-
-    if (validAttempts.length >= 10) return false;
-
-    return true;
   }
 }
 

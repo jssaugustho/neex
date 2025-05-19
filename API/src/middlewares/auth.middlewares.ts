@@ -29,6 +29,8 @@ import UserAgentType from "../types/UserAgentType/UserAgentType.js";
 import LocaleType from "../types/LocaleType/LocaleType.js";
 import TimeZoneType from "../types/TimeZoneType/TimeZoneType.js";
 import { getMessage } from "../locales/getMessage.js";
+import Ip from "../core/Ip/Ip.js";
+import iSessionPayload from "../@types/iSessionPayload/iSessionPayload.js";
 
 async function userAgentBlackList(
   req: iRequest,
@@ -82,10 +84,12 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
     req.data.acceptLanguage
   ).getValue();
 
-  req.data.ipLookup = new IpType(
+  let ipLookup = new IpType(
     req.ip as string,
     req.data.acceptLanguage
   ).getLookup();
+
+  req.ipLookup = await Ip.upsertIp(ipLookup);
 
   let sessionId = "";
 
@@ -97,7 +101,7 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
 
     req.session = await Session.identifySession(
       req.data.fingerprint,
-      req.data.ipLookup,
+      req.ipLookup,
       req.data.userAgent,
       req.data.timeZone,
       req.data.acceptLanguage,
@@ -108,7 +112,7 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
   } else {
     req.session = await Session.identifySession(
       req.data.fingerprint,
-      req.data.ipLookup,
+      req.ipLookup,
       req.data.userAgent,
       req.data.timeZone,
       req.data.acceptLanguage
@@ -137,26 +141,23 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
     throw err;
   });
 
-  // if (!Session.verifyAttempts(req.session as iSession, req.userData))
-  //   throw new errors.SessionError(
-  //     getMessage("attemptLimit", req.session.locale)
-  //   );
+  if (!(await Session.verifyAttempts(req.ipLookup, req.userData)))
+    throw new errors.SessionError(
+      getMessage("attemptLimit", req.session.locale)
+    );
 
-  if (req.session)
-    if (req.userData.passwd !== passwd) {
-      Session.notifyObserver(IncrementSessionAttempts, {
-        session: req.session,
-        user: req.userData,
-      });
-      throw new errors.AuthError(
-        getMessage("wrongPassword", req.session.locale)
-      );
-    }
+  if (req.userData.passwd !== passwd) {
+    Session.notifyObserver(IncrementSessionAttempts, {
+      session: req.session,
+      user: req.userData,
+    });
+    throw new errors.AuthError(getMessage("wrongPassword", req.session.locale));
+  }
 
   //verifica se essa sessão necessita de 2fa autorizá-la.
   const authorized = (await Session.verifySessionAuthorization(
     req.userData,
-    req.session as iSession
+    req.session
   ).catch(() => {
     return false;
   })) as boolean;
@@ -176,18 +177,18 @@ async function verifyToken(req: iRequest, res: Response, next: NextFunction) {
     throw new errors.AuthError(
       getMessage("obrigatoryHeaders", req.data.acceptLanguage)
     );
+
   //get token
   let token = new TokenType(
     req.headers["authorization"].split(" ")[1],
     req.data.acceptLanguage
   ).getValue();
 
-  const user = await Authentication.verifyToken(
-    token,
-    req.session as iSession
-  ).catch((err) => {
-    throw err;
-  });
+  const user = await Authentication.verifyToken(token, req.session).catch(
+    (err) => {
+      throw err;
+    }
+  );
 
   req.userData = user;
 
@@ -216,7 +217,7 @@ async function verifyRefreshToken(
 
   const user = await Authentication.verifyRefreshToken(
     refreshToken,
-    req.session as iSession
+    req.session
   ).catch((err) => {
     throw err;
   });
@@ -305,19 +306,29 @@ async function validateUserId(
 async function getSessions(req: iRequest, res: Response, next: NextFunction) {
   if (!req.userData) throw new errors.InternalServerError("UserData error.");
 
+  const authorizedIps = await prisma.ip.findMany({
+    where: {
+      authorizedUsersId: {
+        has: req.userData.id,
+      },
+    },
+  });
+
   const sessions = (await prisma.session
     .findMany({
       where: {
-        authorizedUsersId: {
-          has: req.userData.id,
-        },
+        OR: authorizedIps.map((ip) => {
+          return {
+            ipId: ip.id,
+          };
+        }),
       },
       take: req.data.take,
       skip: req.data.skip,
     })
     .catch((err) => {
       throw new errors.InternalServerError("Cannot get sessions in DB.");
-    })) as (iSession & { authorizedUsers: iUser[] })[];
+    })) as iSessionPayload[];
 
   const publicSessions = sessions.map((session) => {
     session.token =
@@ -355,12 +366,22 @@ async function getSessions(req: iRequest, res: Response, next: NextFunction) {
 async function countSessions(req: iRequest, res: Response, next: NextFunction) {
   if (!req.userData) throw new errors.InternalServerError("UserData error.");
 
+  const authorizedIps = await prisma.ip.findMany({
+    where: {
+      authorizedUsersId: {
+        has: req.userData.id,
+      },
+    },
+  });
+
   const sessions = await prisma.session
     .count({
       where: {
-        authorizedUsersId: {
-          has: req.userData.id,
-        },
+        OR: authorizedIps.map((ip) => {
+          return {
+            ipId: ip.id,
+          };
+        }),
       },
     })
     .catch((err) => {

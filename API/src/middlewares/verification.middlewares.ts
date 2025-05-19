@@ -27,7 +27,7 @@ import IncrementSessionAttempts from "../observers/SessionAttempts/IncrementSess
 import prisma from "../controllers/db.controller.js";
 import Email from "../core/Email/Email.js";
 import Verification from "../core/Verification/Verification.js";
-import iSessionAttempts from "../@types/iSessionWithAttempt/iSessionWithAttempt.js";
+import iSessionAttempts from "../@types/iSessionPayload/iSessionPayload.js";
 import Token from "../core/Token/Token.js";
 import iTokenPayload from "../@types/iTokenPayload/iTokenPayload.js";
 

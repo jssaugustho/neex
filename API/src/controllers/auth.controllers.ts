@@ -24,16 +24,10 @@ async function authenticate(
   if (!req.data.fingerprint)
     throw new errors.UserError(response.needFingerprintHeader());
 
-  let address = new IpType(
-    req.ip as string,
-    req.data.acceptLanguage
-  ).getLookup();
-
   Authentication.authenticate(
     req.userData,
     req.session,
     req.data.fingerprint,
-    address,
     req.data?.silent || false
   )
     .then((data) => {
@@ -91,15 +85,17 @@ async function blockAllUserSessions(
 
   if (!req.userData) throw new errors.InternalServerError("UserData not found");
 
-  Session.blockAllUserSessions(req.userData, req.session).then((count) => {
-    res.status(200).send({
-      status: "Ok",
-      message: response.sessionsUnauthorized(count),
-      info: {
-        count,
-      },
-    });
-  });
+  Session.blockAllUserSessions(req.userData, req.session)
+    .then((count) => {
+      res.status(200).send({
+        status: "Ok",
+        message: response.sessionsUnauthorized(count),
+        info: {
+          count,
+        },
+      });
+    })
+    .catch(next);
 }
 
 async function inactivateSession(
@@ -142,7 +138,6 @@ async function blockSession(
     });
 }
 
-//auth user, register and send token
 async function responseRequests(
   req: RequestUserPayload,
   res: Response,

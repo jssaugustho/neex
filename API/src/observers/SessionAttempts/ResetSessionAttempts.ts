@@ -9,7 +9,7 @@ class ResetSessionAttempts implements iObserver {
   async update(data: { session: iSession; user: iUser }) {
     await prisma.attempt.updateMany({
       where: {
-        sessionId: data.session.id,
+        ipId: data.session.ipId,
         userId: data.user.id,
       },
       data: {

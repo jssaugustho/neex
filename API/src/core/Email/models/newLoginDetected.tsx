@@ -17,16 +17,15 @@ import {
 } from "@react-email/components";
 import { Lookup } from "geoip-lite";
 import React from "react";
+import iSessionPayload from "../../../@types/iSessionPayload/iSessionPayload.js";
 
 const baseUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "";
 
-const NewLoginDetected = (props: { user: iUser; session: iSession }) => {
-  const location = props.session.location as object as Lookup;
-
-  const timezone = {
-    timeZone: location.timezone || "America/Sao_Paulo", // Exemplo: horário de Brasília
+const NewLoginDetected = (props: { user: iUser; session: iSessionPayload }) => {
+  const timeZone = {
+    timeZone: props.session.ip.timeZone || "America/Sao_Paulo", // Exemplo: horário de Brasília
   };
 
   return (
@@ -50,7 +49,7 @@ const NewLoginDetected = (props: { user: iUser; session: iSession }) => {
             </Text>
             <Text style={paragraph}>
               Nós detectamos um novo acesso na sua conta na cidade de
-              Uberlândia, MG.
+              {props.session.ip.city}, {props.session.ip.region}.
             </Text>
             <Text style={paragraph}>
               Não foi você? Clique no botão abaixo e bloqueie o acesso.
@@ -66,15 +65,15 @@ const NewLoginDetected = (props: { user: iUser; session: iSession }) => {
             <ul style={ul}>
               <li style={li}>{props.session.name}</li>
               <li style={li}>
-                📍 {location?.city + ", " || "Desconhecido"}
-                {location?.region + ", " || ""}
-                {location?.country || ""}
+                📍 {props.session.ip.city + ", " || "Desconhecido"}
+                {props.session.ip.region + ", " || ""}
+                {props.session.ip.country || ""}
               </li>
               <li style={li}>
-                📅 {new Date().toLocaleDateString("pt-BR", timezone)}
+                📅 {new Date().toLocaleDateString("pt-BR", timeZone)}
               </li>
               <li style={li}>
-                ⏰ {new Date().toLocaleTimeString("pt-BR", timezone)}
+                ⏰ {new Date().toLocaleTimeString("pt-BR", timeZone)}
               </li>
             </ul>
             <Text style={paragraph}>— Equipe Lux Digital.</Text>

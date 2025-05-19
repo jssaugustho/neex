@@ -4,7 +4,7 @@ import iObserver from "../../@types/iObserver/iObserver.js";
 
 //db
 import prisma from "../../controllers/db.controller.js";
-import iSessionAttempts from "../../@types/iSessionWithAttempt/iSessionWithAttempt.js";
+import iSessionAttempts from "../../@types/iSessionPayload/iSessionPayload.js";
 import { connect } from "http2";
 
 class incrementSessionAttempts implements iObserver {
@@ -12,9 +12,9 @@ class incrementSessionAttempts implements iObserver {
     await prisma.attempt
       .create({
         data: {
-          session: {
+          ip: {
             connect: {
-              id: data.session.id,
+              id: data.session.ipId,
             },
           },
           user: {

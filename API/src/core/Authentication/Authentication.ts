@@ -9,7 +9,7 @@ import response from "../../response/response.js";
 import jwt from "jsonwebtoken";
 
 //types
-import { Session as iSession, User as iUser } from "@prisma/client";
+import { Ip as iIp, Session as iSession, User as iUser } from "@prisma/client";
 import User from "../User/User.js";
 import iObserver from "../../@types/iObserver/iObserver.js";
 import iSubject from "../../@types/iSubject/iSubject.js";
@@ -20,9 +20,10 @@ import iLookup from "../../@types/iLookup/iLookup.js";
 import NotifyNewLoginUser from "../../observers/NotificateUser/EmailNewFingerprintDetected.jsx";
 import Session from "../Session/Session.js";
 import Token from "../Token/Token.js";
-import iSessionAttempts from "../../@types/iSessionWithAttempt/iSessionWithAttempt.js";
+import iSessionAttempts from "../../@types/iSessionPayload/iSessionPayload.js";
 import { getMessage } from "../../locales/getMessage.js";
 import ResetSessionAttempts from "../../observers/SessionAttempts/ResetSessionAttempts.js";
+import iSessionPayload from "../../@types/iSessionPayload/iSessionPayload.js";
 
 class Authentication implements iSubject {
   observers: iObserver[] = [];
@@ -50,7 +51,7 @@ class Authentication implements iSubject {
   }
 
   //core
-  verifyToken(token: string, session: iSession): Promise<iUser> {
+  verifyToken(token: string, session: iSessionPayload): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const decoded = (await Token.loadPayload(token).catch((err) => {
         return reject(err);
@@ -81,12 +82,11 @@ class Authentication implements iSubject {
         return reject(
           new errors.TokenError(getMessage("invalidToken", session.locale))
         );
-      })) as iSession;
+      })) as iSessionPayload;
 
       const authorized = await Session.verifySessionAuthorization(
         tokenUser,
-        session,
-        false
+        session
       ).catch((err) => {
         return reject(
           new errors.InternalServerError(
@@ -112,7 +112,7 @@ class Authentication implements iSubject {
     });
   }
 
-  verifyRefreshToken(token: string, session: iSession): Promise<iUser> {
+  verifyRefreshToken(token: string, session: iSessionPayload): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const decoded = (await Token.loadPayload(token, "refreshToken").catch(
         (err) => {
@@ -173,8 +173,7 @@ class Authentication implements iSubject {
 
       const authorized = await Session.verifySessionAuthorization(
         refreshTokenUser,
-        session,
-        false
+        session
       ).catch((err) => {
         return reject(
           new errors.InternalServerError(
@@ -202,9 +201,8 @@ class Authentication implements iSubject {
 
   authenticate(
     user: iUser,
-    session: iSession,
+    session: iSessionPayload,
     fingerprint: string,
-    location: iLookup,
     silent = false
   ): Promise<{ token: string; refreshToken: string }> {
     return new Promise(async (resolve, reject) => {
@@ -249,14 +247,17 @@ class Authentication implements iSubject {
           });
       }
 
-      prisma.session
+      const data = (await prisma.session
         .update({
           where: {
             id: session.id,
           },
           data: {
-            ip: location.ip,
-            location: location.location as object,
+            ip: {
+              connect: {
+                id: session.ip.id,
+              },
+            },
             fingerprint,
             token,
             refreshToken,
@@ -265,6 +266,21 @@ class Authentication implements iSubject {
                 id: user.id,
               },
             },
+          },
+          include: {
+            ip: true,
+          },
+        })
+        .catch((err) => {
+          return reject(new errors.InternalServerError("Erro ao gerar token."));
+        })) as iSessionPayload;
+
+      await prisma.ip
+        .update({
+          where: {
+            id: session.ip.id,
+          },
+          data: {
             authorizedUsers: {
               connect: {
                 id: user.id,
@@ -272,14 +288,15 @@ class Authentication implements iSubject {
             },
           },
         })
-        .then((data) => {
-          if (!silent) this.notify({ session: data, user });
-
-          return resolve({ token, refreshToken });
-        })
         .catch((err) => {
-          return reject(new errors.InternalServerError("Erro ao gerar token."));
+          return reject(
+            new errors.InternalServerError("Erro ao autorizar sessão.")
+          );
         });
+
+      if (!silent) this.notify({ session: data, user });
+
+      return resolve({ token, refreshToken });
     });
   }
 }

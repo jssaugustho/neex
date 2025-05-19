@@ -61,7 +61,7 @@ Authorization: {{token}}
 X-Timezone: America/Sao_Paulo
 Accept-Language: pt-BR
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-Fingerprint: GOOGLE-CHROMEs
+Fingerprint: GOOGLE-CHROME
 
 ###
 
@@ -144,7 +144,7 @@ User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 Fingerprint: GOOGLE-CHROME
 
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MWUxYmY5NGNiM2UyMDAxMjUxNjVkMSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0NjgwOTI2OSwiZXhwIjoxNzQ3MTA5MjY5fQ.dKFkFYLj7JNtnp26f3thla7lpC8ysNrKjsOgNU99dBE"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MmE3MTEwZjU4ZWY2NTRkMmUxYTZjNSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0NzYxMjkwOCwiZXhwIjoxNzQ3OTEyOTA4fQ.i6-_72AjfdfregsiRqURei71QAqEXbx3O5eAZeKHzR4"
 }
 
 ### Rotas documentadas até aqui, ainda em teste.
