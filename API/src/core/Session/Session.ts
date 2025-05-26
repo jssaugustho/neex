@@ -26,6 +26,7 @@ import { UAParser } from "ua-parser-js";
 import { create } from "domain";
 import { ad } from "google-ads-api/build/src/protos/autogen/resourceNames.js";
 import Ip from "../Ip/Ip.js";
+import { connect } from "http2";
 
 class Session implements iSubject {
   observers: iObserver[] = [];
@@ -98,7 +99,7 @@ class Session implements iSubject {
     });
   }
 
-  identifySession(
+  sessionIdentifier(
     fingerprint: string,
     ip: iIp,
     userAgent: string,
@@ -209,14 +210,16 @@ class Session implements iSubject {
     });
   }
 
-  verifySessionAuthorization(
+  sessionSecurityVerification(
     user: iUser,
     session: iSessionPayload
   ): Promise<Boolean> {
     return new Promise(async (resolve, reject) => {
       let authorized = false;
 
-      const attemptsCheck = await this.verifyAttempts(session.ip, user);
+      const attemptsCheck = await Ip.verifyAttempts(session.ip, user);
+
+      if (session.unauthorizedUsersId.includes(user.id)) return resolve(false);
 
       if (!attemptsCheck) return resolve(false);
 
@@ -249,7 +252,7 @@ class Session implements iSubject {
       }
 
       fingerprintSessions.forEach(async (session) => {
-        const check = await this.verifyAttempts(session.ip, user);
+        const check = await Ip.verifyAttempts(session.ip, user);
 
         if (!check) authorized = false;
       });
@@ -320,7 +323,7 @@ class Session implements iSubject {
     });
   }
 
-  inactivateSession(session: iSession, user: iUser): Promise<iSession | null> {
+  logoutSession(session: iSession, user: iUser): Promise<iSession | null> {
     return new Promise(async (resolve, reject) => {
       let data: any = {
         token: "",
@@ -348,7 +351,7 @@ class Session implements iSubject {
     });
   }
 
-  inactivateAllUserSessions(
+  logoutAllUserSessions(
     userData: iUser,
     exception?: iSession
   ): Promise<number> {
@@ -400,86 +403,16 @@ class Session implements iSubject {
     });
   }
 
-  blockAllUserSessions(
-    userData: iUser,
-    exception?: iSession,
-    block = false
-  ): Promise<number> {
-    return new Promise(async (resolve, reject) => {
-      let query: any = {
-        authorizedUsersId: { has: userData.id },
-      };
-
-      if (exception)
-        query = {
-          authorizedUsersId: { has: userData.id },
-          NOT: [{ id: exception.id }],
-        };
-
-      const sessions = (await prisma.session
-        .findMany({
-          where: query,
-        })
-        .catch((err) => {
-          reject(new errors.InternalServerError("Cannot inactivate sessions."));
-        })) as iSession[];
-
-      sessions.forEach(async (session) => {
-        await prisma.session
-          .update({
-            where: {
-              id: session.id,
-            },
-            data: {
-              user: {
-                disconnect: true,
-              },
-            },
-          })
-          .catch(() => {
-            return reject(
-              new errors.InternalServerError(
-                "Cannot update session: " + session.id
-              )
-            );
-          });
-
-        await prisma.ip
-          .update({
-            where: {
-              id: session.ipId,
-            },
-            data: {
-              authorizedUsers: {
-                disconnect: { id: userData.id },
-              },
-            },
-          })
-          .catch(() => {
-            return reject(
-              new errors.InternalServerError(
-                "Cannot update session: " + session.id
-              )
-            );
-          });
-      });
-
-      return resolve(sessions.length);
-    });
-  }
-
   blockSession(session: iSession, user: iUser): Promise<iSession | null> {
     return new Promise(async (resolve, reject) => {
       let data: any = {
         token: "",
         refreshToken: "",
-        user: {
-          disconnect: {
+        userId: null,
+        unauthorizedUsers: {
+          connect: {
             id: user.id,
           },
-        },
-        authorizedUsers: {
-          set: [],
         },
       };
 
@@ -500,6 +433,60 @@ class Session implements iSubject {
             new errors.InternalServerError("Cannot inactive session in DB.")
           );
         });
+    });
+  }
+
+  blockAllUserSessions(userData: iUser, exception?: iSession): Promise<number> {
+    return new Promise(async (resolve, reject) => {
+      let query: any = {
+        userId: userData.id,
+      };
+
+      if (exception)
+        query = {
+          userId: userData.id,
+          NOT: [{ id: exception.id }],
+        };
+
+      const userSessions = (await prisma.session
+        .findMany({
+          where: query,
+        })
+        .catch(() => {
+          return reject(
+            new errors.InternalServerError("Cannot inactivate sessions. 1")
+          );
+        })) as iSession[];
+
+      userSessions.forEach(async (session) => {
+        await prisma.session
+          .update({
+            where: {
+              id: session.id,
+            },
+            data: {
+              user: {
+                disconnect: true,
+              },
+              token: "",
+              refreshToken: "",
+              unauthorizedUsers: {
+                connect: {
+                  id: userData.id,
+                },
+              },
+            },
+          })
+          .catch(() => {
+            return reject(
+              new errors.InternalServerError(
+                "Cannot update session: " + session.id
+              )
+            );
+          });
+      });
+
+      return resolve(userSessions.length);
     });
   }
 
@@ -528,36 +515,6 @@ class Session implements iSubject {
     else if (deviceType === "wearable") deviceEmoji = "⌚";
 
     return `${deviceEmoji} ${osName} / ${browserName}`;
-  }
-
-  verifyAttempts(ip: iIp, user: iUser): Promise<boolean> {
-    return new Promise(async (resolve, reject) => {
-      const attempts = await prisma.attempt.findMany({
-        where: {
-          ipId: ip.id,
-          userId: user.id,
-          active: true,
-        },
-      });
-
-      const validAttempts: iAttempt[] = [];
-
-      attempts.forEach((attempt) => {
-        const now = new Date();
-        const createdAt = new Date(attempt.createdAt);
-        const maxInterval = 1000 * 60 * 60;
-
-        const interval = now.getTime() - createdAt.getTime();
-
-        if (interval < maxInterval) {
-          validAttempts.push(attempt);
-        }
-      });
-
-      if (validAttempts.length >= 10) return resolve(false);
-
-      return resolve(true);
-    });
   }
 }
 

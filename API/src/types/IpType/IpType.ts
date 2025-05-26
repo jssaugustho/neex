@@ -15,7 +15,7 @@ class IpType implements iValidateString {
   }
 
   validate(ip: string) {
-    if (process.env.NODE_ENV === "development") return "187.94.56.100";
+    if (process.env.NODE_ENV === "development") return "189.94.56.100";
 
     const match = ip.match(this.regex);
 

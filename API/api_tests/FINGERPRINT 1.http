@@ -12,7 +12,7 @@ Fingerprint: GOOGLE-CHROME
 {
     "name": "José",
     "lastName": "Augustho",
-    "email": "joseaugustholis@gmail.com",
+    "email": "joseaugustho09@gmail.com",
     "phone": "34991718292",
     "passwd": "SenhaDeTeste@123"
 }
@@ -54,7 +54,7 @@ Fingerprint: GOOGLE-CHROMEs
 
 ###
 
-//get logged user
+//get atual user
 GET {{host}}/user HTTP/1.1
 Content-Type: application/json
 Authorization: {{token}}
@@ -67,9 +67,12 @@ Fingerprint: GOOGLE-CHROME
 
 //update user
 PATCH {{host}}/user HTTP/1.1
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
 Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 {
     "phone": "34991718593"
@@ -79,17 +82,23 @@ Content-Type: application/json
 
 //get user by id
 GET {{host}}/support/user/67fecf302cdddf231abdb1e5 HTTP/1.1
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
 Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 ###
 
 //update users
 PATCH {{host}}/support/user/67fecf302cdddf231abdb1e5 HTTP/1.1
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
 Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 {
     "phone": "34991718593"
@@ -99,17 +108,23 @@ Content-Type: application/json
 
 //get all users
 GET {{host}}/support/users HTTP/1.1
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
 Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 ###
 
 //count all users
 GET {{host}}/support/users/count HTTP/1.1
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
 Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 ###
 
@@ -144,7 +159,7 @@ User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 Fingerprint: GOOGLE-CHROME
 
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MmE3MTEwZjU4ZWY2NTRkMmUxYTZjNSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0NzYxMjkwOCwiZXhwIjoxNzQ3OTEyOTA4fQ.i6-_72AjfdfregsiRqURei71QAqEXbx3O5eAZeKHzR4"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MzNiOTZhMGExN2M3M2JmMzc1Yjg4OCIsInNlc3Npb25JZCI6IjY4MzNiOTY5MGExN2M3M2JmMzc1Yjg4NyIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0ODIyMDI2NiwiZXhwIjoxNzQ4NTIwMjY2fQ.yQ9QTM1QVmXDs8qU59pBF0eo6FYv4f6FVfWbx3Ozf_A"
 }
 
 ### Rotas documentadas até aqui, ainda em teste.
@@ -159,66 +174,63 @@ Fingerprint: GOOGLE-CHROME
 
 ###
 
-GET {{host}}/session/logout HTTP/1.1
-Content-Type: application/json
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
-
-###
-
-GET {{host}}/session/logout/68074e7fbafd7afda4789493 HTTP/1.1
-Content-Type: application/json
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
-
-###
-
-GET {{host}}/session/unauthorize HTTP/1.1
-Content-Type: application/json
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
-
-###
-
-GET {{host}}/session/unauthorize/6808901a1799308dc05632c0 HTTP/1.1
-Content-Type: application/json
-Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
-
-###
-
 GET {{host}}/sessions HTTP/1.1
-Content-Type: application/json
 Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 ###
 
-GET {{host}}/sessions/count HTTP/1.1
-Content-Type: application/json
+GET {{host}}/session/logout/682f33445c763c36d77a7862 HTTP/1.1
 Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 ###
 
-GET {{host}}/sessions/logout HTTP/1.1
-Content-Type: application/json
+GET {{host}}/support/session/block/6833b96a0a17c73bf375b888/6833e2ebb2fec08443982439 HTTP/1.1
 Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 ###
 
-GET {{host}}/sessions/unauthorize HTTP/1.1
-Content-Type: application/json
+GET {{host}}/support/ip/unauthorize/6833b96a0a17c73bf375b888/683399aa5c1298d67e3e868c HTTP/1.1 HTTP/1.1
 Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 ###
 
-GET {{host}}/support/sessions/6808908a1799308dc05632c4 HTTP/1.1
-Content-Type: application/json
+GET {{host}}/ips/unauthorize HTTP/1.1
 Authorization: {{token}}
-fingerprint: GOOGLE-CHROME
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/sessions/6813d062844330bfff6060cc HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
 
 ###
 

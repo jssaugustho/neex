@@ -46,6 +46,22 @@ class Ip implements iSubject {
     observer.update(data);
   }
 
+  getIpById(ipId: string, acceptLanguage: string): Promise<iIpPayload> {
+    return new Promise(async (resolve, reject) => {
+      const ip = (await prisma.ip
+        .findUnique({
+          where: {
+            id: ipId,
+          },
+        })
+        .catch(() => {
+          throw new errors.UserError(getMessage("ipNotFound", acceptLanguage));
+        })) as iIpPayload;
+
+      return resolve(ip);
+    });
+  }
+
   upsertIp(lookup: iLookup): Promise<iIpPayload> {
     return new Promise(async (resolve, reject) => {
       let ip = (await prisma.ip.findUnique({
@@ -53,7 +69,7 @@ class Ip implements iSubject {
           address: lookup.ip,
         },
         include: {
-          Attempt: true,
+          attempt: true,
           authorizedUsers: true,
         },
       })) as iIpPayload;
@@ -69,7 +85,7 @@ class Ip implements iSubject {
             ll: lookup.ll,
           },
           include: {
-            Attempt: true,
+            attempt: true,
             authorizedUsers: true,
           },
         })) as iIpPayload;
@@ -88,12 +104,184 @@ class Ip implements iSubject {
             ll: lookup.ll,
           },
           include: {
-            Attempt: true,
+            attempt: true,
             authorizedUsers: true,
           },
         })) as iIpPayload;
 
       resolve(ip);
+    });
+  }
+
+  verifyAttempts(ip: iIp, user: iUser): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+      const attempts = await prisma.attempt.findMany({
+        where: {
+          ipId: ip.id,
+          userId: user.id,
+          active: true,
+        },
+      });
+
+      const validAttempts: iAttempt[] = [];
+
+      attempts.forEach((attempt) => {
+        const now = new Date();
+        const createdAt = new Date(attempt.createdAt);
+        const maxInterval = 1000 * 60 * 60;
+
+        const interval = now.getTime() - createdAt.getTime();
+
+        if (interval < maxInterval) {
+          validAttempts.push(attempt);
+        }
+      });
+
+      if (validAttempts.length >= 10) return resolve(false);
+
+      return resolve(true);
+    });
+  }
+
+  unauthorizeIps(
+    userData: iUser,
+    exception?: iSessionPayload
+  ): Promise<number> {
+    return new Promise(async (resolve, reject) => {
+      let query: any = {
+        ip: {
+          authorizedUsersId: {
+            has: userData.id,
+          },
+        },
+      };
+
+      if (exception)
+        query = {
+          ip: {
+            authorizedUsersId: {
+              has: userData.id,
+            },
+          },
+          NOT: [
+            {
+              ip: {
+                id: exception.ipId,
+              },
+            },
+          ],
+        };
+
+      const sessions = (await prisma.session
+        .findMany({
+          where: query,
+        })
+        .catch((err) => {
+          reject(new errors.InternalServerError("Cannot inactivate sessions."));
+        })) as iSession[];
+
+      let changedIps: iIpPayload[] = [];
+
+      sessions.forEach(async (session) => {
+        await prisma.session
+          .update({
+            where: {
+              id: session.id,
+            },
+            data: {
+              user: {
+                disconnect: true,
+              },
+            },
+          })
+          .catch(() => {
+            return reject(
+              new errors.InternalServerError(
+                "Cannot update session: " + session.id
+              )
+            );
+          });
+
+        if (session.ipId !== exception?.ipId) {
+          const ip = (await prisma.ip
+            .update({
+              where: {
+                id: session.ipId,
+              },
+              data: {
+                authorizedUsers: {
+                  disconnect: { id: userData.id },
+                },
+              },
+            })
+            .catch(() => {
+              return reject(
+                new errors.InternalServerError(
+                  "Cannot update session: " + session.id
+                )
+              );
+            })) as iIpPayload;
+
+          changedIps.push(ip);
+        }
+      });
+
+      return resolve(sessions.length);
+    });
+  }
+
+  unauthorizeIp(ip: iIpPayload, user: iUser): Promise<iIp | null> {
+    return new Promise(async (resolve, reject) => {
+      const ipSessions = (await prisma.session
+        .findMany({
+          where: {
+            ip: {
+              id: ip.id,
+            },
+          },
+          include: {
+            ip: true,
+          },
+        })
+        .catch((err) => {
+          return reject(
+            new errors.InternalServerError("Cannot inactive session in DB.")
+          );
+        })) as iSessionPayload[];
+
+      ipSessions.forEach(async (session) => {
+        await prisma.session.update({
+          where: {
+            id: session.id,
+          },
+          data: {
+            token: "",
+            refreshToken: "",
+            user: {
+              disconnect: true,
+            },
+          },
+        });
+      });
+
+      await prisma.ip
+        .update({
+          where: {
+            id: ip.id,
+          },
+          data: {
+            authorizedUsers: {
+              disconnect: { id: user.id },
+            },
+          },
+        })
+        .catch(() => {
+          return reject(
+            new errors.InternalServerError("Cannot update ip: " + ip.id)
+          );
+        });
+
+      return resolve(ip);
     });
   }
 }

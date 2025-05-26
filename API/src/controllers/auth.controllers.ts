@@ -4,12 +4,13 @@ import RequestUserPayload from "../@types/iRequest/iRequest.js";
 
 //core
 import Authentication from "../core/Authentication/Authentication.js";
+import Ip from "../core/Ip/Ip.js";
+import Session from "../core/Session/Session.js";
 
 //errors
 import response from "../response/response.js";
 import errors from "../errors/errors.js";
-import IpType from "../types/IpType/IpType.js";
-import Session from "../core/Session/Session.js";
+import { getMessage } from "../locales/getMessage.js";
 
 //auth user, register and send token
 async function authenticate(
@@ -56,66 +57,46 @@ async function authenticate(
     .catch(next);
 }
 
-async function inactivateAllUserSessions(
+async function logoutSession(
   req: RequestUserPayload,
   res: Response,
   next: NextFunction
 ) {
-  if (!req.session) throw new errors.InternalServerError("Session not found");
+  if (!req.session) throw new errors.InternalServerError("Session Error");
+  if (!req.userData) throw new errors.InternalServerError("Userdata Error");
 
-  if (!req.userData) throw new errors.InternalServerError("UserData not found");
-
-  Session.inactivateAllUserSessions(req.userData, req.session).then((count) => {
-    res.status(200).send({
-      status: "Ok",
-      message: response.sessionsInactived(count),
-      info: {
-        count,
-      },
-    });
-  });
-}
-
-async function blockAllUserSessions(
-  req: RequestUserPayload,
-  res: Response,
-  next: NextFunction
-) {
-  if (!req.session) throw new errors.InternalServerError("Session not found");
-
-  if (!req.userData) throw new errors.InternalServerError("UserData not found");
-
-  Session.blockAllUserSessions(req.userData, req.session)
-    .then((count) => {
-      res.status(200).send({
-        status: "Ok",
-        message: response.sessionsUnauthorized(count),
-        info: {
-          count,
-        },
-      });
-    })
-    .catch(next);
-}
-
-async function inactivateSession(
-  req: RequestUserPayload,
-  res: Response,
-  next: NextFunction
-) {
-  if (!req.session) throw new errors.UserError(response.sessionNotFound());
-  if (!req.userData) throw new errors.UserError(response.userNotFound());
-
-  Session.inactivateSession(req.session, req.userData)
+  Session.logoutSession(req.session, req.userData)
     .then((session) => {
       res.status(200).send({
         status: "Ok",
-        message: response.sessionsInactived(1),
+        message: getMessage("inactivatedSession", req.session?.locale),
       });
     })
     .catch((err) => {
       throw err;
     });
+}
+
+async function logoutSessions(
+  req: RequestUserPayload,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.session) throw new errors.InternalServerError("Session not found");
+
+  if (!req.userData) throw new errors.InternalServerError("UserData not found");
+
+  Session.logoutAllUserSessions(req.userData, req.session).then((count) => {
+    res.status(200).send({
+      status: "Ok",
+      message: getMessage("inactivatedSession", req.session?.locale, {
+        count,
+      }),
+      info: {
+        count,
+      },
+    });
+  });
 }
 
 async function blockSession(
@@ -130,12 +111,93 @@ async function blockSession(
     .then((session) => {
       res.status(200).send({
         status: "Ok",
-        message: response.sessionsUnauthorized(1),
+        message: getMessage("blockSession", req.session?.locale),
       });
     })
     .catch((err) => {
       throw err;
     });
+}
+
+async function blockSessions(
+  req: RequestUserPayload,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.session) throw new errors.InternalServerError("Session not found");
+
+  if (!req.userData) throw new errors.InternalServerError("UserData not found");
+
+  Session.blockAllUserSessions(req.userData, req.session).then((count) => {
+    let message = getMessage("noBlockedSession");
+
+    if (count > 1)
+      message = getMessage("blockedSessions", req.session?.locale, { count });
+
+    if (count === 1)
+      message = getMessage("blockedSession", req.session?.locale);
+
+    res.status(200).send({
+      status: "Ok",
+      message: getMessage("blockSessions", req.session?.locale, {
+        count,
+      }),
+      info: {
+        count,
+      },
+    });
+  });
+}
+
+async function unauthorizeIp(
+  req: RequestUserPayload,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.session) throw new errors.InternalServerError("Session error.");
+  if (!req.userData) throw new errors.InternalServerError("User data error.");
+  if (!req.ipLookup) throw new errors.InternalServerError("Ip lookup error.");
+
+  Ip.unauthorizeIp(req.ipLookup, req.userData)
+    .then(() => {
+      res.status(200).send({
+        status: "Ok",
+        message: getMessage("unauthorizedIp", req.session?.locale),
+      });
+    })
+    .catch((err) => {
+      throw err;
+    });
+}
+
+async function unauthorizeIps(
+  req: RequestUserPayload,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.session) throw new errors.InternalServerError("Session error.");
+  if (!req.userData) throw new errors.InternalServerError("User data error.");
+  if (!req.ipLookup) throw new errors.InternalServerError("Ip lookup error.");
+
+  Ip.unauthorizeIps(req.userData, req.session)
+    .then((count) => {
+      let message = getMessage("noUnauthorizedIp");
+
+      if (count > 1)
+        message = getMessage("unauthorizedIps", req.session?.locale, { count });
+
+      if (count === 1)
+        message = getMessage("unauthorizedIp", req.session?.locale);
+
+      res.status(200).send({
+        status: "Ok",
+        message,
+        info: {
+          count,
+        },
+      });
+    })
+    .catch(next);
 }
 
 async function responseRequests(
@@ -151,9 +213,11 @@ async function responseRequests(
 
 export default {
   authenticate,
-  inactivateAllUserSessions,
-  inactivateSession,
-  blockSession,
+  unauthorizeIp,
+  unauthorizeIps,
   responseRequests,
-  blockAllUserSessions,
+  logoutSession,
+  logoutSessions,
+  blockSession,
+  blockSessions,
 };

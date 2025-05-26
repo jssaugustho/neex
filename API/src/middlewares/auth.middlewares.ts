@@ -99,7 +99,7 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
       req.data.acceptLanguage
     ).getValue();
 
-    req.session = await Session.identifySession(
+    req.session = await Session.sessionIdentifier(
       req.data.fingerprint,
       req.ipLookup,
       req.data.userAgent,
@@ -110,7 +110,7 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
       throw err;
     });
   } else {
-    req.session = await Session.identifySession(
+    req.session = await Session.sessionIdentifier(
       req.data.fingerprint,
       req.ipLookup,
       req.data.userAgent,
@@ -126,6 +126,7 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
 
 async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
+  if (!req.ipLookup) throw new errors.InternalServerError("IpLookup error.");
 
   const passwd = new PasswdType(
     req.body.passwd,
@@ -141,7 +142,7 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
     throw err;
   });
 
-  if (!(await Session.verifyAttempts(req.ipLookup, req.userData)))
+  if (!(await Ip.verifyAttempts(req.ipLookup, req.userData)))
     throw new errors.SessionError(
       getMessage("attemptLimit", req.session.locale)
     );
@@ -155,7 +156,7 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
   }
 
   //verifica se essa sessão necessita de 2fa autorizá-la.
-  const authorized = (await Session.verifySessionAuthorization(
+  const authorized = (await Session.sessionSecurityVerification(
     req.userData,
     req.session
   ).catch(() => {
@@ -172,6 +173,8 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
 }
 
 async function verifyToken(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.session) throw new errors.InternalServerError("Session error.");
+
   //verify if header exists
   if (!req.headers["authorization"])
     throw new errors.AuthError(
@@ -228,7 +231,6 @@ async function verifyRefreshToken(
   next();
 }
 
-//get user data from the token payload
 async function validateSessionId(
   req: iRequest,
   res: Response,
@@ -261,22 +263,54 @@ async function validateSessionId(
       getMessage("inactiveSession", req.session.locale)
     );
 
-  let userPrivilege =
-    req.userData.role === "ADMIN" || req.userData.role === "SUPPORT";
-
-  if (req.session?.userId === req.userData.id || userPrivilege) {
+  if (
+    req.session?.userId === req.userData.id ||
+    req?.userPrivilege === "SUPPORT" ||
+    req?.userPrivilege === "ADMIN"
+  ) {
     req.session = session;
     next();
   } else {
     throw new errors.AuthError(
-      getMessage("requirePrivilege", req.session.locale, {
+      getMessage("requirePrivilege", req.data.acceptLanguage, {
+        privilege: getMessage("ownerSupportOrAdmin", req.data.acceptLanguage),
+      })
+    );
+  }
+}
+
+async function validateIpId(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.userData) throw new errors.InternalServerError("Userdata error");
+  if (!req.session) throw new errors.InternalServerError("Session error");
+
+  let ipId = new ObjectIdType(
+    req.params.ipId,
+    req.data.acceptLanguage
+  ).getValue();
+
+  const ip = await Ip.getIpById(ipId, req.data.acceptLanguage).catch((err) => {
+    throw new errors.UserError(getMessage("ipNotFound", req.session?.locale));
+  });
+
+  if (!ip)
+    throw new errors.UserError(getMessage("ipNotFound", req.session.locale));
+
+  if (
+    req.session?.ipId === ip.id ||
+    req?.userPrivilege === "SUPPORT" ||
+    req?.userPrivilege === "ADMIN"
+  ) {
+    req.ipLookup = ip;
+    next();
+  } else {
+    throw new errors.AuthError(
+      getMessage("requirePrivilege", req.data.acceptLanguage, {
         privilege: getMessage("ownerSupportOrAdmin", req.session.locale),
       })
     );
   }
 }
 
-//get user data from the token payload
 async function validateUserId(
   req: iRequest,
   res: Response,
@@ -305,26 +339,22 @@ async function validateUserId(
 
 async function getSessions(req: iRequest, res: Response, next: NextFunction) {
   if (!req.userData) throw new errors.InternalServerError("UserData error.");
-
-  const authorizedIps = await prisma.ip.findMany({
-    where: {
-      authorizedUsersId: {
-        has: req.userData.id,
-      },
-    },
-  });
+  if (!req.session) throw new errors.InternalServerError("Session error.");
 
   const sessions = (await prisma.session
     .findMany({
       where: {
-        OR: authorizedIps.map((ip) => {
-          return {
-            ipId: ip.id,
-          };
-        }),
+        ip: {
+          authorizedUsersId: {
+            has: req.userData.id,
+          },
+        },
       },
       take: req.data.take,
       skip: req.data.skip,
+      include: {
+        ip: true,
+      },
     })
     .catch((err) => {
       throw new errors.InternalServerError("Cannot get sessions in DB.");
@@ -345,11 +375,20 @@ async function getSessions(req: iRequest, res: Response, next: NextFunction) {
     if (session.userId === req.userData?.id) return session;
   });
 
+  const messageKey =
+    publicSessions.length <= 0
+      ? "noSssionFound"
+      : publicSessions.length === 1
+        ? "sessionFound"
+        : "sessionsFound";
+
   req.response = {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: response.sessionsFound(publicSessions.length),
+      message: getMessage(messageKey, req.session.locale, {
+        count: publicSessions.length,
+      }),
       info: {
         count: publicSessions.length,
         showing: req.data.take,
@@ -365,6 +404,7 @@ async function getSessions(req: iRequest, res: Response, next: NextFunction) {
 
 async function countSessions(req: iRequest, res: Response, next: NextFunction) {
   if (!req.userData) throw new errors.InternalServerError("UserData error.");
+  if (!req.session) throw new errors.InternalServerError("Session error.");
 
   const authorizedIps = await prisma.ip.findMany({
     where: {
@@ -402,7 +442,9 @@ async function countSessions(req: iRequest, res: Response, next: NextFunction) {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: response.sessionsFound(sessions),
+      message: getMessage("sessionsFound", req.session.locale, {
+        count: sessions,
+      }),
       info: {
         count: sessions,
         activeSessions,
@@ -450,6 +492,7 @@ export default {
   verifyToken,
   validateSessionId,
   validateUserId,
+  validateIpId,
   getSessions,
   countSessions,
   getAtualSession,

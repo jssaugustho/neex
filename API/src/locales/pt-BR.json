@@ -4,39 +4,60 @@
   "noSessionsFound": "Nenhuma sessão encontrada.",
   "sessionFound": "Sessão encontrada.",
   "sessionsFound": "{{count}} sessões encontradas.",
-  "noInactivatedSessions": "Nenhuma sessão inativada.",
-  "inactivatedSession": "Sessão inativada com sucesso.",
+
+  "noInactivatedSessions": "Nenhuma sessão encontrada.",
+  "inactivatedSession": "Logout realizado com sucesso.",
   "inactivatedSessions": "{{count}} sessões inativadas com sucesso.",
+
   "inactiveSession": "Sessão inativa.",
-  "noUnauthorizedSessions": "Nenhuma sessão bloqueada.",
-  "unauthorizedSession": "Sessão bloqueada com sucesso.",
-  "unauthorizedSessions": "{{count}} sessões bloqueadas com sucesso.",
+
+  "noBlockedSession": "Nenhuma sessão bloqueada.",
+  "blockSession": "Sessão bloqueada com sucesso.",
+  "blockSessions": "{{count}} sessões bloqueadas com sucesso.",
+  "blockedSession": "Sessão inativa.",
+
+  "logoutSession": "Logout realizado com sucesso.",
+
+  "noUnauthorizedIp": "Nenhuma autorização revogada.",
+  "unauthorizedIp": "Autorização do endereço IP revogada.",
+  "unauthorizedIps": "{{count}} endereços IP tiveram as autorizações revogadas.",
+  "ipNotFound": "Endereço IP não encontrado.",
+
   "userNotFound": "Usuário não encontrado.",
   "noUsersFound": "Nenhum usuário encontrado.",
   "userFound": "Usuário encontrado.",
   "usersFound": "{{count}} usuários encontrados.",
+
   "newUserCreated": "Novo usuário criado com sucesso.",
+
   "emailVerified": "E-mail verificado com sucesso.",
   "emailNotVerified": "E-mail não verificado.",
+  "needEmail2fa": "Verifique o seu email.",
+
   "waitToResendEmail": "Aguarde {{time}} para reenviar o e-mail.",
+
   "invalidToken": "Token inválido",
+
   "invalidRefreshToken": "Refresh token inválido",
+
   "successAuthentication": "Autenticação bem-sucedida.",
   "failAuthentication": "Falha na autenticação.",
   "wrongPassword": "Senha incorreta.",
+
   "unauthorized": "Não autorizado.",
+  "attemptLimit": "Limite de tentativas atingido.",
+  "requirePrivilege": "Requer privilégios: {{privilege}}.",
+  "ownerSupportOrAdmin": "Proprietário, suporte ou administrador.",
+
+  "obrigatoryHeaders": "Cabeçalhos HTTP inválidos.",
   "obrigatoryParams": "Parâmetros obrigatórios não informados.",
+
   "invalidParams": "Parâmetros inválidos.",
   "invalidEmail": "E-mail inválido.",
   "invalidPhone": "Número de celular inválido.",
   "invalidPassword": "Senha inválida.",
-  "easyPassword": "Senha fraca.",
-  "requirePrivilege": "Requer privilégios: {{privilege}}.",
-  "ownerSupportOrAdmin": "Proprietário, suporte ou administrador.",
   "emailInUse": "E-mail já está em uso.",
   "phoneInUse": "Número de celular já está em uso.",
   "invalidHeaders": "Cabeçalhos HTTP inválidos.",
-  "obrigatoryHeaders": "Cabeçalhos HTTP inválidos.",
-  "attemptLimit": "Limite de tentativas atingido.",
-  "needEmail2fa": "Verifique o seu email."
+  "easyPassword": "Senha fraca."
 }

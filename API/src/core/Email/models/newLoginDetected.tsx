@@ -48,7 +48,7 @@ const NewLoginDetected = (props: { user: iUser; session: iSessionPayload }) => {
               Novo login detectado na sua conta {props.user.name}.
             </Text>
             <Text style={paragraph}>
-              Nós detectamos um novo acesso na sua conta na cidade de
+              Nós detectamos um novo acesso na sua conta na cidade de{" "}
               {props.session.ip.city}, {props.session.ip.region}.
             </Text>
             <Text style={paragraph}>

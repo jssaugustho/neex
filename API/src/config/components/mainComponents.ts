@@ -1,5 +1,8 @@
 import { application } from "express";
 import swaggerJSDoc from "swagger-jsdoc";
+import Session from "../../core/Session/Session.js";
+
+import { getMessage } from "../../locales/getMessage.js";
 
 const swaggerComponents: swaggerJSDoc.Components = {
   schemas: {
@@ -74,7 +77,7 @@ const swaggerComponents: swaggerJSDoc.Components = {
         },
         message: {
           type: "string",
-          example: "Autenticado com sucesso.",
+          example: getMessage("successAuthentication"),
         },
         token: {
           type: "string",
@@ -98,78 +101,168 @@ const swaggerComponents: swaggerJSDoc.Components = {
     Session: {
       type: "object",
       properties: {
-        id: { type: "string", example: "681921588016df0d14776789" },
+        id: { type: "string", example: "682a7e87c731a9508f958954" },
         createdAt: {
           type: "string",
           format: "date-time",
-          example: "2025-05-05T20:36:40.833Z",
+          example: "2025-05-19T00:42:47.735Z",
         },
         updatedAt: {
           type: "string",
           format: "date-time",
-          example: "2025-05-06T21:19:02.836Z",
+          example: "2025-05-20T15:37:01.092Z",
         },
         lastActivity: {
           type: "string",
           format: "date-time",
-          example: "2025-05-06T21:19:02.834Z",
+          example: "2025-05-20T15:37:01.090Z",
         },
-        ip: { type: "string", example: "181.222.238.8" },
-        location: {
-          type: "object",
-          properties: {
-            range: {
-              type: "array",
-              items: { type: "integer" },
-              example: [3051282432, 3051290623],
-            },
-            country: { type: "string", example: "BR" },
-            region: { type: "string", example: "MG" },
-            eu: { type: "string", example: "0" },
-            timezone: { type: "string", example: "America/Sao_Paulo" },
-            city: { type: "string", example: "Uberlândia" },
-            ll: {
-              type: "array",
-              items: { type: "number" },
-              example: [-18.9203, -48.2782],
-            },
-            metro: { type: "integer", example: 0 },
-            area: { type: "integer", example: 20 },
-          },
-        },
+        ipId: { type: "string", example: "682a7e87c731a9508f958953" },
         fingerprint: { type: "string", example: "************************" },
         userAgent: {
           type: "string",
-          example: "Mozilla/5.0 ... Chrome/124.0.0.0",
+          example:
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         },
         locale: { type: "string", example: "pt-BR" },
         timeZone: { type: "string", example: "America/Sao_Paulo" },
         name: { type: "string", example: "🖥️ Windows / Chrome" },
-        attempts: {
-          type: "object",
-          description: "Tentativas de login por usuário usuário.",
-          additionalProperties: {
-            type: "object",
-            properties: {
-              attempts: { type: "integer", example: 0 },
-              timeStamp: { type: "number", example: 1746566325901 },
-            },
-          },
-          example: {
-            "6813d062844330bfff6060cc": {
-              attempts: 0,
-              timeStamp: 1746566325901,
-            },
-          },
+        token: {
+          type: "string",
+          example: "***************************************",
         },
-        token: { type: "string", example: "********..." },
-        refreshToken: { type: "string", example: "********..." },
+        refreshToken: {
+          type: "string",
+          example: "***************************************",
+        },
         exponencialEmailExpires: { type: "integer", example: -1 },
-        userId: { type: "string", example: "6813d062844330bfff60690c" },
+        userId: { type: "string", example: "6813d062844330bfff6060cc" },
+        ip: {
+          $ref: "#/components/schemas/Ip",
+        },
+      },
+    },
+    GetSession: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          example: "Ok",
+        },
+        message: {
+          type: "string",
+          example: getMessage("sessionFound", "pt-BR", { count: 2 }),
+        },
+        data: {
+          $ref: "#/components/schemas/Session",
+        },
+      },
+    },
+    Ip: {
+      type: "object",
+      properties: {
+        id: { type: "string", example: "682a7e87c731a9508f958953" },
+        createdAt: {
+          type: "string",
+          format: "date-time",
+          example: "2025-05-19T00:42:47.318Z",
+        },
+        updatedAt: {
+          type: "string",
+          format: "date-time",
+          example: "2025-05-20T15:37:30.463Z",
+        },
+        lastActivity: {
+          type: "string",
+          format: "date-time",
+          example: "2025-05-19T00:42:47.318Z",
+        },
+        address: { type: "string", example: "187.94.56.100" },
+        city: { type: "string", example: "São Paulo" },
+        region: { type: "string", example: "SP" },
+        country: { type: "string", example: "BR" },
+        timeZone: { type: "string", example: "America/Sao_Paulo" },
+        ll: {
+          type: "array",
+          items: { type: "number" },
+          example: [-22.8305, -43.2192],
+        },
         authorizedUsersId: {
           type: "array",
           items: { type: "string" },
-          example: ["6813d062844330bfff6980cc"],
+          example: ["6813d062844330bfff6060cc"],
+        },
+      },
+    },
+    LogoutSession: {
+      type: "object",
+      properties: {
+        status: { type: "string", example: "Ok" },
+        message: {
+          type: "string",
+          example: getMessage("logoutSession", "pt-BR"),
+        },
+      },
+    },
+    BlockSession: {
+      type: "object",
+      properties: {
+        status: { type: "string", example: "Ok" },
+        message: {
+          type: "string",
+          example: getMessage("blockSession", "pt-BR"),
+        },
+      },
+    },
+    BlockSessions: {
+      type: "object",
+      properties: {
+        status: { type: "string", example: "Ok" },
+        message: {
+          type: "string",
+          example: getMessage("blockSessions", "pt-BR", {
+            count: 2,
+          }),
+        },
+        info: {
+          type: "object",
+          properties: {
+            count: {
+              type: "integer",
+              example: 2,
+            },
+          },
+        },
+      },
+    },
+    UnauthorizeIp: {
+      type: "object",
+      properties: {
+        status: { type: "string", example: "Ok" },
+        message: {
+          type: "string",
+          example: getMessage("unauthorizedIp", "pt-BR"),
+        },
+      },
+    },
+    UnauthorizeIps: {
+      type: "object",
+      properties: {
+        status: { type: "string", example: "Ok" },
+        message: {
+          type: "string",
+          example: getMessage("unauthorizedIps", "pt-BR", {
+            count: 2,
+          }),
+          info: {
+            type: "object",
+            properties: {
+              count: {
+                type: "integer",
+                example: 2,
+              },
+            },
+          },
         },
       },
     },
@@ -304,12 +397,94 @@ const swaggerComponents: swaggerJSDoc.Components = {
         },
       },
     },
-    UniqueSession: {
+    Session: {
       description: "Buscando os dados da sessão atual.",
       content: {
         "application/json": {
           schema: {
-            $ref: "#/components/schemas/Session",
+            $ref: "#/components/schemas/GetSession",
+          },
+        },
+      },
+    },
+    Sessions: {
+      description: "Buscando todas as sessões do usuário autenticado.",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              status: { type: "string", example: "Ok" },
+              message: {
+                type: "string",
+                example: getMessage("sessionsFound", "pt-BR", { count: 2 }),
+              },
+              info: {
+                type: "object",
+                properties: {
+                  count: { type: "integer", example: 2 },
+                  showing: { type: "integer", example: 100 },
+                  skipped: { type: "integer", example: 0 },
+                  activeSessions: { type: "integer", example: 2 },
+                },
+              },
+              data: {
+                type: "array",
+                items: {
+                  $ref: "#/components/schemas/Session",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    BlockSession: {
+      description: "Sessão bloqueada com sucesso.",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/BlockSession",
+          },
+        },
+      },
+    },
+    LogoutSession: {
+      description: "Logout realizado com sucesso.",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/LogoutSession",
+          },
+        },
+      },
+    },
+    BlockSessions: {
+      description: "{{count}} sessões inativadas com sucesso.",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/BlockSessions",
+          },
+        },
+      },
+    },
+    UnauthorizeIp: {
+      description: "Autorização revogada com sucesso.",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/UnauthorizeIp",
+          },
+        },
+      },
+    },
+    UnauthorizeIps: {
+      description: "Autorizações revogadas com sucesso.",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/UnauthorizeIps",
           },
         },
       },

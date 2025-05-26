@@ -7,12 +7,13 @@ import iSessionPayload from "../iSessionPayload/iSessionPayload.js";
 import IIpPayload from "../iIpPayload/iIpPayload.js";
 
 interface iRequest extends Request {
-  userData: User;
-  ipLookup: IIpPayload;
-  session: iSessionPayload;
+  userData?: User;
+  ipLookup?: IIpPayload;
+  session?: iSessionPayload;
   deleteSession?: string | null;
   data?: any;
   response?: iResponse;
+  userPrivilege?: string;
 }
 
 export default iRequest;

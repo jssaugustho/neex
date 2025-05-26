@@ -84,7 +84,7 @@ class Authentication implements iSubject {
         );
       })) as iSessionPayload;
 
-      const authorized = await Session.verifySessionAuthorization(
+      const authorized = await Session.sessionSecurityVerification(
         tokenUser,
         session
       ).catch((err) => {
@@ -94,6 +94,13 @@ class Authentication implements iSubject {
           )
         );
       });
+
+      if (
+        !tokenSession?.userId ||
+        !tokenSession?.token ||
+        !tokenSession?.refreshToken
+      )
+        return reject(new errors.AuthError(getMessage("unauthorized")));
 
       if (!authorized)
         return reject(
@@ -171,7 +178,7 @@ class Authentication implements iSubject {
           )
         );
 
-      const authorized = await Session.verifySessionAuthorization(
+      const authorized = await Session.sessionSecurityVerification(
         refreshTokenUser,
         session
       ).catch((err) => {
@@ -263,6 +270,11 @@ class Authentication implements iSubject {
             refreshToken,
             user: {
               connect: {
+                id: user.id,
+              },
+            },
+            unauthorizedUsers: {
+              disconnect: {
                 id: user.id,
               },
             },
