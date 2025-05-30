@@ -15,27 +15,15 @@ import { Session as iSession, User as iUser } from "@prisma/client";
 
 //validators
 import EmailType from "../types/EmailType/EmailType.js";
-import PasswdType from "../types/PasswdType/PasswdType.js";
-import FingerprintType from "../types/FingerprintType/FingerprintType.js";
 import TokenType from "../types/TokenType/TokenType.js";
-import ObjectIdType from "../types/ObjectIdType/ObjectIdType.js";
-
-//observers
-import IncrementSessionAttempts from "../observers/SessionAttempts/IncrementSessionAttempts.js";
 
 //db
 import prisma from "../controllers/db.controller.js";
-import Email from "../core/Email/Email.js";
 import Verification from "../core/Verification/Verification.js";
-import iSessionAttempts from "../@types/iSessionPayload/iSessionPayload.js";
-import Token from "../core/Token/Token.js";
-import iTokenPayload from "../@types/iTokenPayload/iTokenPayload.js";
+import { getMessage } from "../locales/getMessage.js";
+import { error } from "console";
 
-async function validateResend(
-  req: iRequest,
-  res: Response,
-  next: NextFunction
-) {
+async function validateEmail(req: iRequest, res: Response, next: NextFunction) {
   if (!req.session) throw new errors.InternalServerError("Session error");
 
   let email = new EmailType(req.body.email, req.session.locale).getValue();
@@ -43,6 +31,33 @@ async function validateResend(
   req.userData = await User.getUserByEmail(email).catch((err) => {
     throw new errors.UserError(response.emailNotExists());
   });
+
+  next();
+}
+
+async function validateIfEmailAlreadyVerified(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.session) throw new errors.InternalServerError("Session error.");
+  if (!req.userData) throw new errors.InternalServerError("UserData error.");
+
+  if (req.userData.emailVerified)
+    throw new errors.UserError(
+      getMessage("emailAlreadyVerified", req.session.locale)
+    );
+
+  next();
+}
+
+async function validateResend(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.session) throw new errors.InternalServerError("Session error");
+  if (!req.userData) throw new errors.UserError("UserData Error");
 
   req.data.timeLeft = await Verification.getTimeLeft(
     req.session,
@@ -84,14 +99,25 @@ async function sendEmail(req: iRequest, res: Response, next: NextFunction) {
     throw err;
   });
 
+  let data: any = {
+    exponencialEmailExpires: {
+      increment: 1,
+    },
+  };
+
+  if (req.session.exponencialEmailExpires >= 12) {
+    data = {
+      exponencialEmailExpires: 16,
+    };
+  }
+
   req.session = await prisma.session.update({
     where: {
       id: req.session.id,
     },
-    data: {
-      exponencialEmailExpires: {
-        increment: 1,
-      },
+    data,
+    include: {
+      ip: true,
     },
   });
 
@@ -105,11 +131,20 @@ async function sendEmail(req: iRequest, res: Response, next: NextFunction) {
 
   if (hours >= 1) pretty = `${hours}h ${minutes}m ${seconds}s`;
 
+  await Verification.sendVerificationCode(
+    req.userData,
+    verification.token
+  ).catch((err) => {
+    throw new errors.InternalServerError(
+      "Erro ao enviar o email de verificação."
+    );
+  });
+
   req.response = {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: "Email enviado.",
+      message: getMessage("sendedEmail", req.session.locale),
       info: {
         timeLeft,
         pretty,
@@ -120,7 +155,7 @@ async function sendEmail(req: iRequest, res: Response, next: NextFunction) {
   next();
 }
 
-async function validateEmailToken(
+async function validateAuthenticationToken(
   req: iRequest,
   res: Response,
   next: NextFunction
@@ -138,8 +173,67 @@ async function validateEmailToken(
   next();
 }
 
+async function validateVerificationToken(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.session) throw new errors.InternalServerError("Session error.");
+  if (!req.userData) throw new errors.InternalServerError("UserData error.");
+
+  const token = new TokenType(req.body.token, req.session.locale).getValue();
+
+  req.userData = (await Verification.verifyEmailToken(
+    token,
+    req.session,
+    req.userData
+  ).catch((err) => {
+    throw err;
+  })) as iUser;
+
+  req.response = {
+    statusCode: 200,
+    output: {
+      status: "Ok",
+      message: getMessage("emailVerified", req.session.locale),
+    },
+  };
+
+  next();
+}
+
+async function setEmailVerified(
+  req: iRequest,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.userData) throw new errors.UserError("UserData Error");
+  if (!req.session) throw new errors.UserError("Session Error");
+
+  req.userData = await User.setEmailVerified(
+    req.userData,
+    req.session.locale
+  ).catch((err) => {
+    throw err;
+  });
+
+  req.response = {
+    statusCode: 200,
+    output: {
+      status: "Ok",
+      message: getMessage("emailVerified", req.session.locale),
+    },
+  };
+
+  next();
+}
+
 export default {
-  validateEmailToken,
+  validateAuthenticationToken,
+  validateVerificationToken,
+  validateEmail,
   validateResend,
   sendEmail,
+  setEmailVerified,
+  validateIfEmailAlreadyVerified,
 };

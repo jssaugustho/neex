@@ -53,11 +53,15 @@
   "obrigatoryParams": "Parâmetros obrigatórios não informados.",
 
   "invalidParams": "Parâmetros inválidos.",
+  "invalidQuery": "Consulta inválida.",
   "invalidEmail": "E-mail inválido.",
   "invalidPhone": "Número de celular inválido.",
   "invalidPassword": "Senha inválida.",
   "emailInUse": "E-mail já está em uso.",
   "phoneInUse": "Número de celular já está em uso.",
   "invalidHeaders": "Cabeçalhos HTTP inválidos.",
-  "easyPassword": "Senha fraca."
+  "easyPassword": "Senha fraca.",
+
+  "sendedEmail": "Email enviado.",
+  "emailAlreadyVerified": "E-mail já verificado."
 }

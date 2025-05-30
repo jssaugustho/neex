@@ -66,8 +66,6 @@ const VerifyEmail = (props: { token: string; user: iUser }) => (
   </Html>
 );
 
-export default VerifyEmail;
-
 const main = {
   backgroundColor: "#f6f9fc",
   fontFamily:
@@ -130,3 +128,5 @@ const footer = {
   fontSize: "12px",
   lineHeight: "18px",
 };
+
+export default VerifyEmail;

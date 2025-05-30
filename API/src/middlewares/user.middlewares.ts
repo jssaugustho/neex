@@ -21,7 +21,8 @@ import response from "../response/response.js";
 import RoleType from "../types/RoleType/RoleType.js";
 import ObjectIdType from "../types/ObjectIdType/ObjectIdType.js";
 import Session from "../core/Session/Session.js";
-import SendVerificationCode from "../observers/VerificationCode/SendVerificationCode.js";
+import Verification from "../core/Verification/Verification.jsx";
+import { getMessage } from "../locales/getMessage.js";
 
 //verify login and send user id to next in req.id
 async function validateRegisterParams(
@@ -29,22 +30,33 @@ async function validateRegisterParams(
   res: Response,
   next: NextFunction
 ) {
-  let email = new EmailType(req.body.email);
+  if (!req.session) throw new errors.InternalServerError("Session error");
+
+  let email = new EmailType(req.body.email, req.session.locale);
 
   await email.avaible().catch((err) => {
     throw err;
   });
 
-  let phone = new PhoneType(req.body.phone);
+  let phone = new PhoneType(req.body.phone, req.session.locale);
 
   await phone.avaible().catch((err) => {
     throw err;
   });
 
   req.data.email = email.getValue();
-  req.data.passwd = new PasswdType(req.body.passwd).getValue();
-  req.data.name = new SmallTextType(req.body.name).getValue();
-  req.data.lastName = new SmallTextType(req.body.lastName).getValue();
+  req.data.passwd = new PasswdType(
+    req.body.passwd,
+    req.session.locale
+  ).getValue();
+  req.data.name = new SmallTextType(
+    req.body.name,
+    req.session.locale
+  ).getValue();
+  req.data.lastName = new SmallTextType(
+    req.body.lastName,
+    req.session.locale
+  ).getValue();
   req.data.phone = phone.getValue();
 
   next();
@@ -76,7 +88,9 @@ async function registerNewUser(
 }
 
 async function emailExists(req: iRequest, res: Response, next: NextFunction) {
-  let email = new EmailType(req.body.email);
+  if (!req.session) throw new errors.InternalServerError("Session error");
+
+  let email = new EmailType(req.body.email, req.session.locale);
 
   await email.avaible().catch((err) => {
     throw err;
@@ -86,7 +100,7 @@ async function emailExists(req: iRequest, res: Response, next: NextFunction) {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: response.emailAvaible(),
+      message: getMessage("emailAvaible", req.session.locale),
     },
   };
 
@@ -98,10 +112,9 @@ async function validateUserId(
   res: Response,
   next: NextFunction
 ) {
-  let id = new ObjectIdType(
-    req.params.id,
-    new errors.UserError(response.userNotFound())
-  ).getValue();
+  if (!req.session) throw new errors.InternalServerError("Session error");
+
+  let id = new ObjectIdType(req.params.id, req.session.locale).getValue();
 
   req.userData = (await User.getUserById(id).catch(next)) as iUser;
 
@@ -109,6 +122,8 @@ async function validateUserId(
 }
 
 async function getUser(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.session) throw new errors.InternalServerError("Session error");
+
   let publicData = req.userData;
 
   if (publicData?.passwd)
@@ -118,7 +133,7 @@ async function getUser(req: iRequest, res: Response, next: NextFunction) {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: response.sessionsFound(1),
+      message: getMessage("userFound", req.session.locale),
       data: req.userData,
     },
   };
@@ -127,6 +142,8 @@ async function getUser(req: iRequest, res: Response, next: NextFunction) {
 }
 
 async function getUsers(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.session) throw new errors.InternalServerError("Session error");
+
   const query: any = {
     take: req.data.take,
     skip: req.data.skip,
@@ -147,9 +164,9 @@ async function getUsers(req: iRequest, res: Response, next: NextFunction) {
     where = query.where;
   }
 
-  const users = await prisma.user.findMany(query).catch((err) => {
+  const users = (await prisma.user.findMany(query).catch((err) => {
     throw new errors.InternalServerError("Cannot get users in DB.");
-  });
+  })) as iUser[];
 
   const publicUsers = users.map((user) => {
     user.passwd = "*************************************";
@@ -157,21 +174,22 @@ async function getUsers(req: iRequest, res: Response, next: NextFunction) {
     return user;
   });
 
-  const lenght = await prisma.user
-    .count({
-      where,
-    })
-    .catch(() => {
-      throw new errors.InternalServerError("Cannot count users in DB.");
-    });
+  const messageKey =
+    users.length === 1
+      ? "userFound"
+      : users.length > 1
+        ? "usersFound"
+        : "noUsersFound";
 
   req.response = {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: response.userFound(lenght),
+      message: getMessage(messageKey, req.session.locale, {
+        count: users.length,
+      }),
       info: {
-        lenght,
+        lenght: users.length,
         showing: req.data.take,
         skipped: req.data.skip,
       },
@@ -183,6 +201,7 @@ async function getUsers(req: iRequest, res: Response, next: NextFunction) {
 }
 
 async function countAllUsers(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.session) throw new errors.InternalServerError("Session error");
   let where = {};
 
   if (req.data.search) {
@@ -204,11 +223,16 @@ async function countAllUsers(req: iRequest, res: Response, next: NextFunction) {
       throw new errors.InternalServerError("Cannot count users in DB.");
     });
 
+  const messageKey =
+    count === 1 ? "userFound" : count > 1 ? "usersFound" : "noUsersFound";
+
   req.response = {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: "Usuários encontrados.",
+      message: getMessage(messageKey, req.session.locale, {
+        count,
+      }),
       data: {
         count: count,
       },
@@ -223,17 +247,25 @@ async function validateUpdateParams(
   res: Response,
   next: NextFunction
 ) {
+  if (!req.session) throw new errors.InternalServerError("Session error");
+
   req.data = {};
   req.data.body = {};
 
   if (req.body.name)
-    req.data.body.name = new SmallTextType(req.body.name).getValue();
+    req.data.body.name = new SmallTextType(
+      req.body.name,
+      req.session.locale
+    ).getValue();
 
   if (req.body.lastName)
-    req.data.body.lastName = new SmallTextType(req.body.lastName).getValue();
+    req.data.body.lastName = new SmallTextType(
+      req.body.lastName,
+      req.session.locale
+    ).getValue();
 
   if (req.body.email) {
-    let email = new EmailType(req.body.email);
+    let email = new EmailType(req.body.email, req.session.locale);
 
     await email.avaible().catch((err) => {
       throw err;
@@ -244,7 +276,7 @@ async function validateUpdateParams(
   }
 
   if (req.body.phone) {
-    let phone = new PhoneType(req.body.phone);
+    let phone = new PhoneType(req.body.phone, req.session.locale);
 
     await phone.avaible().catch((err) => {
       throw err;
@@ -254,24 +286,36 @@ async function validateUpdateParams(
   }
 
   if (req.body.passwd)
-    req.data.body.passwd = new PasswdType(req.body.passwd).getValue();
+    req.data.body.passwd = new PasswdType(
+      req.body.passwd,
+      req.session.locale
+    ).getValue();
 
   if (req.body.role) {
     if (req.userData?.role !== "ADMIN")
-      throw new errors.UserError(response.unauthorizated());
+      throw new errors.UserError(
+        getMessage("unauthorized", req.session.locale)
+      );
 
-    req.data.body.role = new RoleType(req.body.role).getValue();
+    req.data.body.role = new RoleType(
+      req.body.role,
+      req.session.locale
+    ).getValue();
   }
 
   if (req.body.active) {
     if (typeof req.body.active !== "boolean")
-      throw new errors.UserError(response.invalidParam("active"));
+      throw new errors.UserError(
+        getMessage("invalidParams", req.session.locale)
+      );
 
     req.data.body.active = req.body.active;
   }
 
   if (Object.keys(req.data.body).length === 0) {
-    throw new errors.UserError(response.needOneBodyParam());
+    throw new errors.UserError(
+      getMessage("obrigatoryParams", req.session.locale)
+    );
   }
 
   next();
@@ -282,24 +326,26 @@ async function validateUpdateQuery(
   res: Response,
   next: NextFunction
 ) {
-  req.data.query = {};
-
+  if (!req.session) throw new errors.InternalServerError("Session error");
   if (!req.userData) throw new errors.InternalServerError("Userdata error");
+
+  req.data.query = {};
 
   const privilege =
     req.userData.role === "ADMIN" || req.userData.role === "SUPPORT";
 
   if (!req.params.query || typeof req.params.query !== "string")
-    throw new errors.UserError(response.invalidQuery());
+    throw new errors.UserError(getMessage("invalidQuery", req.session.locale));
 
-  if (!privilege) throw new errors.AuthError(response.unauthorizated());
+  if (!privilege)
+    throw new errors.AuthError(getMessage("unauthorized", req.session.locale));
 
   req.data.query = {
     OR: [{ email: req.params.query }, { id: req.params.query }],
   };
 
   if (Object.keys(req.data.query).length === 0) {
-    throw new errors.UserError(response.invalidQuery());
+    throw new errors.UserError(getMessage("invalidQuery", req.session.locale));
   }
 
   next();
@@ -327,6 +373,9 @@ async function validateSearch(
 }
 
 async function updateUsers(req: iRequest, res: Response, next: NextFunction) {
+  if (!req.userData) throw new errors.InternalServerError("Userdata error");
+  if (!req.session) throw new errors.InternalServerError("Session error");
+
   const user = await prisma.user
     .updateMany({
       where: req.data.query,
@@ -338,9 +387,22 @@ async function updateUsers(req: iRequest, res: Response, next: NextFunction) {
     });
 
   if (req.data.body.email) {
-    Session.notifyObserver(SendVerificationCode, {
-      session: req.session,
-      user,
+    const verification = await Verification.generate2faLink(
+      req.userData,
+      req.session
+    ).catch((err) => {
+      throw new errors.InternalServerError(
+        "Não foi possível gerar o código de verificação do email."
+      );
+    });
+
+    await Verification.sendVerificationCode(
+      req.userData,
+      verification.token
+    ).catch((err) => {
+      throw new errors.InternalServerError(
+        "Não foi possível enviar o código de verificação do email."
+      );
     });
   }
 
@@ -348,7 +410,7 @@ async function updateUsers(req: iRequest, res: Response, next: NextFunction) {
     statusCode: 200,
     output: {
       status: "Ok",
-      message: "Usuário atualizado.",
+      message: getMessage("updated"),
     },
   };
 

@@ -1,3 +1,5 @@
+import { User as iUser } from "@prisma/client";
+
 import {
   Body,
   Button,
@@ -18,7 +20,7 @@ const baseUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "";
 
-const emailVerified = (token: string) => (
+const EmailVerified = (props: { user: iUser }) => (
   <Html>
     <Head />
     <Preview>Email verificado com sucesso.</Preview>
@@ -38,10 +40,7 @@ const emailVerified = (token: string) => (
             Agora você pode acessar o LuxCRM e utilizar todas as
             funcionalidades.
           </Text>
-          <Button
-            style={button}
-            href={`${process.env.SPA_URL}/onboarding?token=${token}`}
-          >
+          <Button style={button} href={`${process.env.SPA_URL}/onboarding`}>
             Acessar Dashboard
           </Button>
           <Text style={paragraph}>
@@ -58,8 +57,6 @@ const emailVerified = (token: string) => (
     </Body>
   </Html>
 );
-
-export default emailVerified;
 
 const main = {
   backgroundColor: "#f6f9fc",
@@ -123,3 +120,5 @@ const footer = {
   fontSize: "12px",
   lineHeight: "18px",
 };
+
+export default EmailVerified;

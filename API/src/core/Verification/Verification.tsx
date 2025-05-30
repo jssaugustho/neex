@@ -4,45 +4,34 @@ import {
   Session as iSession,
   Verification as iVerification,
 } from "@prisma/client";
-import iObserver from "../../@types/iObserver/iObserver.js";
-import iSubject from "../../@types/iSubject/iSubject.js";
 
 //db
 import prisma from "../../controllers/db.controller.js";
 
 //external libs
 import jwt from "jsonwebtoken";
-import SendVerificationCode from "../../observers/VerificationCode/SendVerificationCode.js";
-import Token from "../Token/Token.js";
 import errors from "../../errors/errors.js";
-import response from "../../response/response.js";
-import User from "../User/User.js";
-import { rejects } from "assert";
-import WelcomeMessage from "../../observers/Welcome/WelcomeMessage.jsx";
 import { getMessage } from "../../locales/getMessage.js";
 
-class Verification implements iSubject {
-  observers: iObserver[] = [];
+import Token from "../Token/Token.js";
+import User from "../User/User.js";
+import Email from "../Email/Email.js";
 
-  constructor() {
-    this.registerObserver(SendVerificationCode);
-  }
+//email models
+import React from "react";
+import VerifyEmail from "../Email/models/VerifyEmail.jsx";
+import WelcomeMessage from "../Email/models/WelcomeMessage.jsx";
+import EmailVerified from "../Email/models/EmailVerified.jsx";
 
-  //observer functions
-  registerObserver(observer: iObserver) {
-    this.observers.push(observer);
-  }
-
-  removeObserver(observer: iObserver) {
-    this.observers = this.observers.filter((obs) => obs !== observer);
-  }
-
-  async notify(data?: { user: iUser; token: string }) {
-    this.observers.forEach((observer) => observer.update(data));
-  }
-
-  notifyObserver(observer: iObserver, data?: any) {
-    observer.update(data);
+class Verification {
+  async notificateEmailVerified(user: iUser) {
+    return await Email.sendEmail(
+      user.email,
+      "Email Verificado Com Sucesso | Lux CRM ©",
+      <EmailVerified user={user} />
+    ).catch((err) => {
+      console.log(err);
+    });
   }
 
   getExponencialTime(session: iSession) {
@@ -97,14 +86,14 @@ class Verification implements iSubject {
   async generate2faLink(
     user: iUser,
     session: iSession,
-    firstTime: boolean = false
+    auth = false
   ): Promise<iVerification> {
     return new Promise(async (resolve, reject) => {
       const token = jwt.sign(
         {
           id: user.id,
           sessionId: session.id,
-          type: "Email2fa",
+          type: auth ? "authentication" : "verification",
         },
         process.env.JWT_VERIFICATION_SECRET as string,
         {
@@ -124,43 +113,35 @@ class Verification implements iSubject {
         },
       })) as iVerification;
 
-      if (!firstTime)
-        await this.notify({
-          user,
-          token,
-        });
-      else this.notifyObserver(WelcomeMessage, { user, token });
-
       resolve(verification);
     });
   }
 
-  // async verifyLastAttempt(user: iUser, token: string): Promise<boolean> {
-  //   return new Promise(async (resolve, reject) => {
-  //     let verification = await prisma.verification
-  //       .findFirst({
-  //         where: {
-  //           userId: user.id,
-  //           token,
-  //         },
-  //       })
-  //       .catch(() => {
-  //         throw new errors.InternalServerError(
-  //           "Cannot get verification in DB."
-  //         );
-  //       });
+  async sendVerificationCode(user: iUser, emailToken: string) {
+    return await Email.sendEmail(
+      user.email,
+      "Verifique seu email | Lux CRM ©",
+      <VerifyEmail token={emailToken} user={user} />
+    ).catch((err) => {
+      console.log(err);
+    });
+  }
 
-  //     if (!verification) return resolve(true);
+  async sendWelcomeMessage(user: iUser, emailToken: string) {
+    return await Email.sendEmail(
+      user.email,
+      "Verifique seu email | Lux CRM ©",
+      <WelcomeMessage token={emailToken} user={user} />
+    ).catch((err) => {
+      console.log(err);
+    });
+  }
 
-  //     let lastAttempt = new Date(verification.updatedAt).getTime();
-
-  //     if (lastAttempt > Date.now() - 60 * 1000 * 60) return reject(false);
-
-  //     return resolve(true);
-  //   });
-  // }
-
-  async verifyEmailToken(token: string, session: iSession): Promise<iUser> {
+  async verifyEmailToken(
+    token: string,
+    session: iSession,
+    userData?: iUser
+  ): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const payload = await Token.loadPayload(token, "emailToken").catch(
         (err) => {
@@ -178,11 +159,22 @@ class Verification implements iSubject {
           new errors.AuthError(getMessage("invalidToken", session.locale))
         );
 
-      const user = (await User.getUserById(payload.id).catch((err) => {
+      const authorizedPayloadType = userData
+        ? "authentication"
+        : "verification";
+
+      if (payload.type != authorizedPayloadType)
         return reject(
           new errors.AuthError(getMessage("invalidToken", session.locale))
         );
-      })) as iUser;
+
+      const user =
+        userData ||
+        ((await User.getUserById(payload.id).catch((err) => {
+          return reject(
+            new errors.AuthError(getMessage("invalidToken", session.locale))
+          );
+        })) as iUser);
 
       let verification = (await prisma.verification
         .findFirstOrThrow({

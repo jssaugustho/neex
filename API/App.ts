@@ -6,9 +6,10 @@ import cors from "cors";
 // rotas
 import userRoute from "./src/routes/user.route.js";
 import authRoute from "./src/routes/auth.route.js";
+import sessionRoute from "./src/routes/session.route.js";
 
 import errorHandler from "./src/errors/errorHandler.js";
-import authMiddlewares from "./src/middlewares/auth.middlewares.js";
+import sessionMiddlewares from "./src/middlewares/session.middlewares.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./src/config/swaggerSpec.js";
@@ -39,10 +40,10 @@ class App {
     this.app.use(cors(corsOptions));
 
     //identificador de sessão
-    this.app.use(authMiddlewares.getSession);
+    this.app.use(sessionMiddlewares.getSession);
 
     //bloqueio de user-agents da blacklist
-    this.app.use(authMiddlewares.userAgentBlackList);
+    this.app.use(sessionMiddlewares.userAgentBlackList);
 
     //chamar rotas
     this.routes();
@@ -54,6 +55,7 @@ class App {
   routes() {
     //rotas V1
     this.app.use("/V1/", authRoute);
+    this.app.use("/V1/", sessionRoute);
     this.app.use("/V1/", userRoute);
     this.app.use("/V1/", verificationRoute);
   }

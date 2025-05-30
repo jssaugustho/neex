@@ -7,40 +7,11 @@ import response from "../../response/response.js";
 
 //types
 import { User as iUser, Session as iSession } from "@prisma/client";
-import Subject from "../../@types/iSubject/iSubject.js";
-import Observer from "../../@types/iObserver/iObserver.js";
-import SendVerificationCode from "../../observers/VerificationCode/SendVerificationCode.js";
 
-//external libs
-import Session from "../Session/Session.js";
-import iLookup from "../../@types/iLookup/iLookup.js";
-import EmailNewUserAdmin from "../../observers/NotificateAdmin/EmailNewUserAdmin.js";
+//core
 import Verification from "../Verification/Verification.js";
 
-class Authentication implements Subject {
-  observers: Observer[] = [];
-
-  constructor() {
-    this.registerObserver(EmailNewUserAdmin);
-  }
-
-  //observer functions
-  registerObserver(observer: Observer) {
-    this.observers.push(observer);
-  }
-
-  removeObserver(observer: Observer) {
-    this.observers = this.observers.filter((obs) => obs !== observer);
-  }
-
-  notify(data?: any) {
-    this.observers.forEach((observer) => observer.update(data));
-  }
-
-  notifyObserver(observer: Observer, data?: any) {
-    observer.update(data);
-  }
-
+class Authentication {
   //core
   verifySupport(supportEmail: string, userId: string): Promise<Boolean> {
     return new Promise(async (resolve, reject) => {
@@ -107,9 +78,31 @@ class Authentication implements Subject {
           );
         })) as iUser;
 
-      await Verification.generate2faLink(user, session, true);
+      const verification = await Verification.generate2faLink(user, session);
+
+      await Verification.sendWelcomeMessage(user, verification.token);
 
       resolve(user);
+    });
+  }
+
+  setEmailVerified(user: iUser, locale = "pt-BR"): Promise<iUser> {
+    return new Promise((resolve, reject) => {
+      prisma.user
+        .update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            emailVerified: true,
+          },
+        })
+        .then((user) => {
+          resolve(user as iUser);
+        })
+        .catch(() => {
+          reject(new errors.InternalServerError("Erro ao atualizar usuário."));
+        });
     });
   }
 }

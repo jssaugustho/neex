@@ -36,7 +36,7 @@ users.get(
 
 //get one user (only ADMIN || SUPPORT)
 users.get(
-  "/support/user/:id",
+  "/user/:id",
   authMiddlewares.verifyToken,
   commonMiddlewares.verifyAdminAndSupport,
   userMiddlewares.validateUserId,
@@ -77,9 +77,9 @@ users.patch(
 
 //patch user (only ADMIN || SUPPORT)
 users.patch(
-  "/support/user/:query",
+  "/user/:query",
   authMiddlewares.verifyToken,
-  userMiddlewares.validateUpdateParams,
+  userMiddlewares.validateUpdateParams,0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   userMiddlewares.validateUpdateQuery,
   userMiddlewares.updateUsers,
   userControllers.response

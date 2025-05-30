@@ -3,51 +3,43 @@ import prisma from "../../controllers/db.controller.js";
 
 //errors & response
 import errors from "../../errors/errors.js";
-import response from "../../response/response.js";
+import { getMessage } from "../../locales/getMessage.js";
 
 //external libs
 import jwt from "jsonwebtoken";
+import React from "react";
 
 //types
 import { Ip as iIp, Session as iSession, User as iUser } from "@prisma/client";
 import User from "../User/User.js";
-import iObserver from "../../@types/iObserver/iObserver.js";
-import iSubject from "../../@types/iSubject/iSubject.js";
 import iTokenPayload from "../../@types/iTokenPayload/iTokenPayload.js";
-import iLookup from "../../@types/iLookup/iLookup.js";
-
-//Observers
-import NotifyNewLoginUser from "../../observers/NotificateUser/EmailNewFingerprintDetected.jsx";
-import Session from "../Session/Session.js";
-import Token from "../Token/Token.js";
-import iSessionAttempts from "../../@types/iSessionPayload/iSessionPayload.js";
-import { getMessage } from "../../locales/getMessage.js";
-import ResetSessionAttempts from "../../observers/SessionAttempts/ResetSessionAttempts.js";
 import iSessionPayload from "../../@types/iSessionPayload/iSessionPayload.js";
 
-class Authentication implements iSubject {
-  observers: iObserver[] = [];
+//Core
+import Session from "../Session/Session.js";
+import Token from "../Token/Token.js";
+import Email from "../Email/Email.js";
 
-  constructor() {
-    this.registerObserver(NotifyNewLoginUser);
-    this.registerObserver(ResetSessionAttempts);
-  }
+//emailModels
+import NewLoginDetected from "../Email/models/newLoginDetected.jsx";
 
-  //observer functions
-  registerObserver(observer: iObserver) {
-    this.observers.push(observer);
-  }
+class Authentication {
+  async sendLoginNotification(
+    user: iUser,
+    session: iSessionPayload,
+    silent?: boolean
+  ) {
+    if (silent) return;
 
-  removeObserver(observer: iObserver) {
-    this.observers = this.observers.filter((obs) => obs !== observer);
-  }
-
-  notify(data: { user: iUser; session: iSession }) {
-    this.observers.forEach((observer) => observer.update(data));
-  }
-
-  notifyObserver(observer: iObserver, data?: any) {
-    observer.update(data);
+    return Email.sendEmail(
+      user.email,
+      `Novo Login Detectado em ${session.ip.city}, ${session.ip.region} às ${new Date(
+        session.lastActivity
+      ).toLocaleTimeString(session.locale || "pt-br", {
+        timeZone: session.timeZone || "America/Sao_Paulo",
+      })} | Lux CRM ©`,
+      <NewLoginDetected user={user} session={session} />
+    );
   }
 
   //core
@@ -306,7 +298,8 @@ class Authentication implements iSubject {
           );
         });
 
-      if (!silent) this.notify({ session: data, user });
+      await this.sendLoginNotification(user, session);
+      await Session.resetSessionAttempts(user, session);
 
       return resolve({ token, refreshToken });
     });

@@ -12,40 +12,49 @@ import {
 import errors from "../../errors/errors.js";
 import { getMessage } from "../../locales/getMessage.js";
 
-//observers
-import IncrementSessionAttempts from "../../observers/SessionAttempts/IncrementSessionAttempts.js";
-
 //types
-import iObserver from "../../@types/iObserver/iObserver.js";
-import iSubject from "../../@types/iSubject/iSubject.js";
-import iLookup from "../../@types/iLookup/iLookup.js";
 import iSessionPayload from "../../@types/iSessionPayload/iSessionPayload.js";
 
 //external libs
 import { UAParser } from "ua-parser-js";
-import { create } from "domain";
-import { ad } from "google-ads-api/build/src/protos/autogen/resourceNames.js";
 import Ip from "../Ip/Ip.js";
-import { connect } from "http2";
 
-class Session implements iSubject {
-  observers: iObserver[] = [];
-
-  //observer functions
-  registerObserver(observer: iObserver) {
-    this.observers.push(observer);
+class Session {
+  async incrementSessionAttempts(user: iUser, session: iSessionPayload) {
+    return await prisma.attempt
+      .create({
+        data: {
+          ip: {
+            connect: {
+              id: session.ipId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+        },
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
-  removeObserver(observer: iObserver) {
-    this.observers = this.observers.filter((obs) => obs !== observer);
-  }
-
-  notify(data?: { user: iUser; token: string }) {
-    this.observers.forEach((observer) => observer.update(data));
-  }
-
-  notifyObserver(observer: iObserver, data?: any) {
-    observer.update(data);
+  async resetSessionAttempts(user: iUser, session: iSessionPayload) {
+    return await prisma.attempt
+      .updateMany({
+        where: {
+          ipId: session.ipId,
+          userId: user.id,
+        },
+        data: {
+          active: false,
+        },
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
   createSession(
@@ -257,8 +266,7 @@ class Session implements iSubject {
         if (!check) authorized = false;
       });
 
-      if (!authorized)
-        this.notifyObserver(IncrementSessionAttempts, { user, session });
+      if (!authorized) this.incrementSessionAttempts(user, session);
 
       return resolve(authorized);
     });

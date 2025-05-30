@@ -17,7 +17,7 @@ const baseUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "";
 
-const WelcomeEmail = (props: { token: string; user: iUser }) => (
+const WelcomeMessage = (props: { token: string; user: iUser }) => (
   <Html>
     <Head />
     <Preview>
@@ -64,8 +64,6 @@ const WelcomeEmail = (props: { token: string; user: iUser }) => (
     </Body>
   </Html>
 );
-
-export default WelcomeEmail;
 
 const main = {
   backgroundColor: "#f6f9fc",
@@ -129,3 +127,5 @@ const footer = {
   fontSize: "12px",
   lineHeight: "18px",
 };
+
+export default WelcomeMessage;

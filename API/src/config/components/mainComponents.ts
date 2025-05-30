@@ -1,6 +1,4 @@
-import { application } from "express";
 import swaggerJSDoc from "swagger-jsdoc";
-import Session from "../../core/Session/Session.js";
 
 import { getMessage } from "../../locales/getMessage.js";
 
@@ -266,6 +264,72 @@ const swaggerComponents: swaggerJSDoc.Components = {
         },
       },
     },
+    SendEmail: {
+      type: "object",
+      properties: {
+        email: {
+          type: "string",
+          example: "usuariodeteste@exemplo.com",
+        },
+      },
+      required: ["email", "passwd"],
+    },
+    SendEmailToken: {
+      type: "object",
+      properties: {
+        token: {
+          type: "string",
+          example:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzY4ZWY0ODYwMmQ5NTQzZTE1OTVlNSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0ODQxNTY3NywiZXhwIjoxNzQ4NzE1Njc3fQ.iVTatt1bWqAmJ88C7qCCMvrEfVUXUAh_1rYEPfnl0Sg",
+        },
+      },
+      required: ["email", "passwd"],
+    },
+    EmailVerified: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          example: "Ok",
+        },
+        message: {
+          type: "string",
+          example: getMessage("emailVerified", "pt-BR"),
+        },
+      },
+      required: ["status", "message"],
+    },
+    SendedEmail: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          example: "Ok",
+        },
+        message: {
+          type: "string",
+          example: getMessage("sendedEmail", "pt-BR"),
+        },
+        info: {
+          type: "object",
+          properties: {
+            timeLeft: {
+              type: "integer",
+              example: 60000,
+              description:
+                "Tempo restante (em milissegundos) até poder reenviar o e-mail.",
+            },
+            pretty: {
+              type: "string",
+              example: "1m 0s",
+              description: "Tempo restante em formato legível.",
+            },
+          },
+          required: ["timeLeft", "pretty"],
+        },
+      },
+      required: ["status", "message", "info"],
+    },
   },
   requestBodies: {
     Login: {
@@ -290,8 +354,41 @@ const swaggerComponents: swaggerJSDoc.Components = {
         },
       },
     },
+    SendEmail: {
+      description: "Enviar email..",
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/SendEmail",
+          },
+        },
+      },
+    },
+    SendEmailToken: {
+      description: "Enviar token recebido no email.",
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/SendEmailToken",
+          },
+        },
+      },
+    },
   },
   parameters: {
+    BearerTokenHeader: {
+      name: "Authorization",
+      in: "header",
+      description: "Token de autenticação.",
+      required: true,
+      schema: {
+        type: "string",
+        example:
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzY4ZWY0ODYwMmQ5NTQzZTE1OTVlNSIsInR5cGUiOiJUb2tlbiIsImlhdCI6MTc0ODQ5MzExNSwiZXhwIjoxNzQ5MDkzMTE1fQ.A2_z3-rFKaPlpCoePOm2SWwLzOJsKTIyvPASplAL6E8",
+      },
+    },
     UserAgentHeader: {
       name: "User-Agent",
       in: "header",
@@ -337,10 +434,60 @@ const swaggerComponents: swaggerJSDoc.Components = {
       name: "Session",
       in: "header",
       description: "ID da sessão ativa armazenado no storage do navegador.",
+      required: false,
+      schema: {
+        type: "string",
+        example: "6813d062844330bfff6060c6",
+      },
+    },
+    UserId: {
+      name: "userId",
+      in: "params",
+      description: "ID do usuário.",
       required: true,
       schema: {
         type: "string",
         example: "6813d062844330bfff6060c6",
+      },
+    },
+    SessionId: {
+      name: "sessionId",
+      in: "params",
+      description: "ID da sessão.",
+      required: true,
+      schema: {
+        type: "string",
+        example: "6813d062844330bfff6060c6",
+      },
+    },
+    IpId: {
+      name: "ipId",
+      in: "params",
+      description: "ID do endereço IP cadastrado no banco de dados.",
+      required: true,
+      schema: {
+        type: "string",
+        example: "6813d062844330bfff6060c6",
+      },
+    },
+    Take: {
+      name: "take",
+      in: "query",
+      description: "Número máximo de usuários à retornar.",
+      required: false,
+      schema: {
+        type: "number",
+        example: 100,
+      },
+    },
+    Skip: {
+      name: "skip",
+      in: "query",
+      description: "Número de usuários à pular antes dos mostrados.",
+      required: false,
+      schema: {
+        type: "number",
+        example: 0,
       },
     },
   },
@@ -485,6 +632,26 @@ const swaggerComponents: swaggerJSDoc.Components = {
         "application/json": {
           schema: {
             $ref: "#/components/schemas/UnauthorizeIps",
+          },
+        },
+      },
+    },
+    EmailVerified: {
+      description: "Email verificado com sucesso.",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/EmailVerified",
+          },
+        },
+      },
+    },
+    SendedEmail: {
+      description: "Email enviado com sucesso.",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/SendedEmail",
           },
         },
       },
