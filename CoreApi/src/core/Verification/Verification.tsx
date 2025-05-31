@@ -19,9 +19,9 @@ import Email from "../Email/Email.js";
 
 //email models
 import React from "react";
-import VerifyEmail from "../Email/models/VerifyEmail.jsx";
-import WelcomeMessage from "../Email/models/WelcomeMessage.jsx";
-import EmailVerified from "../Email/models/EmailVerified.jsx";
+import VerifyEmail from "../Email/models/VerifyEmail.js";
+import WelcomeMessage from "../Email/models/WelcomeMessage.js";
+import EmailVerified from "../Email/models/EmailVerified.js";
 
 class Verification {
   async notificateEmailVerified(user: iUser) {

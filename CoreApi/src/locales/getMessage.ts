@@ -1,4 +1,4 @@
-import ptBR from "./pt-BR.json" assert { type: "json" };
+import ptBR from "./pt-BR.json" with { type: "json" };
 
 const messages = {
   "pt-BR": ptBR,

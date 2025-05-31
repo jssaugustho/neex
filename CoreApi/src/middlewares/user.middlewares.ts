@@ -15,14 +15,12 @@ import User from "../core/User/User.js";
 
 //errors
 import errors from "../errors/errors.js";
-import response from "../response/response.js";
+import { getMessage } from "../locales/getMessage.js";
 
 //validate
 import RoleType from "../types/RoleType/RoleType.js";
 import ObjectIdType from "../types/ObjectIdType/ObjectIdType.js";
-import Session from "../core/Session/Session.js";
-import Verification from "../core/Verification/Verification.jsx";
-import { getMessage } from "../locales/getMessage.js";
+import Verification from "../core/Verification/Verification.js";
 
 //verify login and send user id to next in req.id
 async function validateRegisterParams(

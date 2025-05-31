@@ -12,9 +12,6 @@ import {
 import errors from "../../errors/errors.js";
 import { getMessage } from "../../locales/getMessage.js";
 
-//observers
-import IncrementSessionAttempts from "../../observers/SessionAttempts/IncrementSessionAttempts.js";
-
 //types
 import iObserver from "../../@types/iObserver/iObserver.js";
 import iSubject from "../../@types/iSubject/iSubject.js";

@@ -21,7 +21,7 @@ import Token from "../Token/Token.js";
 import Email from "../Email/Email.js";
 
 //emailModels
-import NewLoginDetected from "../Email/models/newLoginDetected.jsx";
+import NewLoginDetected from "../Email/models/newLoginDetected.js";
 
 class Authentication {
   async sendLoginNotification(

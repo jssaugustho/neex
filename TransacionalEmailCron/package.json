@@ -1,0 +1,33 @@
+{
+  "name": "app-lux-digital-assessoria",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Lux CRM Core API.",
+  "main": "server.ts",
+  "scripts": {
+    "dev": "tsx watch --no-cache service.ts",
+    "start": "node ./dist/service.js",
+    "build": "npx tsc --project tsconfig.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria..git"
+  },
+  "author": "jssaugustho",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria./issues"
+  },
+  "homepage": "https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria.#readme",
+  "dependencies": {
+    "@prisma/client": "^6.0.1",
+    "app-lux-digital-assessoria": "file:",
+    "node-cron": "^3.0.3",
+    "resend": "^4.4.1"
+  },
+  "devDependencies": {
+    "prisma": "^6.0.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

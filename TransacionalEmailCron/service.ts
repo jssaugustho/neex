@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-import prisma from "../controllers/db.controller.js";
+import prisma from "./src/prisma.js";
 import cron from "node-cron";
 
 const resend = new Resend(process.env.RESEND_API_TOKEN);

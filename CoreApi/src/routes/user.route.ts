@@ -79,7 +79,7 @@ users.patch(
 users.patch(
   "/user/:query",
   authMiddlewares.verifyToken,
-  userMiddlewares.validateUpdateParams,0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  userMiddlewares.validateUpdateParams,
   userMiddlewares.validateUpdateQuery,
   userMiddlewares.updateUsers,
   userControllers.response
