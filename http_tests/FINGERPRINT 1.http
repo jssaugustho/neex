@@ -1,0 +1,304 @@
+@host = http://localhost:3000/core
+@uploads = http://localhost:3001/core
+
+
+# @name register
+POST {{host}}/user HTTP/1.1
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+{
+    "name": "José",
+    "lastName": "Augustho",
+    "email": "joseaugusthooc@outlook.com",
+    "phone": "34991718291",
+    "passwd": "SenhaDeTeste@123"
+}
+
+###
+
+//login
+# @name login
+POST {{host}}/login HTTP/1.1
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+{
+    "email": "joseaugustholi@gmail.com",
+    "passwd": "SenhaDeTeste@123"
+}
+
+###
+
+@token = {{login.response.body.$.token}}
+@refreshToken = {{login.response.body.$.refreshToken}}
+
+###
+
+//refresh token
+POST {{host}}/refresh HTTP/1.1
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROMEs
+
+{
+    "refreshToken": "{{refreshToken}}"
+}
+
+###
+
+//get atual user
+GET {{host}}/user HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+//update user
+PATCH {{host}}/user HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+{
+    "phone": "34991718593"
+}
+
+###
+
+//get user by id
+GET {{host}}/support/user/67fecf302cdddf231abdb1e5 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+//update users
+PATCH {{host}}/support/user/67fecf302cdddf231abdb1e5 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+{
+    "phone": "34991718593"
+}
+
+###
+
+//get all users
+GET {{host}}/support/users HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+//count all users
+GET {{host}}/support/users/count HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+POST {{host}}/email-exists HTTP/1.1
+Content-Type: application/json
+fingerprint: GOOGLE-CHROME
+
+{
+    "email": "joseaugustho09@gmail.com"
+}
+
+###
+
+POST {{host}}/send-recovery-email HTTP/1.1
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+{
+    "email": "joseaugustholi@gmail.com"
+}
+
+###
+
+POST {{host}}/send-authentication-email HTTP/1.1
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+{
+    "email": "joseaugustholi@gmail.com"
+}
+
+###
+
+POST {{host}}/email-authentication HTTP/1.1
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzdlNjlmM2NkMDY5ZDhmZDgxMzVkMCIsInR5cGUiOiJ2ZXJpZmljYXRpb24iLCJpYXQiOjE3NDg4MzQxMzUsImV4cCI6MTc0OTEzNDEzNX0.tuhh-ezkg7tyK6vDI-ey27iBGXd4bAuCY1Id2i58Wg8"
+}
+
+###
+
+GET {{host}}/send-verification-email HTTP/1.1
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+Authorization: {{token}}
+
+###
+
+POST {{host}}/verify-email HTTP/1.1
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+Authorization: {{token}}
+
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzdlNjlmM2NkMDY5ZDhmZDgxMzVkMCIsInR5cGUiOiJBVVRIRU5USUNBVElPTiIsImlhdCI6MTc0ODkzMTMxNiwiZXhwIjoxNzQ5MjMxMzE2fQ.EIbBim0jjsLx_LWXlv-BEIHkEpvvUxvB0kJ57JuoXuk"
+}
+
+###
+
+GET {{host}}/session HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/sessions HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/sessions/6833b96a0a17c73bf375b888 HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/session/logout HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/session/block/6833b96a0a17c73bf375b888/6833e2ebb2fec08443982439 HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/ip/unauthorize/6833b96a0a17c73bf375b888/683399aa5c1298d67e3e868c HTTP/1.1 HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/ips/unauthorize HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/sessions/6813d062844330bfff6060cc HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+X-Timezone: America/Sao_Paulo
+Accept-Language: pt-BR
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/sessions/count/6808908a1799308dc05632c4 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/sessions/logout/6808908a1799308dc05632c4 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
+
+GET {{host}}/support/sessions/unauthorize/6808908a1799308dc05632c4 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+fingerprint: GOOGLE-CHROME
+
+###
