@@ -1,0 +1,27 @@
+{
+  "name": "luxcrm",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Lux CRM App.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria..git"
+  },
+  "author": "José Augustho",
+  "license": "ISC",
+  "workspaces": [
+    "lux-core,",
+    "lux-core-api",
+    "lux-upload-api",
+    "lux-transacional-email-cron"
+  ],
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1692.0",
+    "luxcrm": "file:",
+    "sharp": "^0.34.2"
+  }
+}
