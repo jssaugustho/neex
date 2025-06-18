@@ -30,7 +30,7 @@ class App {
 
     this.app.use(
       cors({
-        origin: ["http://localhost:5173"],
+        origin: ["http://localhost:4000"],
         allowedHeaders: [
           "Content-Type",
           "Authorization",
@@ -40,14 +40,12 @@ class App {
           "Session",
           "Fingerprint",
         ],
-      })
+      }),
     );
 
     if (process.env.NODE_ENV === "development") {
       Logger.info("Starting in development mode");
-      Logger.info(
-        `Documentation http://localhost:${process.env.PORT}/docs`
-      );
+      Logger.info(`Documentation http://localhost:${process.env.PORT}/docs`);
       this.app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     }
 

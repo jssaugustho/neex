@@ -4,28 +4,10 @@ import styles from "./other.module.css";
 import { useState } from "react";
 import Link from "next/link";
 import Button from "@/components/button";
-
-type CardOption = {
-  title: string;
-  description: string;
-  url: string;
-};
+import { useOther } from "./other.context";
 
 export default function Other() {
-  const options: CardOption[] = [
-    {
-      title: "Autenticar via email.",
-      description: "Faça o login clicando em um link enviado no seu email.",
-      url: "/login/other/email",
-    },
-    {
-      title: "Esqueci a minha senha.",
-      description: "Receba um link de redefinição de senha no seu email.",
-      url: "/login/other/recovery",
-    },
-  ];
-
-  const [selected, setSelected] = useState<CardOption>(options[0]);
+  const { selected, setSelected, CardOptions } = useOther();
 
   return (
     <div className={styles.form}>
@@ -33,7 +15,7 @@ export default function Other() {
         <h1 className={styles.title}>Selecione uma opção:</h1>
       </div>
       <div className={styles.cards}>
-        {options.map((card, index) => {
+        {CardOptions.map((card, index) => {
           return (
             <div
               className={`${styles.card} ${
@@ -64,7 +46,7 @@ export default function Other() {
           className={`submit`}
           type="button"
         >
-          Próximo Passo
+          Próximo Passo <i className="icon fi fi-rr-arrow-right"></i>
         </Button>
         <Button
           href={"/login"}

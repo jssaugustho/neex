@@ -34,7 +34,7 @@
   "emailNotVerified": "E-mail não verificado.",
   "needEmail2fa": "Verifique o seu email.",
 
-  "waitToResendEmail": "Aguarde {{time}} para reenviar o e-mail.",
+  "waitToResendEmail": "Aguarde o prazo de reenvio do e-mail.",
 
   "invalidToken": "Token inválido",
 

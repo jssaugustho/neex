@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { AxiosInstance } from "axios";
 
 declare interface iAuthContext {
@@ -6,4 +7,5 @@ declare interface iAuthContext {
   initializeSession: (user: iUser, sessionId: string) => void;
   endSession: () => void;
   changeTheme: () => void;
+  router: useRouter;
 }

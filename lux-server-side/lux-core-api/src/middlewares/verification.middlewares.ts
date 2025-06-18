@@ -32,14 +32,14 @@ async function validateEmail(req: iRequest, res: Response, next: NextFunction) {
 async function validateIfEmailAlreadyVerified(
   req: iRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
   if (!req.userData) throw new errors.InternalServerError("UserData error.");
 
   if (req.userData.emailVerified)
     throw new errors.UserError(
-      getMessage("emailAlreadyVerified", req.session.locale)
+      getMessage("emailAlreadyVerified", req.session.locale),
     );
 
   next();
@@ -48,14 +48,14 @@ async function validateIfEmailAlreadyVerified(
 async function validateResend(
   req: iRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error");
   if (!req.userData) throw new errors.UserError("UserData Error");
 
   req.data.timeLeft = await Verification.getTimeLeft(
     req.session,
-    req.userData
+    req.userData,
   ).catch((err) => {
     throw err;
   });
@@ -73,7 +73,7 @@ async function validateResend(
   } else {
     res.status(400).send({
       status: "UserError",
-      message: response.waitVerificationCode(),
+      message: getMessage("waitToResendEmail", req.session.locale),
       info: {
         timeLeft: req.data.timeLeft,
         pretty: req.data.pretty,
@@ -85,7 +85,7 @@ async function validateResend(
 async function sendAuthenticationEmail(
   req: iRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.userData) throw new errors.UserError("UserData Error");
   if (!req.session) throw new errors.UserError("Session Error");
@@ -93,7 +93,7 @@ async function sendAuthenticationEmail(
   const verification = await Verification.generate2faLink(
     req.userData,
     req.session,
-    "AUTHENTICATION"
+    "AUTHENTICATION",
   ).catch((err) => {
     throw err;
   });
@@ -133,9 +133,9 @@ async function sendAuthenticationEmail(
   await Verification.sendTransacionalEmail(req.userData, verification).catch(
     (err) => {
       throw new errors.InternalServerError(
-        "Erro ao enviar o email de verificação."
+        "Erro ao enviar o email de verificação.",
       );
-    }
+    },
   );
 
   req.response = {
@@ -156,7 +156,7 @@ async function sendAuthenticationEmail(
 async function sendVerificationEmail(
   req: iRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.userData) throw new errors.UserError("UserData Error");
   if (!req.session) throw new errors.UserError("Session Error");
@@ -164,7 +164,7 @@ async function sendVerificationEmail(
   const verification = await Verification.generate2faLink(
     req.userData,
     req.session,
-    "VERIFICATION"
+    "VERIFICATION",
   ).catch((err) => {
     throw err;
   });
@@ -204,9 +204,9 @@ async function sendVerificationEmail(
   await Verification.sendTransacionalEmail(req.userData, verification).catch(
     (err) => {
       throw new errors.InternalServerError(
-        "Erro ao enviar o email de verificação."
+        "Erro ao enviar o email de verificação.",
       );
-    }
+    },
   );
 
   req.response = {
@@ -227,7 +227,7 @@ async function sendVerificationEmail(
 async function sendRecoveryEmail(
   req: iRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.userData) throw new errors.UserError("UserData Error");
   if (!req.session) throw new errors.UserError("Session Error");
@@ -235,7 +235,7 @@ async function sendRecoveryEmail(
   const verification = await Verification.generate2faLink(
     req.userData,
     req.session,
-    "RECOVERY"
+    "RECOVERY",
   ).catch((err) => {
     throw err;
   });
@@ -275,9 +275,9 @@ async function sendRecoveryEmail(
   await Verification.sendTransacionalEmail(req.userData, verification).catch(
     (err) => {
       throw new errors.InternalServerError(
-        "Erro ao enviar o email de verificação."
+        "Erro ao enviar o email de verificação.",
       );
-    }
+    },
   );
 
   req.response = {
@@ -298,7 +298,7 @@ async function sendRecoveryEmail(
 async function validateAuthenticationToken(
   req: iRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
 
@@ -307,7 +307,7 @@ async function validateAuthenticationToken(
   req.userData = (await Verification.verifyEmailToken(token, req.session).catch(
     (err) => {
       throw err;
-    }
+    },
   )) as iUser;
 
   next();
@@ -316,7 +316,7 @@ async function validateAuthenticationToken(
 async function validateVerificationToken(
   req: iRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
   if (!req.userData) throw new errors.InternalServerError("UserData error.");
@@ -326,7 +326,7 @@ async function validateVerificationToken(
   req.userData = (await Verification.verifyEmailToken(
     token,
     req.session,
-    req.userData
+    req.userData,
   ).catch((err) => {
     throw err;
   })) as iUser;
@@ -345,14 +345,14 @@ async function validateVerificationToken(
 async function setEmailVerified(
   req: iRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.userData) throw new errors.UserError("UserData Error");
   if (!req.session) throw new errors.UserError("Session Error");
 
   req.userData = await User.setEmailVerified(
     req.userData,
-    req.session.locale
+    req.session.locale,
   ).catch((err) => {
     throw err;
   });

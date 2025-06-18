@@ -8,12 +8,15 @@ import { iSession } from "@/@types/session";
 import initApi from "@/services/api";
 import getStorage from "@/services/getStorage";
 import { error } from "console";
+import { useRouter } from "next/navigation";
 
 import { createContext, useState, useEffect, useContext } from "react";
 
 export const AuthContext = createContext<iAuthContext | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
+
   const api = initApi();
 
   const [session, setSession] = useState<iSession>({
@@ -101,7 +104,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ api, session, initializeSession, endSession, changeTheme }}
+      value={{
+        router,
+        api,
+        session,
+        initializeSession,
+        endSession,
+        changeTheme,
+      }}
     >
       <div className={`${session.theme}-theme background viewport`}>
         {children}

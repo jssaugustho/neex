@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/contexts/auth.context/auth.context";
+import { useAuth } from "@/contexts/auth.context";
 import styles from "./loginTheme.module.css";
 
 export default function LoginTheme({

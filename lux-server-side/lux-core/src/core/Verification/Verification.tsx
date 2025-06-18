@@ -29,7 +29,7 @@ class Verification {
     return await Email.sendTransacionalEmail(
       user.email,
       "Email Verificado Com Sucesso | Lux CRM ©",
-      <EmailVerified user={user} />
+      <EmailVerified user={user} />,
     ).catch((err) => {
       console.log(err);
     });
@@ -38,6 +38,7 @@ class Verification {
   getExponencialTime(session: iSession) {
     const exponencialList = [
       1,
+      2,
       2,
       5,
       10,
@@ -48,7 +49,6 @@ class Verification {
       90,
       60 * 3,
       60 * 12,
-      60 * 24,
     ];
 
     let exponencialValue =
@@ -87,7 +87,7 @@ class Verification {
   async generate2faLink(
     user: iUser,
     session: iSession,
-    type: "AUTHENTICATION" | "VERIFICATION" | "RECOVERY"
+    type: "AUTHENTICATION" | "VERIFICATION" | "RECOVERY",
   ): Promise<iVerification> {
     return new Promise(async (resolve, reject) => {
       const token = jwt.sign(
@@ -99,7 +99,7 @@ class Verification {
         process.env.JWT_VERIFICATION_SECRET as string,
         {
           expiresIn: 1000 * 60 * 5,
-        }
+        },
       );
 
       let verification = (await Prisma.verification.create({
@@ -139,7 +139,7 @@ class Verification {
     return await Email.sendTransacionalEmail(
       user.email,
       subject,
-      emailModel
+      emailModel,
     ).catch((err) => {
       console.log(err);
     });
@@ -149,7 +149,7 @@ class Verification {
     return await Email.sendTransacionalEmail(
       user.email,
       "Verifique seu email | Lux CRM ©",
-      <WelcomeMessage token={emailToken} user={user} />
+      <WelcomeMessage token={emailToken} user={user} />,
     ).catch((err) => {
       console.log(err);
     });
@@ -158,35 +158,35 @@ class Verification {
   async verifyEmailToken(
     token: string,
     session: iSession,
-    userData?: iUser
+    userData?: iUser,
   ): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const payload = await Token.loadPayload(token, "emailToken").catch(
         (err) => {
           return reject(err);
-        }
+        },
       );
 
       if (!payload)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale))
+          new errors.AuthError(getMessage("invalidToken", session.locale)),
         );
 
       if (!payload.id)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale))
+          new errors.AuthError(getMessage("invalidToken", session.locale)),
         );
 
       if (payload.type)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale))
+          new errors.AuthError(getMessage("invalidToken", session.locale)),
         );
 
       const user =
         userData ||
         ((await User.getUserById(payload.id).catch((err) => {
           return reject(
-            new errors.AuthError(getMessage("invalidToken", session.locale))
+            new errors.AuthError(getMessage("invalidToken", session.locale)),
           );
         })) as iUser);
 
@@ -200,13 +200,13 @@ class Verification {
         })
         .catch(() => {
           return reject(
-            new errors.AuthError(getMessage("invalidToken", session.locale))
+            new errors.AuthError(getMessage("invalidToken", session.locale)),
           );
         })) as iVerification;
 
       if (verification.token !== token || verification.used)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale))
+          new errors.AuthError(getMessage("invalidToken", session.locale)),
         );
 
       verification = (await Prisma.verification
@@ -220,7 +220,7 @@ class Verification {
         })
         .catch(() => {
           return reject(
-            new errors.AuthError(getMessage("invalidToken", session.locale))
+            new errors.AuthError(getMessage("invalidToken", session.locale)),
           );
         })) as iVerification;
 
@@ -235,7 +235,7 @@ class Verification {
         })
         .catch(() => {
           return reject(
-            new errors.AuthError(getMessage("invalidToken", session.locale))
+            new errors.AuthError(getMessage("invalidToken", session.locale)),
           );
         });
 

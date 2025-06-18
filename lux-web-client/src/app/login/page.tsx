@@ -49,7 +49,7 @@ export default function Login() {
           />
         </div>
         <Button background="gradient" className={`submit`} type="submit">
-          Fazer login
+          Fazer Login
         </Button>
       </div>
     </form>

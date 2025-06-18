@@ -8,11 +8,8 @@ function errorHandler(
   err: any,
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
-  if (!req.ipLookup) throw new Error("IP lookup not found in error logger");
-  if (!req.session) throw new Error("Session not found in error logger");
-
   let statusCode = 502;
 
   if (err.name === "UserError") {
@@ -33,13 +30,15 @@ function errorHandler(
 
   let message = err.message;
 
-  if (statusCode===502) message = process.env.NODE_ENV === "production" ? "Erro interno." : err.message;
+  if (statusCode === 502)
+    message =
+      process.env.NODE_ENV === "production" ? "Erro interno." : err.message;
 
   Logger.error({
     method: req.method,
     url: req.originalUrl,
-    ip: req.ipLookup.address,
-    session: req.session.id,
+    ip: req.ipLookup?.address || "unkown",
+    session: req.session?.id || "unkown",
     status: err.name,
     message: err.message,
     body: req.body,

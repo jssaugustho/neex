@@ -5,8 +5,9 @@ import "../style/globals.css";
 
 import { Montserrat } from "next/font/google";
 
-import { AuthProvider } from "@/contexts/auth.context/auth.context";
+import { AuthProvider } from "@/contexts/auth.context";
 import { ReactElement } from "react";
+import { QueryProvider } from "@/contexts/queryClient";
 
 // import type { Metadata } from "next";
 
@@ -35,7 +36,9 @@ export default function RootLayout({
         ></link>
       </head>
       <body className={`${montserrat.className}`}>
-        <AuthProvider>{children}</AuthProvider>
+        <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

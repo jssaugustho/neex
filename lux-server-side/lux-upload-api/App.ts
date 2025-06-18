@@ -27,7 +27,7 @@ class App {
 
     this.app.use(
       cors({
-        origin: ["http://localhost:5173"],
+        origin: ["http://localhost:3001"],
         allowedHeaders: [
           "Content-Type",
           "Authorization",
@@ -37,13 +37,13 @@ class App {
           "Session",
           "Fingerprint",
         ],
-      })
+      }),
     );
 
     if (process.env.NODE_ENV === "development") {
       Logger.info("Starting in development mode");
-       Logger.info(
-        `Documentation http://localhost:${process.env.UPLOAD_API_PORT}/docs`
+      Logger.info(
+        `Documentation http://localhost:${process.env.UPLOAD_API_PORT}/docs`,
       );
       this.app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     }
@@ -64,7 +64,6 @@ class App {
   routes() {
     //rotas V1
     this.app.use("/upload/", userRoute);
-
   }
 }
 

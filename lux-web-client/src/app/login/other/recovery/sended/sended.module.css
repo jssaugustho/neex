@@ -106,3 +106,16 @@
   color: var(--common-text-color);
   font-weight: 500;
 }
+
+.iconBox {
+  background: var(--main-gradient);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-top: 16px;
+}
+
+.iconBox i {
+  font-size: 20px;
+  line-height: 0;
+}

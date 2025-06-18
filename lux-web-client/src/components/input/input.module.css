@@ -58,5 +58,6 @@
   font-size: 12px;
   pointer-events: none;
   background-color: var(--contrast-color);
+  line-height: 1;
   padding: 0px 2px;
 }
