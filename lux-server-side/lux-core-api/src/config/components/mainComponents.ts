@@ -63,6 +63,10 @@ const swaggerComponents: swaggerJSDoc.Components = {
           example:
             "eyJhbGcoiiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MTkyMTU4ODAxNmRmMGQxNDc3NjcxMCIsInR5cGUiOiJSZWZyZXNoVG9rZW4iLCJpYXQiOjE3NDY1NTI0NDAsImV4cCI6MTkxOTM1MjQ0MH0.Areff-sczmycEA0N8Mrh7k5loycDozdKtRZqOx67fvk",
         },
+        remember: {
+          type: "boolean",
+          example: true,
+        },
       },
       required: ["refreshToken"],
     },
@@ -93,6 +97,24 @@ const swaggerComponents: swaggerJSDoc.Components = {
         },
         data: {
           $ref: "#/components/schemas/User",
+        },
+      },
+    },
+    PreAuthenticate: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          example: "Ok",
+        },
+        message: {
+          type: "string",
+          example: getMessage("successAuthentication"),
+        },
+        token: {
+          type: "string",
+          example:
+            "eyJhbGciPiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MTkyMTU4ODAxNmRmMGQxNDc3NjcxMCIsInR5cGUiOiJUb2tlbiIsImlhdCI6MTc0NjU1MjQ0MCwiZXhwIjoxNzQ3MTUyNDQwfQ.4xZGnPU9twuwNyg8UvAHfeDFrkRscD6M3-KCEPwZkoi",
         },
       },
     },
@@ -285,6 +307,36 @@ const swaggerComponents: swaggerJSDoc.Components = {
       },
       required: ["email", "passwd"],
     },
+    PreAuthenticationRecoveryToken: {
+      type: "object",
+      properties: {
+        token: {
+          type: "string",
+          example:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzY4ZWY0ODYwMmQ5NTQzZTE1OTVlNSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0ODQxNTY3NywiZXhwIjoxNzQ4NzE1Njc3fQ.iVTatt1bWqAmJ88C7qCCMvrEfVUXUAh_1rYEPfnl0Sg",
+        },
+        newPasswd: {
+          type: "string",
+          example: "***************",
+        },
+      },
+      required: ["email", "passwd"],
+    },
+    AuthenticationToken: {
+      type: "object",
+      properties: {
+        token: {
+          type: "string",
+          example:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzY4ZWY0ODYwMmQ5NTQzZTE1OTVlNSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0ODQxNTY3NywiZXhwIjoxNzQ4NzE1Njc3fQ.iVTatt1bWqAmJ88C7qCCMvrEfVUXUAh_1rYEPfnl0Sg",
+        },
+        remember: {
+          type: "boolean",
+          example: true,
+        },
+      },
+      required: ["email", "passwd"],
+    },
     EmailVerified: {
       type: "object",
       properties: {
@@ -326,6 +378,25 @@ const swaggerComponents: swaggerJSDoc.Components = {
             },
           },
           required: ["timeLeft", "pretty"],
+        },
+      },
+      required: ["status", "message", "info"],
+    },
+    LoginToken: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          example: "Ok",
+        },
+        message: {
+          type: "string",
+          example: getMessage("sendedEmail", "pt-BR"),
+        },
+        token: {
+          type: "string",
+          example:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzdlNjlmM2NkMDY5ZDhmZDgxMzVkMCIsInR5cGUiOiJ2ZXJpZmljYXRpb24iLCJpYXQiOjE3NDg4MzQxMzUsImV4cCI6MTc0OTEzNDEzNX0.tuhh-ezkg7tyK6vDI-ey27iBGXd4bAuCY1Id2i58Wg8",
         },
       },
       required: ["status", "message", "info"],
@@ -372,6 +443,17 @@ const swaggerComponents: swaggerJSDoc.Components = {
         "application/json": {
           schema: {
             $ref: "#/components/schemas/SendEmailToken",
+          },
+        },
+      },
+    },
+    PreAuthenticationRecoveryToken: {
+      description: "Pré autenticação por token de email.",
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/PreAuthenticationRecoveryToken",
           },
         },
       },
@@ -534,8 +616,18 @@ const swaggerComponents: swaggerJSDoc.Components = {
         },
       },
     },
+    PreAuthResponse: {
+      description: "Pré-autenticado.",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/PreAuthenticate",
+          },
+        },
+      },
+    },
     AuthResponse: {
-      description: "Login realizado com sucesso.",
+      description: "Autenticado com sucesso.",
       content: {
         "application/json": {
           schema: {

@@ -1,92 +1,83 @@
 "use client";
 
-import { Input } from "@/components/input";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 
-import styles from "./recovery.module.css";
-import Button from "@/components/button";
-import { useOther } from "../other.context";
-import { useRecovery } from "@/hooks/useRecovery";
-import React, { useEffect } from "react";
-import { useAuth } from "@/contexts/auth.context";
+import { useAppRouter } from "@/contexts/navigation.context";
 
-export default function Recovery() {
-  const { router } = useAuth();
+import { useSendEmail } from "@/contexts/sendEmail.context";
 
-  const { email, setEmail, timeLeft, sended } = useOther();
+import TransitionWrapper from "@/components/transitionWrapper";
+import EmailVerification from "@/components/emailVerification";
 
-  const { mutate, isPending, isSuccess, isError, error, data } = useRecovery();
+import { useSendRecoveryEmail } from "@/hooks/sendEmail/useSendRecoveryEmail";
 
-  let disabled = isPending || timeLeft > 0;
+export default function VerifyRecovery() {
+  const { startTransition, push } = useAppRouter();
 
-  const getMessage = () => {
-    // if (isSuccess) {
-    //   return <div className={styles.successMessage}>{data.message}</div>;
-    // }
+  const { isSuccess, isPending, error, mutate } = useSendRecoveryEmail();
 
-    let msg = "Erro interno.";
+  const { sended, email, setEmail } = useSendEmail();
 
-    if (isError) {
-      if (
-        (error.response?.data.status === "UserError" ||
-          error.response?.data.status === "AuthError") &&
-        !sended
-      ) {
-        msg = error.response?.data.message;
-        return <div className={styles.errorMessage}>{msg}</div>;
-      }
-    }
+  const message = error?.response?.data.message || null;
 
-    return null;
+  const returnToLogin = async () => {
+    startTransition(async () => {
+      localStorage.clear();
+      push("/login");
+    });
   };
 
   const sendEmail = () => {
-    if (email) mutate({ email });
+    if (email) {
+      startTransition(() => {
+        mutate(
+          { email },
+          {
+            onSuccess: () => {
+              localStorage.setItem("session@email", email);
+            },
+          },
+        );
+      });
+    }
   };
 
-  useEffect(() => {
-    if (sended) router.push("/login/other/recovery/sended");
-  }, [router, sended]);
+  useLayoutEffect(() => {
+    const storage = localStorage.getItem("session@email");
+    if (storage) {
+      setEmail(storage);
+      mutate({ email: storage });
+    }
+  }, []);
+
+  const title = (
+    <h1 className="title">
+      Envie um link de recuperação de senha no seu email.
+    </h1>
+  );
+
+  const description = (
+    <p className="paragraph">
+      Insira o seu email abaixo para receber um link de redefinição de senha.
+    </p>
+  );
 
   return (
-    <div className={styles.form}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Recupere a sua senha</h1>
-        <p className={styles.paragraph}>
-          Envie um link de redefinição de senha para o seu email para recuperar
-          seu acesso.
-        </p>
-      </div>
-      <div className={styles.inputs}>
-        <Input
-          placeholder="Digite seu email."
-          type="email"
-          name="email"
-          label="Email"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        {getMessage()}
-      </div>
-      <div className="buttons">
-        <Button
-          disabled={disabled}
-          type="button"
-          onClick={sendEmail}
-          background={disabled ? "transparent" : "gradient"}
-          className="submit"
-        >
-          {isPending || timeLeft > 0
-            ? "Enviando email..."
-            : "Enviar Link no Email"}
-        </Button>
-        <Button
-          href={"/login/other"}
-          className="back"
-          background={"transparent"}
-          type="button"
-        >
-          Voltar
-        </Button>
-      </div>
-    </div>
+    <TransitionWrapper motionKey="recovery">
+      <EmailVerification
+        title={title}
+        description={description}
+        sendedTitle="Link enviado no seu email."
+        sendedDescription="Clique no link enviado no seu email para fazer login e redefinir a sua senha."
+        onSend={sendEmail}
+        sendLabel={"Enviar link no email"}
+        back={returnToLogin}
+        backLabel="Fazer login em outra conta."
+        message={message}
+        isLoading={isPending}
+        isSuccess={isSuccess}
+        locked={sended || isPending}
+      />
+    </TransitionWrapper>
   );
 }

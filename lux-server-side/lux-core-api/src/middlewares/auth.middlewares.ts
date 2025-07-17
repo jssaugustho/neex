@@ -1,3 +1,4 @@
+import { User as iUser } from "@prisma/client";
 //response & errors
 import errors from "../errors/errors.js";
 import { getMessage } from "../locales/getMessage.js";
@@ -14,7 +15,9 @@ import TokenType from "../types/TokenType/TokenType.js";
 //core
 import Core from "../core/core.js";
 
-const { Session, Authentication } = Core;
+import User from "@luxcrm/lux-core/src/core/User/User.js";
+
+const { Session, Authentication, Logger, Verification } = Core;
 
 async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
@@ -23,17 +26,17 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
   const passwd = new PasswdType(
     req.body.passwd,
     req.data.acceptLanguage,
-    false
+    false,
   ).getValue();
   const email = new EmailType(
     req.body.email,
-    req.data.acceptLanguage
+    req.data.acceptLanguage,
   ).getValue();
 
   req.userData = await Authentication.verifyLogin(
     email,
     passwd,
-    req.session
+    req.session,
   ).catch((err) => {
     throw err;
   });
@@ -41,10 +44,36 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
   //verifica se essa sessão necessita de 2fa autorizá-la.
   req.session = await Session.sessionSecurityVerification(
     req.userData,
-    req.session
+    req.session,
   ).catch((err) => {
     throw err;
   });
+
+  next();
+}
+
+async function verifyAuthenticationToken(
+  req: iRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.session) throw new errors.InternalServerError("Session error.");
+
+  const token = new TokenType(req.body.token, req.session.locale).getValue();
+
+  if (typeof req.body?.remember === "boolean")
+    req.data.remember = req.body?.remember;
+
+  const authorizedTypes = ["AUTHENTICATION"];
+
+  req.userData = (await Verification.verifyEmailToken(
+    token,
+    req.session,
+    authorizedTypes,
+    true,
+  ).catch((err) => {
+    throw err;
+  })) as iUser;
 
   next();
 }
@@ -53,21 +82,21 @@ async function verifyToken(req: iRequest, res: Response, next: NextFunction) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
 
   //verify if header exists
-  if (!req.headers["authorization"])
-    throw new errors.AuthError(
-      getMessage("obrigatoryHeaders", req.data.acceptLanguage)
+  if (!req.cookies.token)
+    throw new errors.TokenError(
+      getMessage("obrigatoryHeaders", req.data.acceptLanguage),
     );
 
   //get token
   let token = new TokenType(
-    req.headers["authorization"].split(" ")[1],
-    req.data.acceptLanguage
+    req.cookies.token.split(" ")[1],
+    req.data.acceptLanguage,
   ).getValue();
 
   const user = await Authentication.verifyToken(token, req.session).catch(
     (err) => {
       throw err;
-    }
+    },
   );
 
   req.userData = user;
@@ -78,26 +107,28 @@ async function verifyToken(req: iRequest, res: Response, next: NextFunction) {
 async function verifyRefreshToken(
   req: iRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
 
   //verifify if token exists
-  if (!req.body.refreshToken) {
+  if (!req.cookies.refreshToken) {
     throw new errors.UserError(
-      getMessage("obrigatoryParams", req.session.locale)
+      getMessage("obrigatoryParams", req.session.locale),
     );
   }
 
   //get token
   let refreshToken = new TokenType(
-    req.body.refreshToken,
-    req.session.locale
+    req.cookies.refreshToken.split(" ")[1],
+    req.session.locale,
   ).getValue();
+
+  req.data.remember = req.body.remember || false;
 
   const user = await Authentication.verifyRefreshToken(
     refreshToken,
-    req.session
+    req.session,
   ).catch((err) => {
     throw err;
   });
@@ -110,6 +141,7 @@ async function verifyRefreshToken(
 
 export default {
   verifyLogin,
+  verifyAuthenticationToken,
   verifyRefreshToken,
   verifyToken,
 };

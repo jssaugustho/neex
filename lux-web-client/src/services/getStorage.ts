@@ -13,43 +13,31 @@ export default function getStorage(): iSession {
 
   const preferredTheme = media.matches ? "dark" : "light";
 
-  let theme = sessionStorage.getItem("session@theme");
+  let theme = localStorage.getItem("session@theme");
   let definedTheme = (
     theme !== "dark" && theme !== "light" ? preferredTheme : theme
   ) as "dark" | "light";
 
-  let sessionId = sessionStorage.getItem("session@id");
-
-  let userName = sessionStorage.getItem("user@name");
-  let userLastName = sessionStorage.getItem("user@lastName");
-  let userEmail = sessionStorage.getItem("user@email");
-  let userId = sessionStorage.getItem("user@id");
-  let userEmailVerified = Boolean(sessionStorage.getItem("user@emailVerified"));
-  let userPhone = sessionStorage.getItem("user@phone");
+  let emailVerified = localStorage.getItem("session@mailVerified") === "true";
+  let email = localStorage.getItem("session@email");
+  let remember = localStorage.getItem("session@remember") === "true";
+  let signed = localStorage.getItem("session@signed") === "true";
 
   if (
-    definedTheme &&
-    sessionId &&
-    userName &&
-    userLastName &&
-    userEmail &&
-    userId &&
-    userPhone &&
-    typeof userEmailVerified === "boolean"
+    typeof remember === "boolean" &&
+    typeof emailVerified === "boolean" &&
+    typeof signed === "boolean" &&
+    email
   )
     return {
       theme: definedTheme,
-      sessionId,
-      userName,
-      userLastName,
-      userEmail,
-      userId,
-      userPhone,
-      signed: true,
+      remember,
+      signed,
+      email,
     };
 
   return {
     theme: definedTheme,
-    signed: false,
+    signed,
   };
 }

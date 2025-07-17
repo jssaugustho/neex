@@ -41,6 +41,7 @@
   "invalidRefreshToken": "Refresh token inválido",
 
   "successAuthentication": "Autenticação bem-sucedida.",
+  "successLogin": "Login realizado com sucesso.",
   "failAuthentication": "Falha na autenticação.",
   "wrongPassword": "Senha incorreta.",
 
@@ -63,5 +64,7 @@
   "easyPassword": "Senha fraca.",
 
   "sendedEmail": "Email enviado.",
-  "emailAlreadyVerified": "E-mail já verificado."
+  "emailAlreadyVerified": "E-mail já verificado.",
+
+  "requiresOldPasswd": "Senha antiga incorreta."
 }

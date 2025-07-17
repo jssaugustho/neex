@@ -23,6 +23,8 @@ import RecoveryEmail from "../Email/models/RecoveryEmail.js";
 import VerificationEmail from "../Email/models/VerificationEmail.js";
 
 import Prisma from "../Prisma/Prisma.js";
+import VerifySessionEmail from "../Email/models/VerifySessionEmail.js";
+import iSessionPayload from "../../@types/iSessionPayload/iSessionPayload.js";
 
 class Verification {
   async notificateEmailVerified(user: iUser) {
@@ -36,20 +38,7 @@ class Verification {
   }
 
   getExponencialTime(session: iSession) {
-    const exponencialList = [
-      1,
-      2,
-      2,
-      5,
-      10,
-      15,
-      30,
-      45,
-      60,
-      90,
-      60 * 3,
-      60 * 12,
-    ];
+    const exponencialList = [3, 5, 5, 5, 10, 10, 10, 20, 20, 20, 60, 60 * 3];
 
     let exponencialValue =
       exponencialList[
@@ -87,7 +76,14 @@ class Verification {
   async generate2faLink(
     user: iUser,
     session: iSession,
-    type: "AUTHENTICATION" | "VERIFICATION" | "RECOVERY",
+    type:
+      | "AUTHENTICATION"
+      | "PRE_AUTHENTICATION"
+      | "VERIFICATION"
+      | "RECOVERY"
+      | "VERIFY_SESSION"
+      | "SET_NEW_PASSWD",
+    unique = false,
   ): Promise<iVerification> {
     return new Promise(async (resolve, reject) => {
       const token = jwt.sign(
@@ -95,6 +91,7 @@ class Verification {
           id: user.id,
           sessionId: session.id,
           type,
+          unique,
         },
         process.env.JWT_VERIFICATION_SECRET as string,
         {
@@ -119,46 +116,12 @@ class Verification {
     });
   }
 
-  async sendTransacionalEmail(user: iUser, verification: iVerification) {
-    const emailModel =
-      verification.type === "AUTHENTICATION" ? (
-        <AuthenticationEmail token={verification.token} user={user} />
-      ) : verification.type === "RECOVERY" ? (
-        <RecoveryEmail token={verification.token} user={user} />
-      ) : (
-        <VerificationEmail token={verification.token} user={user} />
-      );
-
-    const subject =
-      verification.type === "AUTHENTICATION"
-        ? "Faça o seu login via email | Lux CRM ©"
-        : verification.type === "RECOVERY"
-          ? "Redefina a sua senha | Lux CRM ©"
-          : "Verifique o seu email | Lux CRM ©";
-
-    return await Email.sendTransacionalEmail(
-      user.email,
-      subject,
-      emailModel,
-    ).catch((err) => {
-      console.log(err);
-    });
-  }
-
-  async sendWelcomeMessage(user: iUser, emailToken: string) {
-    return await Email.sendTransacionalEmail(
-      user.email,
-      "Verifique seu email | Lux CRM ©",
-      <WelcomeMessage token={emailToken} user={user} />,
-    ).catch((err) => {
-      console.log(err);
-    });
-  }
-
   async verifyEmailToken(
     token: string,
     session: iSession,
-    userData?: iUser,
+    authorizedTypes: string[],
+    auth = false,
+    unique = false,
   ): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const payload = await Token.loadPayload(token, "emailToken").catch(
@@ -177,34 +140,46 @@ class Verification {
           new errors.AuthError(getMessage("invalidToken", session.locale)),
         );
 
-      if (payload.type)
+      if (!payload.type)
         return reject(
           new errors.AuthError(getMessage("invalidToken", session.locale)),
         );
 
-      const user =
-        userData ||
-        ((await User.getUserById(payload.id).catch((err) => {
-          return reject(
-            new errors.AuthError(getMessage("invalidToken", session.locale)),
-          );
-        })) as iUser);
+      if (!payload.sessionId)
+        return reject(
+          new errors.AuthError(getMessage("invalidToken", session.locale)),
+        );
 
-      let verification = (await Prisma.verification
-        .findFirstOrThrow({
-          where: {
-            userId: user.id,
-            token,
-            type: payload.type,
-          },
-        })
-        .catch(() => {
-          return reject(
-            new errors.AuthError(getMessage("invalidToken", session.locale)),
-          );
-        })) as iVerification;
+      const user = (await User.getUserById(payload.id).catch((err) => {
+        return reject(
+          new errors.AuthError(getMessage("invalidToken", session.locale)),
+        );
+      })) as iUser;
 
-      if (verification.token !== token || verification.used)
+      let verification = await Prisma.verification.findFirst({
+        where: {
+          userId: user.id,
+          token,
+          type: payload.type,
+        },
+      });
+
+      if (!verification)
+        return reject(
+          new errors.AuthError(getMessage("invalidToken", session.locale)),
+        );
+
+      if (verification?.token !== token || verification.used)
+        return reject(
+          new errors.AuthError(getMessage("invalidToken", session.locale)),
+        );
+
+      if (payload.sessionId !== session.id && unique)
+        return reject(
+          new errors.AuthError(getMessage("invalidToken", session.locale)),
+        );
+
+      if (!authorizedTypes.includes(payload.type))
         return reject(
           new errors.AuthError(getMessage("invalidToken", session.locale)),
         );
@@ -240,6 +215,54 @@ class Verification {
         });
 
       return resolve(user);
+    });
+  }
+
+  async sendTransacionalEmail(
+    user: iUser,
+    verification: iVerification,
+    session: iSessionPayload,
+  ) {
+    const emailModel =
+      verification.type === "AUTHENTICATION" ? (
+        <AuthenticationEmail token={verification.token} user={user} />
+      ) : verification.type === "RECOVERY" ? (
+        <RecoveryEmail token={verification.token} user={user} />
+      ) : verification.type === "VERIFY_SESSION" ? (
+        <VerifySessionEmail
+          token={verification.token}
+          session={session}
+          user={user}
+        />
+      ) : (
+        <VerificationEmail token={verification.token} user={user} />
+      );
+
+    const subject =
+      verification.type === "AUTHENTICATION"
+        ? "Faça o seu login via email | Lux CRM ©"
+        : verification.type === "RECOVERY"
+          ? "Redefina a sua senha | Lux CRM ©"
+          : verification.type === "VERIFY_SESSION"
+            ? "Autorize um novo dispositivo | Lux CRM ©"
+            : "Verifique o seu email | Lux CRM ©";
+
+    return await Email.sendTransacionalEmail(
+      user.email,
+      subject,
+      emailModel,
+    ).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  async sendWelcomeMessage(user: iUser, emailToken: string) {
+    return await Email.sendTransacionalEmail(
+      user.email,
+      "Verifique seu email | Lux CRM ©",
+      <WelcomeMessage token={emailToken} user={user} />,
+    ).catch((err) => {
+      console.log(err);
     });
   }
 }

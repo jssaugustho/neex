@@ -3,6 +3,7 @@ import { Router } from "express";
 //controle de acesso e autenticação
 import authMiddlewares from "../middlewares/auth.middlewares.js";
 import authControllers from "../controllers/auth.controllers.js";
+import userMiddlewares from "../middlewares/user.middlewares.js";
 
 const auth = Router();
 
@@ -13,9 +14,41 @@ const auth = Router();
  *      summary: Fazer login.
  *      tags:
  *        - Authentication
- *      description: Faça seu login e receba de volta um token e um refresh token.
+ *      description: Faça seu login e receba de volta um token único de autenticação.
  *      requestBody:
  *        $ref: "#/components/requestBodies/Login"
+ *      parameters:
+ *        - $ref: "#/components/parameters/FingerprintIdHeader"
+ *        - $ref: "#/components/parameters/TimeZoneHeader"
+ *        - $ref: "#/components/parameters/UserAgentHeader"
+ *        - $ref: "#/components/parameters/AcceptLanguageHeader"
+ *        - $ref: "#/components/parameters/SessionIdHeader"
+ *      responses:
+ *        200:
+ *          $ref: "#/components/responses/PreAuthResponse"
+ *        400:
+ *          $ref: "#/components/responses/UserError"
+ *        401:
+ *          $ref: "#/components/responses/AuthError"
+ *        502:
+ *          $ref: "#/components/responses/InternalServerError"
+ */
+auth.post(
+  "/login",
+  authMiddlewares.verifyLogin,
+  authControllers.preAuthentication,
+);
+
+/** Rota de login
+ *  @swagger
+ *  /authenticate:
+ *    post:
+ *      summary: Autenticar sessão.
+ *      tags:
+ *        - Authentication
+ *      description: Faça seu login e receba de volta um token e um refresh token via httpCookie.
+ *      requestBody:
+ *        $ref: "#/components/requestBodies/SendEmailToken"
  *      parameters:
  *        - $ref: "#/components/parameters/FingerprintIdHeader"
  *        - $ref: "#/components/parameters/TimeZoneHeader"
@@ -32,7 +65,11 @@ const auth = Router();
  *        502:
  *          $ref: "#/components/responses/InternalServerError"
  */
-auth.post("/login", authMiddlewares.verifyLogin, authControllers.authenticate);
+auth.post(
+  "/authenticate",
+  authMiddlewares.verifyAuthenticationToken,
+  authControllers.authenticate,
+);
 
 /** Refresh Token
  *  @swagger
@@ -63,7 +100,7 @@ auth.post("/login", authMiddlewares.verifyLogin, authControllers.authenticate);
 auth.post(
   "/refresh",
   authMiddlewares.verifyRefreshToken,
-  authControllers.authenticate
+  authControllers.authenticate,
 );
 
 export default auth;

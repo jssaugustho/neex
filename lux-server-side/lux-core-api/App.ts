@@ -2,6 +2,7 @@ import "express-async-errors";
 
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 // rotas
 import userRoute from "./src/routes/user.route.js";
@@ -27,6 +28,7 @@ class App {
 
     //usar json
     this.app.use(express.json());
+    this.app.use(cookieParser());
 
     this.app.use(
       cors({
@@ -39,13 +41,17 @@ class App {
           "User-Agent",
           "Session",
           "Fingerprint",
+          "Cookies",
         ],
+        credentials: true,
       }),
     );
 
     if (process.env.NODE_ENV === "development") {
       Logger.info("Starting in development mode");
-      Logger.info(`Documentation http://localhost:${process.env.PORT}/docs`);
+      Logger.info(
+        `Documentation http://localhost:${process.env.CORE_API_PORT}/docs`,
+      );
       this.app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     }
 

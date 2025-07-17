@@ -20,6 +20,11 @@
   font-weight: 500;
 }
 
+.input:disabled {
+  color: var(--sub-text-color);
+  cursor: not-allowed;
+}
+
 .input::placeholder {
   font-family: "Montserrat", sans-serif;
   color: var(--sub-text-color);

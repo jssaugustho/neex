@@ -18,7 +18,7 @@ import { getMessage } from "../locales/getMessage.js";
 import iSessionPayload from "../@types/iSessionPayload/iSessionPayload.js";
 import Core from "../core/core.js";
 
-const { User, Session, Ip, Prisma } = Core;
+const { User, Session, Ip, Prisma, Logger } = Core;
 
 async function userAgentBlackList(
   req: iRequest,
@@ -81,9 +81,11 @@ async function getSession(req: iRequest, res: Response, next: NextFunction) {
 
   let sessionId = "";
 
-  if (req.headers.session) {
+  Logger.info(req.cookies, "Cookies received.");
+
+  if (req.cookies.session) {
     sessionId = new ObjectIdType(
-      req.headers.session as string,
+      req.cookies.session as string,
       req.data.acceptLanguage,
     ).getValue();
 

@@ -38,10 +38,19 @@ class SessionError extends Error {
   }
 }
 
+class ClientError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ClientError";
+    this.message = message;
+  }
+}
+
 export default {
   UserError,
   InternalServerError,
   AuthError,
   TokenError,
   SessionError,
+  ClientError,
 };

@@ -1,12 +1,17 @@
 "use client";
 
-import { useAuth } from "@/contexts/auth.context";
-import LoginTheme from "@/app/login/components/loginTheme";
+import { AuthRedirect, useAuth } from "@/contexts/auth.context";
+import LoginTheme from "@/components/loginTheme/loginTheme";
+import TransitionWrapper from "../../components/transitionWrapper";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <LoginTheme>{children}</LoginTheme>;
+  return (
+    <AuthRedirect>
+      <LoginTheme>{children}</LoginTheme>
+    </AuthRedirect>
+  );
 }

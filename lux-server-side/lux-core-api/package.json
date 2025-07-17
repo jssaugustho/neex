@@ -21,6 +21,7 @@
     "@luxcrm/lux-core": "file:../lux-core",
     "@luxcrm/lux-core-api": "file:",
     "@types/swagger-jsdoc": "^6.0.4",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "express-async-errors": "^3.1.1",

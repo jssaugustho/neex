@@ -1,0 +1,59 @@
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  width: 200px;
+}
+
+.header {
+  gap: 16px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--primary-text-color);
+}
+
+.description {
+  font-size: 14px;
+  color: var(--sub-text-color);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.inputBox {
+  gap: 16px;
+}
+
+.link {
+  font-size: 14px;
+  color: var(--sub-text-color);
+  text-decoration: none;
+}
+
+.link:hover {
+  font-size: 14px;
+  text-decoration: underline;
+  color: var(--primary-text-color);
+}
+
+.linkButton {
+  width: 100%;
+  height: fit-content;
+  text-decoration: none;
+}
+
+.linkButton:focus {
+  outline: none;
+  width: 100%;
+  height: fit-content;
+  text-decoration: none;
+}

@@ -1,5 +1,3 @@
-"use client";
-
 import "../style/variables.css";
 import "../style/globals.css";
 
@@ -8,12 +6,15 @@ import { Montserrat } from "next/font/google";
 import { AuthProvider } from "@/contexts/auth.context";
 import { ReactElement } from "react";
 import { QueryProvider } from "@/contexts/queryClient";
+import { SendEmailProvider } from "../contexts/sendEmail.context";
 
-// import type { Metadata } from "next";
+import type { Metadata } from "next";
+import { AnimatePresence } from "framer-motion";
+import { NavigationProvider } from "@/contexts/navigation.context";
 
-// export const metadata: Metadata = {
-//   title: "Lux CRM © Geração de Demanda",
-// };
+export const metadata: Metadata = {
+  title: "Lux CRM © Geração de Demanda",
+};
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -27,7 +28,7 @@ export default function RootLayout({
   children: ReactElement;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <title>Lux CRM © Geração de Demanda</title>
         <link
@@ -37,7 +38,11 @@ export default function RootLayout({
       </head>
       <body className={`${montserrat.className}`}>
         <QueryProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <NavigationProvider>
+            <AuthProvider>
+              <SendEmailProvider>{children}</SendEmailProvider>
+            </AuthProvider>
+          </NavigationProvider>
         </QueryProvider>
       </body>
     </html>

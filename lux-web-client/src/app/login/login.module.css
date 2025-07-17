@@ -60,14 +60,15 @@
   color: var(--primary-text-color);
 }
 
-.link {
-  font-size: 14px;
-  color: var(--sub-text-color);
-  text-decoration: none;
+.msgBox {
+  flex-direction: row;
+  gap: 8px;
+  vertical-align: middle;
+  padding-top: 16px;
+  color: var(--error-red);
+  font-weight: 500;
 }
 
-.link:hover {
-  font-size: 14px;
-  text-decoration: underline;
-  color: var(--primary-text-color);
+.msgBox i {
+  line-height: 4px;
 }

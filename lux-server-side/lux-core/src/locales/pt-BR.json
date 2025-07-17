@@ -41,11 +41,12 @@
   "invalidRefreshToken": "Refresh token inválido",
 
   "successAuthentication": "Autenticação bem-sucedida.",
+  "successPreAuthentication": "Pré-autenticação bem-sucedida.",
   "failAuthentication": "Falha na autenticação.",
   "wrongPassword": "Senha incorreta.",
 
   "unauthorized": "Não autorizado.",
-  "attemptLimit": "Limite de tentativas atingido.",
+  "attemptLimit": "Faça o login através do email.",
   "requirePrivilege": "Requer privilégios: {{privilege}}.",
   "ownerSupportOrAdmin": "Proprietário, suporte ou administrador.",
 

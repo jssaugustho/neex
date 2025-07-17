@@ -14,8 +14,10 @@ import TokenType from "../types/TokenType/TokenType.js";
 //db
 import { getMessage } from "../locales/getMessage.js";
 import Core from "../core/core.js";
+import PasswdType from "../types/PasswdType/PasswdType.js";
+import Email from "@luxcrm/lux-core/src/core/Email/Email.js";
 
-const { Verification, User, Prisma } = Core;
+const { Verification, User, Prisma, Logger } = Core;
 
 async function validateEmail(req: iRequest, res: Response, next: NextFunction) {
   if (!req.session) throw new errors.InternalServerError("Session error");
@@ -71,6 +73,14 @@ async function validateResend(
   if (req.data.timeLeft <= 0) {
     next();
   } else {
+    Logger.error(
+      {
+        email: req.userData.email,
+        timeLeft: req.data.timeLeft,
+        pretty: req.data.pretty,
+      },
+      "Wait to resend email.",
+    );
     res.status(400).send({
       status: "UserError",
       message: getMessage("waitToResendEmail", req.session.locale),
@@ -130,13 +140,88 @@ async function sendAuthenticationEmail(
 
   if (hours >= 1) pretty = `${hours}h ${minutes}m ${seconds}s`;
 
-  await Verification.sendTransacionalEmail(req.userData, verification).catch(
-    (err) => {
-      throw new errors.InternalServerError(
-        "Erro ao enviar o email de verificação.",
-      );
+  await Verification.sendTransacionalEmail(
+    req.userData,
+    verification,
+    req.session,
+  ).catch((err) => {
+    throw new errors.InternalServerError(
+      "Erro ao enviar o email de verificação.",
+    );
+  });
+
+  req.response = {
+    statusCode: 200,
+    output: {
+      status: "Ok",
+      message: getMessage("sendedEmail", req.session.locale),
+      info: {
+        timeLeft,
+        pretty,
+      },
     },
-  );
+  };
+
+  next();
+}
+
+async function sendVerifySessionEmail(
+  req: iRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.userData) throw new errors.UserError("UserData Error");
+  if (!req.session) throw new errors.UserError("Session Error");
+
+  const verification = await Verification.generate2faLink(
+    req.userData,
+    req.session,
+    "VERIFY_SESSION",
+  ).catch((err) => {
+    throw err;
+  });
+
+  let data: any = {
+    exponencialEmailExpires: {
+      increment: 1,
+    },
+  };
+
+  if (req.session.exponencialEmailExpires >= 12) {
+    data = {
+      exponencialEmailExpires: 16,
+    };
+  }
+
+  req.session = await Prisma.session.update({
+    where: {
+      id: req.session.id,
+    },
+    data,
+    include: {
+      ip: true,
+    },
+  });
+
+  let timeLeft = Verification.getExponencialTime(req.session);
+
+  let minutes = new Date(timeLeft).getMinutes();
+  let seconds = new Date(timeLeft).getSeconds();
+  let hours = new Date(timeLeft).getHours();
+
+  let pretty = `${minutes}m ${seconds}s`;
+
+  if (hours >= 1) pretty = `${hours}h ${minutes}m ${seconds}s`;
+
+  await Verification.sendTransacionalEmail(
+    req.userData,
+    verification,
+    req.session,
+  ).catch((err) => {
+    throw new errors.InternalServerError(
+      "Erro ao enviar o email de verificação.",
+    );
+  });
 
   req.response = {
     statusCode: 200,
@@ -201,13 +286,15 @@ async function sendVerificationEmail(
 
   if (hours >= 1) pretty = `${hours}h ${minutes}m ${seconds}s`;
 
-  await Verification.sendTransacionalEmail(req.userData, verification).catch(
-    (err) => {
-      throw new errors.InternalServerError(
-        "Erro ao enviar o email de verificação.",
-      );
-    },
-  );
+  await Verification.sendTransacionalEmail(
+    req.userData,
+    verification,
+    req.session,
+  ).catch((err) => {
+    throw new errors.InternalServerError(
+      "Erro ao enviar o email de verificação.",
+    );
+  });
 
   req.response = {
     statusCode: 200,
@@ -272,13 +359,15 @@ async function sendRecoveryEmail(
 
   if (hours >= 1) pretty = `${hours}h ${minutes}m ${seconds}s`;
 
-  await Verification.sendTransacionalEmail(req.userData, verification).catch(
-    (err) => {
-      throw new errors.InternalServerError(
-        "Erro ao enviar o email de verificação.",
-      );
-    },
-  );
+  await Verification.sendTransacionalEmail(
+    req.userData,
+    verification,
+    req.session,
+  ).catch((err) => {
+    throw new errors.InternalServerError(
+      "Erro ao enviar o email de verificação.",
+    );
+  });
 
   req.response = {
     statusCode: 200,
@@ -304,11 +393,45 @@ async function validateAuthenticationToken(
 
   const token = new TokenType(req.body.token, req.session.locale).getValue();
 
-  req.userData = (await Verification.verifyEmailToken(token, req.session).catch(
-    (err) => {
-      throw err;
-    },
-  )) as iUser;
+  const authorizedTypes = [
+    "AUTHENTICATION",
+    "PRE_AUTHENTICATION",
+    "VERIFY_SESSION",
+  ];
+
+  req.userData = (await Verification.verifyEmailToken(
+    token,
+    req.session,
+    authorizedTypes,
+    true,
+    true,
+  ).catch((err) => {
+    throw err;
+  })) as iUser;
+
+  next();
+}
+
+async function validateRecoveryToken(
+  req: iRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.session) throw new errors.InternalServerError("Session error.");
+
+  const token = new TokenType(req.body.token, req.session.locale).getValue();
+
+  const authorizedTypes = ["RECOVERY"];
+
+  req.userData = (await Verification.verifyEmailToken(
+    token,
+    req.session,
+    authorizedTypes,
+    true,
+    true,
+  ).catch((err) => {
+    throw err;
+  })) as iUser;
 
   next();
 }
@@ -319,14 +442,15 @@ async function validateVerificationToken(
   next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
-  if (!req.userData) throw new errors.InternalServerError("UserData error.");
 
   const token = new TokenType(req.body.token, req.session.locale).getValue();
+
+  const authorizedTypes = ["VERIFICATION"];
 
   req.userData = (await Verification.verifyEmailToken(
     token,
     req.session,
-    req.userData,
+    authorizedTypes,
   ).catch((err) => {
     throw err;
   })) as iUser;
@@ -368,12 +492,32 @@ async function setEmailVerified(
   next();
 }
 
+// async function recoveryPasswd(
+//   req: iRequest,
+//   res: Response,
+//   next: NextFunction,
+// ) {
+//   if (!req.userData) throw new errors.UserError("UserData Error");
+//   if (!req.session) throw new errors.UserError("Session Error");
+
+//   req.userData = await User.changePassword(
+//     req.userData,
+//     req.data.newPasswd,
+//   ).catch((err) => {
+//     throw new errors.InternalServerError("Não foi possível alterar a senha.");
+//   });
+
+//   next();
+// }
+
 export default {
   validateAuthenticationToken,
+  validateRecoveryToken,
   validateVerificationToken,
   validateEmail,
   validateResend,
   sendRecoveryEmail,
+  sendVerifySessionEmail,
   sendAuthenticationEmail,
   sendVerificationEmail,
   setEmailVerified,

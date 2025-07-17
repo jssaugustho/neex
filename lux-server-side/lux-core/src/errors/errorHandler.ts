@@ -1,14 +1,12 @@
 import { NextFunction, Response } from "express";
 import RequestUserPayload from "../@types/iRequest/iRequest.js";
-import Core from "../core/core.js";
-
-const { Logger } = Core;
+import Logger from "../core/Logger/Logger.js";
 
 function errorHandler(
   err: any,
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.ipLookup) throw new Error("IP lookup not found in error logger");
   if (!req.session) throw new Error("Session not found in error logger");
@@ -17,6 +15,16 @@ function errorHandler(
 
   if (err.name === "UserError") {
     statusCode = 400;
+  }
+
+  if (err.name === "ClientError") {
+    statusCode = 400;
+    res.cookie("session", null, {
+      maxAge: 0,
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+    });
   }
 
   if (err.name === "TokenError") {

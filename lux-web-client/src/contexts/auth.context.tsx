@@ -3,38 +3,51 @@
 // @types
 import { iAuthContext } from "@/@types/auth.context";
 import { iSession } from "@/@types/session";
+import Loader from "@/components/loader/loader";
 
-//services
+import { useUser } from "@/hooks/useUser";
 import initApi from "@/services/api";
-import getStorage from "@/services/getStorage";
-import { error } from "console";
-import { useRouter } from "next/navigation";
 
-import { createContext, useState, useEffect, useContext } from "react";
+import getStorage from "@/services/getStorage";
+
+import { createContext, useState, useContext, useLayoutEffect } from "react";
+import { useAppRouter } from "./navigation.context";
 
 export const AuthContext = createContext<iAuthContext | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const router = useRouter();
-
-  const api = initApi();
-
   const [session, setSession] = useState<iSession>({
     signed: false,
     theme: "dark",
   });
 
-  useEffect(() => {
+  const endSession = () => {
+    localStorage.removeItem("session@emailVerified");
+    localStorage.removeItem("session@remember");
+    localStorage.removeItem("session@signed");
+    localStorage.removeItem("session@email");
+    setSession((old) => {
+      return {
+        signed: false,
+        empty: true,
+        theme: old.theme,
+      };
+    });
+  };
+
+  const api = initApi(endSession);
+
+  useLayoutEffect(() => {
     const storage = getStorage();
 
     setSession(storage);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
 
     const themeListener = (event: MediaQueryListEvent) => {
-      if (!sessionStorage.getItem("session@theme"))
+      if (!localStorage.getItem("session@theme"))
         setSession((old) => ({
           ...old,
           theme: event.matches ? "dark" : "light",
@@ -48,44 +61,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (session.theme)
       document.documentElement.setAttribute("data-theme", session.theme);
   }, [session.theme]);
 
-  const initializeSession = (user: iUser, sessionId: string) => {
-    sessionStorage.setItem("user@id", user.id);
-    sessionStorage.setItem("user@email", user.email);
-    sessionStorage.setItem("user@phone", user.email);
-    sessionStorage.setItem("user@name", user.name);
-    sessionStorage.setItem("user@lastName", user.lastName);
-    sessionStorage.setItem("user@emailVerified", String(user.emailVerified));
-
+  const preAuth = (token: string) => {
+    endSession();
     setSession((old) => {
       return {
-        signed: true,
-        sessionId,
-        userId: user.id,
-        userEmail: user.email,
-        userName: user.name,
-        userLastName: user.lastName,
-        userEmailVerified: user.emailVerified,
-        userPhone: user.phone,
-        theme: old.theme,
+        ...old,
+        token,
       };
     });
   };
 
-  const endSession = () => {
-    sessionStorage.removeItem("user@id");
-    sessionStorage.removeItem("user@email");
-    sessionStorage.removeItem("user@phone");
-    sessionStorage.removeItem("user@name");
-    sessionStorage.removeItem("user@lastName");
-    sessionStorage.removeItem("user@emailVerified");
+  const initializeSession = (user: iUser, remember: boolean) => {
+    localStorage.setItem("session@email", user.email);
+    localStorage.setItem("session@emailVerified", String(user.emailVerified));
+    localStorage.setItem("session@remember", String(remember));
+    localStorage.setItem("session@signed", "true");
+
     setSession((old) => {
       return {
-        signed: false,
+        signed: true,
+        empty: false,
+        remember,
+        emailVerified: user.emailVerified,
         theme: old.theme,
       };
     });
@@ -93,7 +95,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const changeTheme = () => {
     const newTheme = session.theme === "dark" ? "light" : "dark";
-    sessionStorage.setItem("session@theme", newTheme);
+    localStorage.setItem("session@theme", newTheme);
     setSession((old) => {
       return {
         ...old,
@@ -105,9 +107,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthContext.Provider
       value={{
-        router,
         api,
         session,
+        preAuth,
         initializeSession,
         endSession,
         changeTheme,
@@ -118,6 +120,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       </div>
     </AuthContext.Provider>
   );
+};
+
+export const AuthGuard = ({
+  children,
+  checkEmailVerification = true,
+}: {
+  children: React.ReactNode;
+  checkEmailVerification?: boolean;
+}) => {
+  const { session } = useAuth();
+  const { push, router } = useAppRouter();
+
+  const { isSuccess, isPending, data: user } = useUser();
+
+  useLayoutEffect(() => {
+    if (!getStorage().signed) push("/login");
+
+    if (isSuccess && !user?.emailVerified && checkEmailVerification)
+      push("/verify-email");
+  }, [router, session.signed, user]);
+
+  if (isPending || !isSuccess) return <Loader showLogo={true} />;
+
+  return <div>{children}</div>;
+};
+
+export const AuthRedirect = ({ children }: { children: React.ReactNode }) => {
+  const { session } = useAuth();
+  const { push, router } = useAppRouter();
+
+  useLayoutEffect(() => {
+    if (session.signed) push("/dashboard");
+  }, [session.signed, router]);
+
+  return <div>{children}</div>;
 };
 
 export function useAuth() {

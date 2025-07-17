@@ -13,5 +13,11 @@ declare namespace NodeJS {
     JOBS_DATABASE_URL: string;
     EMAIL_USER: string;
     RESEND_API_TOKEN: string;
+    REMEMBER_EXPIRES_IN: number;
+    NOT_REMEMBER_EXPIRES_IN: number;
+    CORE_API_ADDRESS: string;
+    CORE_API_PORT: number;
+    WEB_CLIENT_ADDRESS: string;
+    WEB_CLIENT_PORT: number;
   }
 }

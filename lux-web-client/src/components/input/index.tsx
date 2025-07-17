@@ -1,12 +1,13 @@
 "use client";
 
+import React from "react";
 import styles from "./input.module.css";
 
 type inputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   label: string;
 };
 
-export const Input = ({ label, name, ...rest }: inputProps) => {
+export const Input = React.memo(({ label, name, ...rest }: inputProps) => {
   return (
     <div className={styles.inputbox}>
       <div className={styles.labelBox}>
@@ -17,4 +18,4 @@ export const Input = ({ label, name, ...rest }: inputProps) => {
       <input name={name} id={name} className={styles.input} {...rest} />
     </div>
   );
-};
+});

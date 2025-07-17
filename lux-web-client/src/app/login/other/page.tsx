@@ -1,13 +1,15 @@
 "use client";
 
 import styles from "./other.module.css";
-import { useState } from "react";
-import Link from "next/link";
 import Button from "@/components/button";
-import { useOther } from "./other.context";
+
+import { useAppRouter } from "@/contexts/navigation.context";
+import { useSendEmail } from "@/contexts/sendEmail.context";
 
 export default function Other() {
-  const { selected, setSelected, CardOptions } = useOther();
+  const { selected, setSelected, CardOptions } = useSendEmail();
+
+  const { push, isPending } = useAppRouter();
 
   return (
     <div className={styles.form}>
@@ -23,6 +25,7 @@ export default function Other() {
               }`}
               tabIndex={0}
               onClick={() => setSelected(card)}
+              onDoubleClick={() => push(card.url)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") setSelected(card);
               }}
@@ -41,15 +44,21 @@ export default function Other() {
       </div>
       <div className="buttons">
         <Button
-          href={selected.url}
+          onClick={() => {
+            push(selected.url);
+          }}
+          disabled={isPending}
           background="gradient"
           className={`submit`}
           type="button"
         >
-          Próximo Passo <i className="icon fi fi-rr-arrow-right"></i>
+          Próximo Passo <i className="fi fi-rr-angle-small-right"></i>
         </Button>
         <Button
-          href={"/login"}
+          onClick={() => {
+            push("/login");
+          }}
+          disabled={isPending}
           className="back"
           background={"transparent"}
           type="button"

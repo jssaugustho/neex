@@ -42,7 +42,44 @@ verificationRoute.post(
   verificationMiddlewares.validateEmail,
   verificationMiddlewares.validateResend,
   verificationMiddlewares.sendAuthenticationEmail,
-  verificationControllers.response
+  verificationControllers.response,
+);
+
+/** Enviar email de autenticação para o usuário.
+ *  @swagger
+ *  /send-verify-session-email:
+ *    post:
+ *      summary: Enviar email para autorizar um novo dispositivo.
+ *      tags:
+ *        - Authentication
+ *        - Security
+ *      description: Envia um email com o link de autenticação.
+ *      requestBody:
+ *        $ref: "#/components/requestBodies/SendEmail"
+ *      parameters:
+ *        - $ref: "#/components/parameters/FingerprintIdHeader"
+ *        - $ref: "#/components/parameters/TimeZoneHeader"
+ *        - $ref: "#/components/parameters/UserAgentHeader"
+ *        - $ref: "#/components/parameters/AcceptLanguageHeader"
+ *        - $ref: "#/components/parameters/SessionIdHeader"
+ *      security:
+ *        - bearerAuth: []
+ *      responses:
+ *        200:
+ *          $ref: "#/components/responses/SendedEmail"
+ *        400:
+ *          $ref: "#/components/responses/UserError"
+ *        401:
+ *          $ref: "#/components/responses/AuthError"
+ *        502:
+ *          $ref: "#/components/responses/InternalServerError"
+ */
+verificationRoute.post(
+  "/send-verify-session-email",
+  verificationMiddlewares.validateEmail,
+  verificationMiddlewares.validateResend,
+  verificationMiddlewares.sendVerifySessionEmail,
+  verificationControllers.response,
 );
 
 /** Enviar email de autenticação para o usuário.
@@ -79,7 +116,7 @@ verificationRoute.post(
   verificationMiddlewares.validateEmail,
   verificationMiddlewares.validateResend,
   verificationMiddlewares.sendRecoveryEmail,
-  verificationControllers.response
+  verificationControllers.response,
 );
 
 /** Rota de login via email
@@ -101,7 +138,7 @@ verificationRoute.post(
  *        - $ref: "#/components/parameters/SessionIdHeader"
  *      responses:
  *        200:
- *          $ref: "#/components/responses/AuthResponse"
+ *          $ref: "#/components/responses/PreAuthResponse"
  *        400:
  *          $ref: "#/components/responses/UserError"
  *        401:
@@ -112,7 +149,76 @@ verificationRoute.post(
 verificationRoute.post(
   "/email-authentication",
   verificationMiddlewares.validateAuthenticationToken,
-  authControllers.authenticate
+  verificationMiddlewares.setEmailVerified,
+  authControllers.preAuthentication,
+);
+
+/** Rota de verificação do recoverytoken
+ *  @swagger
+ *  /verify-recovery:
+ *    post:
+ *      summary: Recebe um token de recovery e reet.
+ *      tags:
+ *        - Authentication
+ *        - Security
+ *      description: Faça seu login via link de autenticação no email e receba de volta um token e um refresh token.
+ *      requestBody:
+ *        $ref: "#/components/requestBodies/SendEmailToken"
+ *      parameters:
+ *        - $ref: "#/components/parameters/FingerprintIdHeader"
+ *        - $ref: "#/components/parameters/TimeZoneHeader"
+ *        - $ref: "#/components/parameters/UserAgentHeader"
+ *        - $ref: "#/components/parameters/AcceptLanguageHeader"
+ *        - $ref: "#/components/parameters/SessionIdHeader"
+ *      responses:
+ *        200:
+ *          $ref: "#/components/responses/PreAuthResponse"
+ *        400:
+ *          $ref: "#/components/responses/UserError"
+ *        401:
+ *          $ref: "#/components/responses/AuthError"
+ *        502:
+ *          $ref: "#/components/responses/InternalServerError"
+ */
+verificationRoute.post(
+  "/verify-recovery",
+  verificationMiddlewares.validateRecoveryToken,
+  verificationMiddlewares.setEmailVerified,
+  authControllers.preAuthentication,
+);
+
+/** Rota de verificação do recoverytoken
+ *  @swagger
+ *  /verify-recovery:
+ *    post:
+ *      summary: Redefina a senha e bloqueie todas as sessões ativas.
+ *      tags:
+ *        - Authentication
+ *        - Security
+ *      description: Faça seu login via link de autenticação no email e receba de volta um token e um refresh token.
+ *      requestBody:
+ *        $ref: "#/components/requestBodies/SendEmailToken"
+ *      parameters:
+ *        - $ref: "#/components/parameters/FingerprintIdHeader"
+ *        - $ref: "#/components/parameters/TimeZoneHeader"
+ *        - $ref: "#/components/parameters/UserAgentHeader"
+ *        - $ref: "#/components/parameters/AcceptLanguageHeader"
+ *        - $ref: "#/components/parameters/SessionIdHeader"
+ *      responses:
+ *        200:
+ *          $ref: "#/components/responses/PreAuthResponse"
+ *        400:
+ *          $ref: "#/components/responses/UserError"
+ *        401:
+ *          $ref: "#/components/responses/AuthError"
+ *        502:
+ *          $ref: "#/components/responses/InternalServerError"
+ */
+verificationRoute.post(
+  "/verify-recovery",
+  verificationMiddlewares.validateRecoveryToken,
+  verificationMiddlewares.setEmailVerified,
+  authControllers.preAuthentication,
 );
 
 /** Enviar email de verificação para o usuário.
@@ -148,7 +254,7 @@ verificationRoute.get(
   verificationMiddlewares.validateIfEmailAlreadyVerified,
   verificationMiddlewares.validateResend,
   verificationMiddlewares.sendVerificationEmail,
-  verificationControllers.response
+  verificationControllers.response,
 );
 
 /** Rota de verificação de email
@@ -183,7 +289,7 @@ verificationRoute.post(
   authMiddlewares.verifyToken,
   verificationMiddlewares.validateVerificationToken,
   verificationMiddlewares.setEmailVerified,
-  verificationControllers.response
+  verificationControllers.response,
 );
 
 export default verificationRoute;

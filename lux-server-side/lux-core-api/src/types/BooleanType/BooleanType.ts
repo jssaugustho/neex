@@ -11,11 +11,12 @@ class BooleanType {
   regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
   value: boolean;
 
-  constructor(text: boolean) {
-    if (!text) throw new errors.UserError(getMessage("obrigatoryParams"));
+  constructor(text: boolean, locale = "pt-BR") {
+    if (!text)
+      throw new errors.UserError(getMessage("obrigatoryParams", locale));
 
     if (typeof text != "boolean")
-      throw new errors.UserError(getMessage("invalidParams"));
+      throw new errors.UserError(getMessage("invalidParams", locale));
 
     this.value = text;
   }

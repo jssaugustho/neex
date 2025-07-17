@@ -61,8 +61,9 @@ div {
 }
 
 .submit:disabled {
-  cursor: not-allowed;
+  cursor: progress;
   filter: brightness(80%);
+  filter: contrast(80%);
   background: transparent;
 }
 
@@ -118,4 +119,25 @@ div {
 
 .transparent {
   background: transparent;
+}
+
+.title {
+  color: var(--primary-text-color);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 160%;
+  text-align: center;
+}
+
+.gradient-text {
+  background-image: var(--main-gradient);
+  background-clip: text;
+  color: transparent;
+}
+
+.paragraph {
+  text-align: center;
+  line-height: 180%;
+  font-size: 14px;
+  color: var(--common-text-color);
 }

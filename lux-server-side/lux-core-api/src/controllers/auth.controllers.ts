@@ -1,48 +1,115 @@
+import { data } from "framer-motion/client";
 //types
 import { NextFunction, Response } from "express";
 import RequestUserPayload from "../@types/iRequest/iRequest.js";
 
 //errors
-import response from "../response/response.js";
 import errors from "../errors/errors.js";
 import { getMessage } from "../locales/getMessage.js";
 
 import Core from "../core/core.js";
+import { serve } from "swagger-ui-express";
 
-const { Authentication, Ip, Session } = Core;
+const { Authentication, Ip, Session, Verification, Logger } = Core;
 
 //auth user, register and send token
 async function authenticate(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session not found");
 
   if (!req.userData) throw new errors.InternalServerError("UserData not found");
 
-  if (!req.data.fingerprint)
-    throw new errors.UserError(response.needFingerprintHeader());
+  const expiresIn = req.data.remember
+    ? Number(process.env.REMEMBER_EXPIRES_IN)
+    : Number(process.env.NOT_REMEMBER_EXPIRES_IN);
 
   Authentication.authenticate(
     req.userData,
     req.session,
     req.data.fingerprint,
-    req.data?.silent || false
+    expiresIn,
+    req.data?.silent || false,
   )
     .then((data) => {
-      const publicData = req.userData;
-      if (publicData) publicData.passwd = "********************************";
+      let publicData = {
+        id: req.userData?.id,
+        email: req.userData?.email,
+        emailVerified: req.userData?.emailVerified,
+        phone: req.userData?.phone,
+        name: req.userData?.name,
+        lastName: req.userData?.lastName,
+        timeZone: req.userData?.timeZone,
+        locale: req.userData?.locale,
+        role: req.userData?.role,
+      };
 
       req.response = {
         statusCode: 200,
         output: {
           status: "Ok",
-          message: response.succesAuth(),
-          token: "Bearer " + data.token,
-          refreshToken: data.refreshToken,
-          session: req.session?.id as string,
+          message: getMessage("successAuthentication", req.session?.locale),
           data: publicData,
+        },
+      };
+
+      if (!req.userData?.active)
+        req.response.output.info = {
+          reactivate: true,
+        };
+
+      res.cookie("session", req.session?.id, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: expiresIn,
+        path: "/",
+      });
+      ("");
+
+      res.cookie("token", `Bearer ${data.token}`, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 10,
+        path: "/",
+      });
+      ("");
+
+      res.cookie("refreshToken", `Bearer ${data.refreshToken}`, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: expiresIn,
+        path: "/",
+      });
+
+      res.status(req.response.statusCode).send(req.response.output);
+    })
+    .catch(next);
+}
+
+//auth user, register and send token
+async function preAuthentication(
+  req: RequestUserPayload,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.session) throw new errors.InternalServerError("Session not found");
+
+  if (!req.userData) throw new errors.InternalServerError("UserData not found");
+
+  Verification.generate2faLink(req.userData, req.session, "AUTHENTICATION")
+    .then((data) => {
+      req.response = {
+        statusCode: 200,
+        output: {
+          status: "Ok",
+          message: getMessage("successPreAuthentication"),
+          token: data.token,
+          session: req.session?.id as string,
         },
       };
 
@@ -59,7 +126,7 @@ async function authenticate(
 async function logoutSession(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session Error");
   if (!req.userData) throw new errors.InternalServerError("Userdata Error");
@@ -79,7 +146,7 @@ async function logoutSession(
 async function logoutSessions(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session not found");
 
@@ -101,10 +168,10 @@ async function logoutSessions(
 async function blockSession(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
-  if (!req.session) throw new errors.UserError(response.sessionNotFound());
-  if (!req.userData) throw new errors.UserError(response.userNotFound());
+  if (!req.session) throw new errors.UserError("Session Error");
+  if (!req.userData) throw new errors.UserError("UserData Error");
 
   Session.blockSession(req.session, req.userData)
     .then((session) => {
@@ -121,7 +188,7 @@ async function blockSession(
 async function blockSessions(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session not found");
 
@@ -151,7 +218,7 @@ async function blockSessions(
 async function unauthorizeIp(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
   if (!req.userData) throw new errors.InternalServerError("User data error.");
@@ -172,7 +239,7 @@ async function unauthorizeIp(
 async function unauthorizeIps(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
   if (!req.userData) throw new errors.InternalServerError("User data error.");
@@ -202,7 +269,7 @@ async function unauthorizeIps(
 async function responseRequests(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.response)
     throw new errors.InternalServerError("Response not found.");
@@ -212,6 +279,7 @@ async function responseRequests(
 
 export default {
   authenticate,
+  preAuthentication,
   unauthorizeIp,
   unauthorizeIps,
   responseRequests,

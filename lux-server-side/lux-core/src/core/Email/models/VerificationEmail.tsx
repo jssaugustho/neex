@@ -14,57 +14,52 @@ import {
 } from "@react-email/components";
 import React from "react";
 
-const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "";
+const VerificationEmail = (props: { token: string; user: iUser }) => {
+  let url = `https://${process.env.WEB_CLIENT_ADDRESS}/verify-email/${props.token}/verify`;
 
-const VerificationEmail = (props: { token: string; user: iUser }) => (
-  <Html>
-    <Head />
-    <Preview>Verifique o seu email.</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Section style={box}>
-          <Img
-            src={`https://luxdigitalstudio.com.br/light-theme-logo.png`}
-            width="218"
-            height="67"
-            alt="Stripe"
-          />
-          <Hr style={hr} />
-          <Text style={title}>
-            Verifique o seu email clicando no link abaixo.
-          </Text>
-          <Text style={paragraph}>
-            Após verificar o seu email você terá acesso à todas as funções do
-            CRM.
-          </Text>
-          <Text style={paragraph}>
-            Caso não tenha sido você que solicitou a verificação do email pode
-            ignorar esse email, e lembre-se de nunca compartilhar esse link com
-            ninguém.
-          </Text>
-          <Button
-            style={button}
-            href={`${process.env.SPA_URL}/onboarding?token=${props.token}`}
-          >
-            Verificar Email
-          </Button>
-          <Hr style={hr} />
-          <Text style={paragraph}>
-            Caso você suspeite de alguma atividade em seu email, entre em
-            contato com o nosso suporte urgentemente.
-          </Text>
-          <Text style={paragraph}>— Equipe Lux Digital.</Text>
-          <Hr style={hr} />
-          <Text style={footer}>
-            Av. Brigadeiro Faria Lima, 2506 - 11º andar - São Paulo, SP
-          </Text>
-        </Section>
-      </Container>
-    </Body>
-  </Html>
-);
+  if (process.env.NODE_ENV === "development")
+    url = `http://${process.env.WEB_CLIENT_ADDRESS}:${process.env.WEB_CLIENT_PORT}/verify-email/${props.token}/verify`;
+
+  return (
+    <Html>
+      <Head />
+      <Preview>Verifique o seu email.</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={box}>
+            <Img
+              src={`https://luxdigitalstudio.com.br/light-theme-logo.png`}
+              width="218"
+              height="67"
+              alt="Lux CRM ©"
+            />
+            <Hr style={hr} />
+            <Text style={title}>
+              Verifique o seu email clicando no link abaixo.
+            </Text>
+            <Text style={paragraph}>
+              Após verificar o seu email você terá acesso à todas as funções do
+              LuxCRM.
+            </Text>
+            <Button style={button} href={url}>
+              Verificar Email
+            </Button>
+            <Hr style={hr} />
+            <Text style={paragraph}>
+              Caso você suspeite de alguma atividade em seu email, entre em
+              contato com o nosso suporte urgentemente.
+            </Text>
+            <Text style={paragraph}>— Equipe Lux Digital.</Text>
+            <Hr style={hr} />
+            <Text style={footer}>
+              Av. Brigadeiro Faria Lima, 2506 - 11º andar - São Paulo, SP
+            </Text>
+          </Section>
+        </Container>
+      </Body>
+    </Html>
+  );
+};
 
 const main = {
   backgroundColor: "#f6f9fc",

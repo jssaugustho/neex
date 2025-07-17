@@ -1,7 +1,21 @@
 "use client";
 
-import style from "./page.module.css";
+import { useAuth } from "@/contexts/auth.context";
+import { useLayoutEffect } from "react";
+import { useAppRouter } from "@/contexts/navigation.context";
+
+import Loader from "../components/loader/loader";
 
 export default function Home() {
-  return <div className={style.background}>Teste</div>;
+  const { push } = useAppRouter();
+
+  const { session } = useAuth();
+
+  useLayoutEffect(() => {
+    if (session.signed) push("/dashboard");
+
+    if (!session.signed) push("/login");
+  }, [session.signed, session.empty]);
+
+  return <Loader />;
 }

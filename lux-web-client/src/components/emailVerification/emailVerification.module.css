@@ -1,0 +1,120 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.header {
+  gap: 24px;
+}
+
+.title {
+  color: var(--primary-text-color);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+}
+.paragraph {
+  text-align: center;
+  line-height: 180%;
+  font-size: 14px;
+  color: var(--common-text-color);
+}
+
+.cards {
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 16px;
+}
+
+.card {
+  flex-direction: row;
+  outline: solid 1px var(--common-text-color);
+  padding: 10px 24px;
+  padding-right: 0px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  transition: background 0.4s;
+  cursor: pointer;
+}
+
+.card:hover {
+  backdrop-filter: brightness(130%);
+}
+
+.cardSelected {
+  outline: solid 3px var(--accent-text-color);
+  border-radius: 8px;
+}
+
+.cardIcon {
+  padding: 32px;
+  width: fit-content;
+}
+
+.cardIcon i {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.cardTitle {
+  color: var(--common-text-color);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.cardDescription {
+  font-size: 13px;
+  line-height: 160%;
+  color: var(--sub-text-color);
+}
+
+.cardContent {
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.link {
+  font-size: 14px;
+  color: var(--sub-text-color);
+  text-decoration: none;
+}
+
+.link:hover {
+  font-size: 14px;
+  text-decoration: underline;
+  color: var(--primary-text-color);
+}
+
+.inputs {
+  gap: 16px;
+}
+
+.errorMessage {
+  color: var(--error-red);
+  font-weight: 500;
+}
+
+.successMessage {
+  color: var(--common-text-color);
+  font-weight: 500;
+}
+
+.iconBox {
+  background: var(--main-gradient);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-top: 16px;
+}
+
+.iconBox i {
+  font-size: 20px;
+  line-height: 0;
+}

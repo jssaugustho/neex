@@ -56,7 +56,7 @@ class Session {
     ip: iIp,
     userAgent: string,
     locale: string,
-    timeZone?: string
+    timeZone?: string,
   ): Promise<iSessionPayload> {
     return new Promise(async (resolve, reject) => {
       let data: any = {
@@ -96,7 +96,7 @@ class Session {
         .catch((err) => {
           console.log(err);
           return reject(
-            new errors.InternalServerError("Cannot create new session in DB.")
+            new errors.InternalServerError("Cannot create new session in DB."),
           );
         });
     });
@@ -108,59 +108,23 @@ class Session {
     userAgent: string,
     timeZone: string,
     locale: string,
-    sessionId?: string
+    sessionId?: string,
   ): Promise<iSessionPayload> {
     return new Promise(async (resolve, reject) => {
+      let session: iSessionPayload | null = null;
+
       if (sessionId) {
-        let session = (await Prisma.session
-          .findUniqueOrThrow({
-            where: {
-              id: sessionId,
-              fingerprint: fingerprint,
-            },
-            include: {
-              ip: true,
-            },
-          })
-          .catch((err) => {
-            return reject(
-              new errors.AuthError(getMessage("invalidSession", locale))
-            );
-          })) as iSessionPayload;
-
-        session = (await Prisma.session
-          .update({
-            where: {
-              id: session.id,
-            },
-            data: {
-              lastActivity: new Date(),
-              userAgent,
-              locale,
-              timeZone,
-            },
-            include: {
-              ip: true,
-            },
-          })
-          .catch(() => {
-            return reject(
-              new errors.InternalServerError("Cannot update session in DB.")
-            );
-          })) as iSessionPayload;
-
-        Logger.info(
-          {
-            session: session.id,
-            fingerprint: session.fingerprint,
-            ip: session.ip.address,
+        session = (await Prisma.session.findUnique({
+          where: {
+            id: sessionId,
+            fingerprint: fingerprint,
           },
-          "Identified existent session by session header."
-        );
-
-        return resolve(session);
+          include: {
+            ip: true,
+          },
+        })) as iSessionPayload;
       } else {
-        let session = (await Prisma.session.findFirst({
+        session = (await Prisma.session.findFirst({
           where: {
             fingerprint: fingerprint,
           },
@@ -171,70 +135,58 @@ class Session {
             ip: true,
           },
         })) as iSessionPayload;
-
-        if (!session) {
-          session = (await this.createSession(
-            fingerprint,
-            ip,
-            userAgent,
-            locale,
-            timeZone
-          ).catch((err) => {
-            return reject(err);
-          })) as iSessionPayload;
-        }
-
-        if (session.ipId !== ip.id) {
-          session = (await this.createSession(
-            fingerprint,
-            ip,
-            userAgent,
-            locale,
-            timeZone
-          ).catch((err) => {
-            return reject(err);
-          })) as iSessionPayload;
-        }
-
-        await Prisma.session
-          .update({
-            where: {
-              id: session.id,
-            },
-            data: {
-              lastActivity: new Date(),
-              userAgent,
-              locale,
-              timeZone,
-            },
-            include: {
-              ip: true,
-            },
-          })
-          .catch(() => {
-            return reject(
-              new errors.InternalServerError("Cannot update session in DB.")
-            );
-          });
-
-        Logger.info(
-          {
-            name: session.name,
-            ip: session.ip.address,
-            session: session.id,
-            fingerprint: session.fingerprint,
-          },
-          "Identified session."
-        );
-
-        return resolve(session as iSessionPayload);
       }
+
+      if (!session || session.ip.id !== ip.id) {
+        session = (await this.createSession(
+          fingerprint,
+          ip,
+          userAgent,
+          locale,
+          timeZone,
+        ).catch((err) => {
+          return reject(err);
+        })) as iSessionPayload;
+      }
+
+      await Prisma.session
+        .update({
+          where: {
+            id: session.id,
+          },
+          data: {
+            lastActivity: new Date(),
+            userAgent,
+            locale,
+            timeZone,
+          },
+          include: {
+            ip: true,
+          },
+        })
+        .catch(() => {
+          return reject(
+            new errors.InternalServerError("Cannot update session in DB."),
+          );
+        });
+
+      Logger.info(
+        {
+          name: session.name,
+          ip: session.ip.address,
+          session: session.id,
+          fingerprint: session.fingerprint,
+        },
+        "Identified session.",
+      );
+
+      return resolve(session as iSessionPayload);
     });
   }
 
   sessionSecurityVerification(
     user: iUser,
-    session: iSessionPayload
+    session: iSessionPayload,
   ): Promise<iSessionPayload> {
     return new Promise(async (resolve, reject) => {
       const attemptsCheck = await Ip.verifyAttempts(session.ip, user);
@@ -259,7 +211,7 @@ class Session {
             user: user.id,
             email: user.email,
           },
-          `Authorized session: ${session.id}`
+          `Authorized session: ${session.id}`,
         );
 
         return resolve(session);
@@ -281,7 +233,7 @@ class Session {
         })
         .catch((err) => {
           return reject(
-            new errors.InternalServerError("Cannot get sessions in DB.")
+            new errors.InternalServerError("Cannot get sessions in DB."),
           );
         })) as iSessionPayload[];
 
@@ -295,7 +247,7 @@ class Session {
             user: user.id,
             email: user.email,
           },
-          `Authorized session: ${session.id}`
+          `Authorized session: ${session.id}`,
         );
 
         resolve(session);
@@ -304,25 +256,13 @@ class Session {
       fingerprintSessions.forEach(async (session) => {
         const check = await Ip.verifyAttempts(session.ip, user);
 
-        if (!check) {
-          this.incrementSessionAttempts(user, session);
-          return reject(new errors.SessionError(getMessage("needEmail2fa")));
-        }
+        if (check) return resolve(session);
+
+        this.incrementSessionAttempts(user, session);
+        return reject(new errors.SessionError(getMessage("needEmail2fa")));
       });
 
-      Logger.info(
-        {
-          name: session.name,
-          ip: session.ip.address,
-          session: session.id,
-          fingerprint: session.fingerprint,
-          user: user.id,
-          email: user.email,
-        },
-        `Authorized session: ${session.id}`
-      );
-
-      return resolve(session);
+      return reject(new errors.SessionError(getMessage("needEmail2fa")));
     });
   }
 
@@ -350,13 +290,13 @@ class Session {
               user: userData.id,
               email: userData.email,
             },
-            "Get all sessions."
+            "Get all sessions.",
           );
           return resolve(results as iSessionPayload[]);
         })
         .catch((err) => {
           return reject(
-            new errors.InternalServerError("Cannot find sessions in DB.")
+            new errors.InternalServerError("Cannot find sessions in DB."),
           );
         });
     });
@@ -365,7 +305,7 @@ class Session {
   getSessionById(
     sessionId: string,
     locale: string,
-    userData?: iUser
+    userData?: iUser,
   ): Promise<iSessionPayload> {
     return new Promise((resolve, reject) => {
       let query: { id: string; userId?: string } = {
@@ -387,13 +327,13 @@ class Session {
               name: result.name,
               session: result.id,
             },
-            "Get session by id."
+            "Get session by id.",
           );
           return resolve(result as iSessionPayload);
         })
         .catch(() => {
           return reject(
-            new errors.UserError(getMessage("sessionNotFound", locale))
+            new errors.UserError(getMessage("sessionNotFound", locale)),
           );
         });
     });
@@ -424,14 +364,14 @@ class Session {
               session: session.id,
               ip: session.ip.address,
             },
-            "Session logout."
+            "Session logout.",
           );
 
           return resolve(session);
         })
         .catch((err) => {
           return reject(
-            new errors.InternalServerError("Cannot inactive session in DB.")
+            new errors.InternalServerError("Cannot inactive session in DB."),
           );
         });
     });
@@ -439,7 +379,7 @@ class Session {
 
   logoutAllUserSessions(
     userData: iUser,
-    exception?: iSession
+    exception?: iSession,
   ): Promise<number> {
     return new Promise(async (resolve, reject) => {
       let query: any = {
@@ -461,7 +401,7 @@ class Session {
         })
         .catch(() => {
           return reject(
-            new errors.InternalServerError("Cannot inactivate sessions. 1")
+            new errors.InternalServerError("Cannot inactivate sessions. 1"),
           );
         })) as iSessionPayload[];
 
@@ -472,7 +412,7 @@ class Session {
             session: session.id,
             ip: session.ip.address,
           },
-          "Session logout"
+          "Session logout",
         );
 
         await Prisma.session
@@ -491,8 +431,8 @@ class Session {
           .catch(() => {
             return reject(
               new errors.InternalServerError(
-                "Cannot update session: " + session.id
-              )
+                "Cannot update session: " + session.id,
+              ),
             );
           });
       });
@@ -531,13 +471,13 @@ class Session {
               session: session.id,
               ip: session.ip.address,
             },
-            "Session blocked"
+            "Session blocked",
           );
           return resolve(session);
         })
         .catch((err) => {
           return reject(
-            new errors.InternalServerError("Cannot inactive session in DB.")
+            new errors.InternalServerError("Cannot inactive session in DB."),
           );
         });
     });
@@ -564,7 +504,7 @@ class Session {
         })
         .catch(() => {
           return reject(
-            new errors.InternalServerError("Cannot inactivate sessions. 1")
+            new errors.InternalServerError("Cannot inactivate sessions. 1"),
           );
         })) as iSessionPayload[];
 
@@ -575,7 +515,7 @@ class Session {
             session: session.id,
             ip: session.ip.address,
           },
-          "Session blocked"
+          "Session blocked",
         );
         await Prisma.session
           .update({
@@ -598,8 +538,8 @@ class Session {
           .catch(() => {
             return reject(
               new errors.InternalServerError(
-                "Cannot update session: " + session.id
-              )
+                "Cannot update session: " + session.id,
+              ),
             );
           });
       });

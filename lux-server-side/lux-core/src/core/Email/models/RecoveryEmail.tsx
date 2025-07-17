@@ -26,7 +26,7 @@ const RecoveryEmail = (props: { token: string; user: iUser }) => (
       <Container style={container}>
         <Section style={box}>
           <Img
-            src={`https://luxdigitalstudio.com.br/light-theme-logo.png`}
+            src={`https://cloud.luxcrm.space/light-theme-logo.png`}
             width="218"
             height="67"
             alt="Stripe"
@@ -46,14 +46,14 @@ const RecoveryEmail = (props: { token: string; user: iUser }) => (
           </Text>
           <Button
             style={button}
-            href={`${process.env.SPA_URL}/onboarding?token=${props.token}`}
+            href={`http://${process.env.WEB_CLIENT_ADDRESS}${process.env.WEB_CLIENT_PORT ? ":" + String(process.env.WEB_CLIENT_PORT) : ""}/login/other/recovery/${props.token}/verify`}
           >
             Redefinir Senha
           </Button>
           <Hr style={hr} />
           <Text style={paragraph}>
-            Caso você suspeite de alguma atividade em seu email, entre em
-            contato com o nosso suporte urgentemente.
+            Caso você suspeite de alguma atividade em seu email ou sua conta
+            entre em contato com o nosso suporte urgentemente.
           </Text>
           <Text style={paragraph}>— Equipe Lux Digital.</Text>
           <Hr style={hr} />

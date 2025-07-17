@@ -27,6 +27,14 @@ const Logger = pino(
               };
             }
 
+            if (object.refreshToken) {
+              publicObj = {
+                ...object,
+                refreshToken:
+                  "Bearer ************************************************************************************************************",
+              };
+            }
+
             if (object.body?.token) {
               publicObj = {
                 ...object,
@@ -51,7 +59,7 @@ const Logger = pino(
       }
     : {
         level: process.env.LOG_LEVEL || "info",
-      }
+      },
 );
 
 export default Logger;
