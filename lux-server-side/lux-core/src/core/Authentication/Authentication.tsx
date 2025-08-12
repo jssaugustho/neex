@@ -98,18 +98,22 @@ class Authentication {
 
       if (!decoded)
         return reject(
-          new errors.TokenError(getMessage("invalidToken", session.locale)),
+          new errors.TokenError(getMessage("cantDecodeToken", session.locale)),
         );
 
       if (decoded?.type !== "Token")
         return reject(
-          new errors.TokenError(getMessage("invalidToken", session.locale)),
+          new errors.TokenError(
+            getMessage("invalidTokenType", session.locale, {
+              type: "Token",
+            }),
+          ),
         );
 
       const tokenUser = (await User.getUserById(decoded.id as string).catch(
         (err) => {
           return reject(
-            new errors.TokenError(getMessage("invalidToken", session.locale)),
+            new errors.TokenError(getMessage("userNotFound", session.locale)),
           );
         },
       )) as iUser;
@@ -119,7 +123,7 @@ class Authentication {
         session.locale,
       ).catch((err) => {
         return reject(
-          new errors.TokenError(getMessage("invalidToken", session.locale)),
+          new errors.TokenError(getMessage("sessionNotFound", session.locale)),
         );
       })) as iSessionPayload;
 
@@ -133,13 +137,16 @@ class Authentication {
           ),
         );
       });
+      if (!tokenSession?.userId) {
+        return reject(new errors.AuthError(getMessage("unauthorizedSession")));
+      }
 
-      if (
-        !tokenSession?.userId ||
-        !tokenSession?.token ||
-        !tokenSession?.refreshToken
-      )
-        return reject(new errors.AuthError(getMessage("unauthorized")));
+      if (!tokenSession?.refreshToken) {
+        return reject(new errors.AuthError(getMessage("unauthorizedSession")));
+      }
+
+      if (!tokenSession?.token)
+        return reject(new errors.AuthError(getMessage("unauthorizedSession")));
 
       if (!authorized)
         return reject(
@@ -186,15 +193,15 @@ class Authentication {
 
       if (!decoded)
         return reject(
-          new errors.AuthError(
-            getMessage("invalidRefreshToken", session.locale),
-          ),
+          new errors.AuthError(getMessage("cantDecodeToken", session.locale)),
         );
 
       if (decoded.type !== "RefreshToken")
         return reject(
           new errors.AuthError(
-            getMessage("invalidRefreshToken", session.locale),
+            getMessage("invalidRefreshTokenType", session.locale, {
+              type: "RefreshToken",
+            }),
           ),
         );
 
@@ -202,9 +209,7 @@ class Authentication {
         decoded.id as string,
       ).catch((err) => {
         return reject(
-          new errors.AuthError(
-            getMessage("invalidRefreshToken", session.locale),
-          ),
+          new errors.AuthError(getMessage("userNotFound", session.locale)),
         );
       })) as iUser;
 
@@ -213,20 +218,29 @@ class Authentication {
         session.locale,
       ).catch((err) => {
         return reject(
-          new errors.AuthError(
-            getMessage("invalidRefreshToken", session.locale),
-          ),
+          new errors.AuthError(getMessage("sessionNotFound", session.locale)),
         );
       })) as iSession;
 
-      if (
-        !Session.isActive(refreshTokenSession) ||
-        !refreshTokenSession ||
-        !refreshTokenUser
-      )
+      if (!Session.isActive(refreshTokenSession)) {
         return reject(
-          new errors.AuthError(getMessage("invalidSession", session.locale)),
+          new errors.AuthError(
+            getMessage("unauthorizedSession", session.locale),
+          ),
         );
+      }
+
+      if (!refreshTokenSession) {
+        return reject(
+          new errors.AuthError(getMessage("sessionNotFound", session.locale)),
+        );
+      }
+
+      if (!refreshTokenUser) {
+        return reject(
+          new errors.AuthError(getMessage("userNotFound", session.locale)),
+        );
+      }
 
       if (token !== refreshTokenSession.refreshToken)
         return reject(

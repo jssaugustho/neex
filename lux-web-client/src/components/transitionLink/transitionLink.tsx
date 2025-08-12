@@ -11,17 +11,18 @@ export function TransitionLink({
 }: {
   url: string;
   children: React.ReactNode;
-}) {
+} & React.ComponentPropsWithoutRef<"div">) {
   const { push } = useAppRouter();
 
   return (
-    <div
+    <span
       {...props}
+      className={styles.link}
       onClick={() => {
         push(url);
       }}
     >
-      <span className={styles.link}>{children}</span>
-    </div>
+      {children}
+    </span>
   );
 }

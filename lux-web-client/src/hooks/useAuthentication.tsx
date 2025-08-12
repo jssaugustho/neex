@@ -23,7 +23,6 @@ type ErrorType = {
 };
 
 type RecoveryRequisition = {
-  token: string;
   remember: boolean;
 };
 
@@ -32,9 +31,8 @@ export const useAuthentication = () => {
 
   return useMutation<SuccessType, AxiosError<ErrorType>, RecoveryRequisition>({
     mutationKey: ["recoveryEmail"],
-    mutationFn: async ({ token, remember }) => {
+    mutationFn: async ({ remember }) => {
       const response = await api.post("/authenticate", {
-        token,
         remember,
       });
 

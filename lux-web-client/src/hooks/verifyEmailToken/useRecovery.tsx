@@ -34,12 +34,12 @@ export const useRecovery = () => {
   return useMutation<SuccessType, AxiosError<ErrorType>, RecoveryRequisition>({
     mutationKey: ["recovery-email"],
     mutationFn: async ({ token }) => {
-      const response = await api.post("/verify-recovery", {
+      const response = await api.post("/verification/verify-recovery", {
         token,
       });
 
       if (!response?.data)
-        throw new Error("Erro na requisição: /verify-recovery");
+        throw new Error("Erro na requisição: /verification/verify-recovery");
 
       return response.data;
     },

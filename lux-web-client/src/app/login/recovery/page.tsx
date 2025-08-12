@@ -6,15 +6,14 @@ import { useAppRouter } from "@/contexts/navigation.context";
 
 import { useSendEmail } from "@/contexts/sendEmail.context";
 
-import TransitionWrapper from "@/components/transitionWrapper";
 import EmailVerification from "@/components/emailVerification";
 
-import { useSendRecoveryEmail } from "@/hooks/sendEmail/useSendRecoveryEmail";
+import { useSendRecoveryEmail } from "@/hooks/recovery/useSendEmail";
 
 export default function VerifyRecovery() {
   const { startTransition, push } = useAppRouter();
 
-  const { isSuccess, isPending, error, mutate } = useSendRecoveryEmail();
+  const { isSuccess, isPending, error, mutate, reset } = useSendRecoveryEmail();
 
   const { sended, email, setEmail } = useSendEmail();
 
@@ -52,7 +51,7 @@ export default function VerifyRecovery() {
 
   const title = (
     <h1 className="title">
-      Envie um link de recuperação de senha no seu email.
+      Envie um link de redefinição de senha no seu email.
     </h1>
   );
 
@@ -60,24 +59,32 @@ export default function VerifyRecovery() {
     <p className="paragraph">
       Insira o seu email abaixo para receber um link de redefinição de senha.
     </p>
+  ); 
+
+  const sendedTitle = <h1 className="title">Link enviado no seu email.</h1>;
+
+  const sendedDescription = (
+    <p className="paragraph">
+      Enviamos um link de redefinição de senha para o seu email:{" "}
+      <span style={{ fontWeight: "600" }}>{email}</span>.
+    </p>
   );
 
   return (
-    <TransitionWrapper motionKey="recovery">
-      <EmailVerification
-        title={title}
-        description={description}
-        sendedTitle="Link enviado no seu email."
-        sendedDescription="Clique no link enviado no seu email para fazer login e redefinir a sua senha."
-        onSend={sendEmail}
-        sendLabel={"Enviar link no email"}
-        back={returnToLogin}
-        backLabel="Fazer login em outra conta."
-        message={message}
-        isLoading={isPending}
-        isSuccess={isSuccess}
-        locked={sended || isPending}
-      />
-    </TransitionWrapper>
+    <EmailVerification
+      title={title}
+      description={description}
+      sendedTitle={sendedTitle}
+      sendedDescription={sendedDescription}
+      onSend={sendEmail}
+      sendLabel={"Enviar link no email"}
+      back={returnToLogin}
+      backLabel={"Fazer login com email e senha."}
+      message={message}
+      isLoading={isPending}
+      isSuccess={isSuccess}
+      locked={sended || isPending}
+      reset={reset}
+    />
   );
 }

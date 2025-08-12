@@ -69,6 +69,45 @@
   font-weight: 500;
 }
 
+.forgotLink * {
+  color: var(--primary-text-color);
+}
+
+.link {
+  font-weight: 600;
+}
+
+.link:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .msgBox i {
   line-height: 4px;
+}
+
+.linkParagraph {
+  font-size: 14px;
+  color: var(--sub-text-color);
+}
+
+.forgotParagraph .link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sub-text-color);
+}
+
+.link {
+  color: var(--sub-text-color);
+  text-decoration: none;
+}
+
+.link:hover {
+  cursor: pointer;
+  text-decoration: underline;
+  color: var(--sub-text-color);
+}
+
+.passwdBox {
+  gap: 16px;
 }

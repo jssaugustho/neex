@@ -2,21 +2,22 @@ import { useState } from "react";
 import { Input } from "../input";
 import styles from "./changePasswd.module.css";
 import Button from "../button";
+import { useRecoveryContext } from "@/contexts/recovery.context";
 
 type ChangePasswdProps = {
-  verify: (passwd: string) => void;
+  onSubmit: (passwd: string) => void;
   sendLabel: string;
   isLoading: boolean;
   title?: string | React.ReactNode;
   description?: string | React.ReactNode;
-  message: string | null;
   back: () => void;
   backLabel: string;
+  errorMessage: string | null;
 };
 
 export default function ChangePasswd(props: ChangePasswdProps) {
-  const [passwd, setPasswd] = useState("");
   const [confirmPasswd, setConfirmPasswd] = useState("");
+  const { passwd, setPasswd } = useRecoveryContext();
 
   return (
     <div className={styles.form}>
@@ -39,7 +40,7 @@ export default function ChangePasswd(props: ChangePasswdProps) {
           type="password"
           name="password"
           label="Nova Senha:"
-          value={passwd}
+          value={passwd || ""}
           onChange={(e) => setPasswd(e.target.value)}
         />
         <Input
@@ -51,14 +52,15 @@ export default function ChangePasswd(props: ChangePasswdProps) {
           value={confirmPasswd}
           onChange={(e) => setConfirmPasswd(e.target.value)}
         />
-
-        {typeof props.message === "string" && props.message}
+        {typeof props.errorMessage === "string" && (
+          <p className={styles.errorMessage}>{props.errorMessage}</p>
+        )}
       </div>
       <div className="buttons">
         <Button
           disabled={props.isLoading}
           type="submit"
-          onClick={(e) => props.verify(passwd)}
+          onClick={(e) => props.onSubmit(passwd || "")}
           background={props.isLoading ? "transparent" : "gradient"}
           className="submit"
         >

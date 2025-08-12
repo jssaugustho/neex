@@ -37,12 +37,17 @@ export const useSendAuthenticationEmail = () => {
   return useMutation<SuccessType, AxiosError<ErrorType>, RecoveryRequisition>({
     mutationKey: ["emailAuthentication"],
     mutationFn: async ({ email }) => {
-      const response = await api.post("/send-authentication-email", {
-        email,
-      });
+      const response = await api.post(
+        "/verification/send-authentication-email",
+        {
+          email,
+        },
+      );
 
       if (!response?.data)
-        throw new Error("Erro na requisição: /send-authentication-email");
+        throw new Error(
+          "Erro na requisição: /verification/send-authentication-email",
+        );
 
       return response.data;
     },

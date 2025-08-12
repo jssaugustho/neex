@@ -37,11 +37,12 @@ export const useVerifyEmail = () => {
     mutationKey: ["verify-email"],
     retry: false,
     mutationFn: async ({ token }) => {
-      const response = await api.post("/verify-email", {
+      const response = await api.post("/verification/verify-email", {
         token,
       });
 
-      if (!response?.data) throw new Error("Erro na requisição: /verify-email");
+      if (!response?.data)
+        throw new Error("Erro na requisição: /verification/verify-email");
 
       return response.data;
     },

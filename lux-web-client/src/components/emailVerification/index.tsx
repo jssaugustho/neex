@@ -7,6 +7,7 @@ import styles from "./emailVerification.module.css";
 import Button from "@/components/button";
 import { useSendEmail } from "../../contexts/sendEmail.context";
 import React, { useState } from "react";
+import { useAppRouter } from "@/contexts/navigation.context";
 
 type emailVerificationProps = {
   title: React.ReactNode | string;
@@ -22,6 +23,7 @@ type emailVerificationProps = {
   backLabel: string;
   message: string | null;
   locked?: boolean;
+  reset: () => void;
 };
 
 export default function EmailVerification({
@@ -38,8 +40,19 @@ export default function EmailVerification({
   backLabel,
   message,
   locked,
+  reset,
 }: emailVerificationProps) {
-  const { email, setEmail, timeLeft, timeString, sended } = useSendEmail();
+  const {
+    email,
+    setEmail,
+    timeLeft,
+    timeString,
+    sended,
+    resetTimeLeft,
+    setSended,
+  } = useSendEmail();
+
+  const { push } = useAppRouter();
 
   let disabled = isLoading || timeLeft > 0;
 
@@ -138,12 +151,18 @@ export default function EmailVerification({
             : "Reenviar Email"}
         </Button>
         <Button
-          onClick={back}
+          onClick={() => {
+            resetTimeLeft();
+            setEmail("");
+            localStorage.removeItem("session@email");
+            reset();
+            setSended(false);
+          }}
           className="back"
           background={"transparent"}
           type="button"
         >
-          {backLabel}
+          Voltar
         </Button>
       </div>
     </div>

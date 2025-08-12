@@ -37,12 +37,12 @@ export const useSendRecoveryEmail = () => {
   return useMutation<SuccessType, AxiosError<ErrorType>, RecoveryRequisition>({
     mutationKey: ["emailAuthentication"],
     mutationFn: async ({ email }) => {
-      const response = await api.post("/send-recovery-email", {
+      const response = await api.post("/recovery/send-email", {
         email,
       });
 
       if (!response?.data)
-        throw new Error("Erro na requisição: /send-recovery-email");
+        throw new Error("Erro na requisição: /recovery/send-email");
 
       return response.data;
     },
@@ -54,8 +54,6 @@ export const useSendRecoveryEmail = () => {
         setTimeLeft(response.info.timeLeft);
         setTimeString(formatMs(response.info?.timeLeft));
         setSended(true);
-
-        7;
       }
 
       return response;

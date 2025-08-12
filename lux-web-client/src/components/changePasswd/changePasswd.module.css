@@ -99,6 +99,9 @@
 .errorMessage {
   color: var(--error-red);
   font-weight: 500;
+  font-size: 14px;
+  line-height: 170%;
+  text-align: center;
 }
 
 .successMessage {

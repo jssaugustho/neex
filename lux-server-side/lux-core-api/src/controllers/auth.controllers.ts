@@ -101,14 +101,13 @@ async function preAuthentication(
 
   if (!req.userData) throw new errors.InternalServerError("UserData not found");
 
-  Verification.generate2faLink(req.userData, req.session, "AUTHENTICATION")
+  Verification.generate2faLink(req.userData, req.session, "PRE_AUTHENTICATION")
     .then((data) => {
       req.response = {
         statusCode: 200,
         output: {
           status: "Ok",
           message: getMessage("successPreAuthentication"),
-          token: data.token,
           session: req.session?.id as string,
         },
       };
@@ -117,6 +116,13 @@ async function preAuthentication(
         req.response.output.info = {
           reactivate: true,
         };
+
+      res.cookie("actionToken", data.token, {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: true,
+        maxAge: 1000 * 60 * 10, // 10 min
+      });
 
       res.status(req.response.statusCode).send(req.response.output);
     })

@@ -34,6 +34,7 @@ model Session {
   unauthorizedUsers       User[]   @relation("unauthorizedSessions", fields: [unauthorizedUsersId], references: [id])
   unauthorizedUsersId     String[] @db.ObjectId
   passwds Passwd[]
+  // logoutToken String 
 }
 
 model Ip {
@@ -236,10 +237,12 @@ enum CampaignType {
 }
 
 enum VerificationType {
-  AUTHENTICATION
+  WELCOME_EMAIL
   PRE_AUTHENTICATION
   VERIFICATION
-  RECOVERY
   VERIFY_SESSION
+  RECOVERY
   SET_NEW_PASSWD
+  LOGOUT_ALL_SESSIONS
+  LOGOUT_SESSION
 }

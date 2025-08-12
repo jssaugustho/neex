@@ -352,6 +352,24 @@ async function validateUpdateQuery(
   next();
 }
 
+async function validateChangePasswd(
+  req: iRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.session) throw new errors.InternalServerError("Session error");
+  if (!req.userData) throw new errors.InternalServerError("Userdata error");
+
+  req.data.passwd = new PasswdType(
+    req.body.newPasswd,
+    req.session.locale,
+    true,
+  );
+  req.data.hash = await req.data.passwd.getHash();
+
+  next();
+}
+
 async function ownUserQuery(req: iRequest, res: Response, next: NextFunction) {
   if (!req.userData) throw new errors.InternalServerError("Userdata error");
 
@@ -446,6 +464,7 @@ async function updateUsers(req: iRequest, res: Response, next: NextFunction) {
 }
 
 export default {
+  validateChangePasswd,
   validateRegisterParams,
   registerNewUser,
   emailExists,

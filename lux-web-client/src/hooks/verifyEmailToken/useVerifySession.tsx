@@ -27,7 +27,7 @@ type RecoveryRequisition = {
   token: string;
 };
 
-export const useEmailAuthentication = () => {
+export const useVerifySession = () => {
   const { api, preAuth, endSession } = useAuth();
   const { push } = useAppRouter();
 
@@ -36,12 +36,12 @@ export const useEmailAuthentication = () => {
   return useMutation<SuccessType, AxiosError<ErrorType>, RecoveryRequisition>({
     mutationKey: ["authentication-email"],
     mutationFn: async ({ token }) => {
-      const response = await api.post("/verification/email-authentication", {
+      const response = await api.post("/verification/verify-session", {
         token,
       });
 
       if (!response?.data)
-        throw new Error("Erro na requisição: /verification/authenticate");
+        throw new Error("Erro na requisição: /verification/verify-session");
 
       return response.data;
     },

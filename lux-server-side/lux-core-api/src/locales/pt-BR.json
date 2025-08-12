@@ -66,5 +66,7 @@
   "sendedEmail": "Email enviado.",
   "emailAlreadyVerified": "E-mail já verificado.",
 
-  "requiresOldPasswd": "Senha antiga incorreta."
+  "requiresOldPasswd": "Senha antiga incorreta.",
+  "tokenVerified": "Token verificado com sucesso.",
+  "changedPasswd": "Senha redefinida com sucesso."
 }

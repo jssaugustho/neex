@@ -52,28 +52,35 @@ async function verifyLogin(req: iRequest, res: Response, next: NextFunction) {
   next();
 }
 
-async function verifyAuthenticationToken(
+async function verifyPreAuthenticationToken(
   req: iRequest,
   res: Response,
   next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
 
-  const token = new TokenType(req.body.token, req.session.locale).getValue();
+  //verify if header exists
+  if (!req.cookies.actionToken)
+    throw new errors.TokenError(
+      getMessage("obrigatoryHeaders", req.data.acceptLanguage),
+    );
+
+  const token = new TokenType(
+    req.cookies.actionToken,
+    req.session.locale,
+  ).getValue();
 
   if (typeof req.body?.remember === "boolean")
     req.data.remember = req.body?.remember;
 
-  const authorizedTypes = ["AUTHENTICATION"];
+  const authorizedTypes = ["PRE_AUTHENTICATION"];
 
   req.userData = (await Verification.verifyEmailToken(
     token,
     req.session,
     authorizedTypes,
     true,
-  ).catch((err) => {
-    throw err;
-  })) as iUser;
+  ).catch(next)) as iUser;
 
   next();
 }
@@ -141,7 +148,7 @@ async function verifyRefreshToken(
 
 export default {
   verifyLogin,
-  verifyAuthenticationToken,
+  verifyPreAuthenticationToken,
   verifyRefreshToken,
   verifyToken,
 };

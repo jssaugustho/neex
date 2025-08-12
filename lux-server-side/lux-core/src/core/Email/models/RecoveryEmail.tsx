@@ -46,7 +46,7 @@ const RecoveryEmail = (props: { token: string; user: iUser }) => (
           </Text>
           <Button
             style={button}
-            href={`http://${process.env.WEB_CLIENT_ADDRESS}${process.env.WEB_CLIENT_PORT ? ":" + String(process.env.WEB_CLIENT_PORT) : ""}/login/other/recovery/${props.token}/verify`}
+            href={`http://${process.env.WEB_CLIENT_ADDRESS}${process.env.WEB_CLIENT_PORT ? ":" + String(process.env.WEB_CLIENT_PORT) : ""}/login/recovery/${props.token}/verify`}
           >
             Redefinir Senha
           </Button>

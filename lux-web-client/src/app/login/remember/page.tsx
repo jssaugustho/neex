@@ -16,7 +16,6 @@ export default function Remember() {
 
   const handleClick = (remember: boolean) => {
     mutate({
-      token: session.token || "",
       remember,
     });
   };
@@ -26,8 +25,6 @@ export default function Remember() {
       push("/dashboard");
       return;
     }
-
-    if (!session.token) push("/login");
   }, [session]);
 
   return (

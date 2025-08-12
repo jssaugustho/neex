@@ -322,6 +322,20 @@ const swaggerComponents: swaggerJSDoc.Components = {
       },
       required: ["email", "passwd"],
     },
+    PreAuthentication: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          example: "Ok",
+        },
+        message: {
+          type: "string",
+          example: getMessage("emailVerified", "pt-BR"),
+        },
+      },
+      required: ["email", "passwd"],
+    },
     AuthenticationToken: {
       type: "object",
       properties: {
@@ -336,6 +350,51 @@ const swaggerComponents: swaggerJSDoc.Components = {
         },
       },
       required: ["email", "passwd"],
+    },
+    VerifySessionToken: {
+      type: "object",
+      properties: {
+        token: {
+          type: "string",
+          example:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzY4ZWY0ODYwMmQ5NTQzZTE1OTVlNSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0ODQxNTY3NywiZXhwIjoxNzQ4NzE1Njc3fQ.iVTatt1bWqAmJ88C7qCCMvrEfVUXUAh_1rYEPfnl0Sg",
+        },
+      },
+      required: ["email", "passwd"],
+    },
+    LogoutAllSessionToken: {
+      type: "object",
+      properties: {
+        token: {
+          type: "string",
+          example:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzY4ZWY0ODYwMmQ5NTQzZTE1OTVlNSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0ODQxNTY3NywiZXhwIjoxNzQ4NzE1Njc3fQ.iVTatt1bWqAmJ88C7qCCMvrEfVUXUAh_1rYEPfnl0Sg",
+        },
+        logout: {
+          type: "boolean",
+          example: true,
+        },
+      },
+      required: ["email", "passwd"],
+    },
+    SetNewPasswdToken: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          example: "Ok",
+        },
+        message: {
+          type: "string",
+          example: getMessage("setNewPasswdToken", "pt-BR"),
+        },
+        token: {
+          type: "string",
+          example:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzY4ZWY0ODYwMmQ5NTQzZTE1OTVlNSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0ODQxNTY3NywiZXhwIjoxNzQ4NzE1Njc3fQ.iVTatt1bWqAmJ88C7qCCMvrEfVUXUAh_1rYEPfnl0Sg",
+          required: true,
+        },
+      },
     },
     EmailVerified: {
       type: "object",
@@ -442,7 +501,14 @@ const swaggerComponents: swaggerJSDoc.Components = {
       content: {
         "application/json": {
           schema: {
-            $ref: "#/components/schemas/SendEmailToken",
+            type: "object",
+            properties: {
+              token: {
+                type: "string",
+                example:
+                  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzY4ZWY0ODYwMmQ5NTQzZTE1OTVlNSIsInR5cGUiOiJFbWFpbDJmYSIsImlhdCI6MTc0ODQxNTY3NywiZXhwIjoxNzQ4NzE1Njc3fQ.iVTatt1bWqAmJ88C7qCCMvrEfVUXUAh_1rYEPfnl0Sg",
+              },
+            },
           },
         },
       },
@@ -454,6 +520,75 @@ const swaggerComponents: swaggerJSDoc.Components = {
         "application/json": {
           schema: {
             $ref: "#/components/schemas/PreAuthenticationRecoveryToken",
+          },
+        },
+      },
+    },
+    VerifySession: {
+      description: "Verificação do token RECOVERY.",
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/VerifySessionToken",
+          },
+        },
+      },
+    },
+    SetNewPasswd: {
+      description:
+        "Verifica o token de SET_NEW_PASSWD, recebendo a nova senha e retornando o token de LOGOUT_ALL_SESSIONS",
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              token: {
+                type: "string",
+                example:
+                  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzY4ZWY0ODYwMmQ5NTQzZTE1OTVlNSIsInR5cGUiOiJUb2tlbiIsImlhdCI6MTc0ODQ",
+              },
+              newPasswd: {
+                type: "string",
+                example: "*********************",
+              },
+            },
+          },
+        },
+      },
+    },
+    LogoutAllSessions: {
+      description: "Logout de todas as sessões.",
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              block: {
+                type: "logout",
+                example: "true",
+              },
+            },
+          },
+        },
+      },
+    },
+    BlockAllSession: {
+      description: "Logout de todas as sessões.",
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              token: {
+                type: "string",
+                example:
+                  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTNkMDYyODQ0MzMwYmZmZjYwNjBjYyIsInNlc3Npb25JZCI6IjY4MzY4ZWY0ODYwMmQ5NTQzZTE1OTVlNSIsInR5cGUiOiJUb2tlbiIsImlhdCI6MTc0ODQ",
+              },
+            },
           },
         },
       },
@@ -744,6 +879,87 @@ const swaggerComponents: swaggerJSDoc.Components = {
         "application/json": {
           schema: {
             $ref: "#/components/schemas/SendedEmail",
+          },
+        },
+      },
+    },
+    VerifySessionResponse: {
+      description: "Pré-autenticado.",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/PreAuthentication",
+          },
+        },
+      },
+    },
+    VerifyRecoveryResponse: {
+      description: "Pré-autenticado.",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              status: {
+                type: "string",
+                example: "Ok",
+              },
+              message: {
+                type: "string",
+                example: getMessage("tokenVerified", "pt-BR"),
+              },
+              data: {
+                type: "object",
+                properties: {
+                  email: {
+                    type: "string",
+                    example: "usuariodeteste@luxcrm.co",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    SetNewPasswdResponse: {
+      description: "Senha redefinida com sucesso.",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              status: {
+                type: "string",
+                example: "Ok",
+              },
+              message: {
+                type: "string",
+                example: getMessage("changedPasswd", "pt-BR"),
+              },
+            },
+          },
+        },
+      },
+    },
+    BlockAllSessionsResponse: {
+      description: "Sessões bloqueadas com sucesso.",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              status: {
+                type: "string",
+                example: "Ok",
+              },
+              message: {
+                type: "string",
+                example: getMessage("blockSessions", "pt-BR", {
+                  count: 2,
+                }),
+              },
+            },
           },
         },
       },

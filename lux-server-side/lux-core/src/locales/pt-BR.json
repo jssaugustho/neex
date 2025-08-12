@@ -36,10 +36,6 @@
 
   "waitToResendEmail": "Aguarde o prazo de reenvio do e-mail.",
 
-  "invalidToken": "Token inválido",
-
-  "invalidRefreshToken": "Refresh token inválido",
-
   "successAuthentication": "Autenticação bem-sucedida.",
   "successPreAuthentication": "Pré-autenticação bem-sucedida.",
   "failAuthentication": "Falha na autenticação.",
@@ -65,5 +61,25 @@
 
   "sendedEmail": "Email enviado com sucesso.",
   "emailAlreadyVerified": "E-mail já verificado.",
-  "needVerifyEmail": "Verifique o seu email."
+  "needVerifyEmail": "Verifique o seu email.",
+
+  "invalidToken": "Token inválido.",
+
+  "invalidRefreshToken": "Refresh token inválido.",
+
+  "cantDecodeToken": "Não foi possível decodificar o token.",
+  "invalidTokenType": "Tipo de token inválido, requer um tipo {{type}}.",
+
+  "unauthorizedSession": "A sessão não está autenticada, faça o login novamente.",
+
+  "cantDecodeRefreshToken": "Não foi possível decodificar o token.",
+  "invalidRefreshTokenType": "Tipo de token inválido, requer um tipo {{type}}.",
+
+  "invalidTokenPayload": "Payload do token inválido, falta: {{lost}}",
+
+  "verificationTokenNotFound": "Token de verificação não encontrado.",
+
+  "invalidVerificationToken": "Token de verificação inválido, faça o reenvio do e-mail e tente novamente.",
+  "cantDecodeVerificationToken": "Não foi possível decodificar o token.",
+  "invalidVerificationTokenType": "Tipo de token de verificação inválido, requer um tipo {{type}}."
 }

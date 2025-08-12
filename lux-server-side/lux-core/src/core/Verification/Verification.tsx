@@ -25,6 +25,7 @@ import VerificationEmail from "../Email/models/VerificationEmail.js";
 import Prisma from "../Prisma/Prisma.js";
 import VerifySessionEmail from "../Email/models/VerifySessionEmail.js";
 import iSessionPayload from "../../@types/iSessionPayload/iSessionPayload.js";
+import Logger from "../Logger/Logger.js";
 
 class Verification {
   async notificateEmailVerified(user: iUser) {
@@ -77,12 +78,14 @@ class Verification {
     user: iUser,
     session: iSession,
     type:
-      | "AUTHENTICATION"
+      | "WELCOME_EMAIL"
       | "PRE_AUTHENTICATION"
       | "VERIFICATION"
       | "RECOVERY"
       | "VERIFY_SESSION"
-      | "SET_NEW_PASSWD",
+      | "SET_NEW_PASSWD"
+      | "LOGOUT_ALL_SESSIONS"
+      | "LOGOUT_SESSION",
     unique = false,
   ): Promise<iVerification> {
     return new Promise(async (resolve, reject) => {
@@ -95,7 +98,7 @@ class Verification {
         },
         process.env.JWT_VERIFICATION_SECRET as string,
         {
-          expiresIn: 1000 * 60 * 5,
+          expiresIn: 1000 * 60 * 10,
         },
       );
 
@@ -122,6 +125,7 @@ class Verification {
     authorizedTypes: string[],
     auth = false,
     unique = false,
+    invalidate = true,
   ): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
       const payload = await Token.loadPayload(token, "emailToken").catch(
@@ -132,27 +136,43 @@ class Verification {
 
       if (!payload)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale)),
+          new errors.AuthError(
+            getMessage("invalidTokenPayload", session.locale, {
+              lost: "Payload",
+            }),
+          ),
         );
 
       if (!payload.id)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale)),
+          new errors.AuthError(
+            getMessage("invalidTokenPayload", session.locale, {
+              lost: "Payload ID",
+            }),
+          ),
         );
 
       if (!payload.type)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale)),
+          new errors.AuthError(
+            getMessage("invalidTokenPayload", session.locale, {
+              lost: "Payload Type",
+            }),
+          ),
         );
 
       if (!payload.sessionId)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale)),
+          new errors.AuthError(
+            getMessage("invalidTokenPayload", session.locale, {
+              lost: "Payload SessionID",
+            }),
+          ),
         );
 
       const user = (await User.getUserById(payload.id).catch((err) => {
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale)),
+          new errors.AuthError(getMessage("userNotFound", session.locale)),
         );
       })) as iUser;
 
@@ -166,22 +186,30 @@ class Verification {
 
       if (!verification)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale)),
+          new errors.AuthError(
+            getMessage("verificationTokenNotFound", session.locale),
+          ),
         );
 
       if (verification?.token !== token || verification.used)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale)),
+          new errors.AuthError(
+            getMessage("invalidVerificationToken", session.locale),
+          ),
         );
 
       if (payload.sessionId !== session.id && unique)
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale)),
+          new errors.AuthError(getMessage("invalidSession", session.locale)),
         );
 
       if (!authorizedTypes.includes(payload.type))
         return reject(
-          new errors.AuthError(getMessage("invalidToken", session.locale)),
+          new errors.AuthError(
+            getMessage("invalidVerificationTokenType", session.locale, {
+              type: payload.type,
+            }),
+          ),
         );
 
       verification = (await Prisma.verification
@@ -190,12 +218,14 @@ class Verification {
             id: verification.id,
           },
           data: {
-            used: true,
+            used: invalidate,
           },
         })
         .catch(() => {
           return reject(
-            new errors.AuthError(getMessage("invalidToken", session.locale)),
+            new errors.InternalServerError(
+              "Can't update verification token in database.",
+            ),
           );
         })) as iVerification;
 
@@ -210,7 +240,7 @@ class Verification {
         })
         .catch(() => {
           return reject(
-            new errors.AuthError(getMessage("invalidToken", session.locale)),
+            new errors.InternalServerError("Can't update session in database."),
           );
         });
 
@@ -224,8 +254,8 @@ class Verification {
     session: iSessionPayload,
   ) {
     const emailModel =
-      verification.type === "AUTHENTICATION" ? (
-        <AuthenticationEmail token={verification.token} user={user} />
+      verification.type === "WELCOME_EMAIL" ? (
+        <WelcomeMessage token={verification.token} user={user} />
       ) : verification.type === "RECOVERY" ? (
         <RecoveryEmail token={verification.token} user={user} />
       ) : verification.type === "VERIFY_SESSION" ? (
@@ -239,8 +269,8 @@ class Verification {
       );
 
     const subject =
-      verification.type === "AUTHENTICATION"
-        ? "Faça o seu login via email | Lux CRM ©"
+      verification.type === "WELCOME_EMAIL"
+        ? "Seja bem vindo | Lux CRM ©"
         : verification.type === "RECOVERY"
           ? "Redefina a sua senha | Lux CRM ©"
           : verification.type === "VERIFY_SESSION"

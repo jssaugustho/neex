@@ -3,7 +3,6 @@ import { Router } from "express";
 //controle de acesso e autenticação
 import authMiddlewares from "../middlewares/auth.middlewares.js";
 import authControllers from "../controllers/auth.controllers.js";
-import userMiddlewares from "../middlewares/user.middlewares.js";
 
 const auth = Router();
 
@@ -14,7 +13,7 @@ const auth = Router();
  *      summary: Fazer login.
  *      tags:
  *        - Authentication
- *      description: Faça seu login e receba de volta um token único de autenticação.
+ *      description: Faça seu login e receba de volta um token único de autenticação via http-cookies com nome de "actionToken".
  *      requestBody:
  *        $ref: "#/components/requestBodies/Login"
  *      parameters:
@@ -67,7 +66,7 @@ auth.post(
  */
 auth.post(
   "/authenticate",
-  authMiddlewares.verifyAuthenticationToken,
+  authMiddlewares.verifyPreAuthenticationToken,
   authControllers.authenticate,
 );
 

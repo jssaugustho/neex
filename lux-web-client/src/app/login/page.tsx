@@ -109,9 +109,17 @@ export default function Login() {
       >
         <div className={styles.header}>
           <h1 className={styles.title}>Faça login no CRM.</h1>
-          <TransitionLink url="/login/other">
-            Faça login de outra forma {">"}
-          </TransitionLink>
+          <p className={styles.linkParagraph}>
+            Esqueceu sua senha?{" "}
+            <span
+              className={styles.link}
+              onClick={() => {
+                push("/login/recovery");
+              }}
+            >
+              Clique aqui.
+            </span>
+          </p>
         </div>
         <div className={styles.inputBox}>
           <div className={styles.inputs}>
@@ -124,6 +132,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+
             <PasswordInput
               name="passwd"
               id="passwwd"
@@ -132,6 +141,7 @@ export default function Login() {
               value={passwd}
               onChange={(e) => setPasswd(e.target.value)}
             />
+
             {isError && msg.status && (
               <div className={styles.msgBox}>
                 <i className="fi fi-rr-info"></i>
@@ -139,18 +149,31 @@ export default function Login() {
               </div>
             )}
           </div>
-          <Button
-            disabled={isPending || isSuccess}
-            background="gradient"
-            className={`submit`}
-            type="submit"
-          >
-            {isPending
-              ? "Fazendo Login..."
-              : isSuccess
-              ? "Entrando..."
-              : "Fazer Login"}
-          </Button>
+          <div className={styles.passwdBox}>
+            <Button
+              disabled={isPending || isSuccess}
+              background="gradient"
+              className={`submit`}
+              type="submit"
+            >
+              {isPending
+                ? "Fazendo Login..."
+                : isSuccess
+                ? "Entrando..."
+                : "Fazer Login"}
+            </Button>
+            <Button
+              disabled={isPending || isSuccess}
+              background="transparent"
+              className={`back`}
+              type="button"
+              onClick={() => {
+                push("/login/register");
+              }}
+            >
+              Criar Nova Conta
+            </Button>
+          </div>
         </div>
       </form>
     </TransitionWrapper>
