@@ -1,0 +1,113 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  height: fit-content;
+}
+
+.inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  align-items: center;
+}
+
+.submit {
+  width: 100%;
+  outline: none;
+  border: none;
+  padding: 12px 8px;
+  background: var(--main-gradient);
+  border-radius: 8px;
+  color: #f5f5f5;
+  font-weight: 600;
+  font-size: 16px;
+  transition: background 0.4s;
+}
+
+.submit:hover {
+  background: var(--primary-text-color);
+  cursor: pointer;
+  color: var(--background-color);
+}
+
+.submit:focus {
+  outline: 2px solid;
+  outline-offset: 2px;
+  outline-color: var(--primary-text-color);
+}
+
+.inputBox {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  width: 100%;
+  align-items: center;
+}
+
+.header {
+  gap: 16px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--primary-text-color);
+}
+
+.msgBox {
+  flex-direction: row;
+  gap: 8px;
+  vertical-align: middle;
+  padding-top: 16px;
+  color: var(--error-red);
+  font-weight: 500;
+}
+
+.forgotLink * {
+  color: var(--primary-text-color);
+}
+
+.link {
+  font-weight: 600;
+}
+
+.link:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.msgBox i {
+  line-height: 4px;
+}
+
+.linkParagraph {
+  font-size: 14px;
+  color: var(--sub-text-color);
+}
+
+.forgotParagraph .link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sub-text-color);
+}
+
+.link {
+  color: var(--sub-text-color);
+  text-decoration: none;
+}
+
+.link:hover {
+  cursor: pointer;
+  text-decoration: underline;
+  color: var(--sub-text-color);
+}
+
+.passwdBox {
+  gap: 16px;
+}

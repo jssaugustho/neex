@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  bot:
+    build: .
+    container_name: telegram-bot
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
+
+  mongo:
+    image: mongo:6
+    container_name: mongo-db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

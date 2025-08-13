@@ -1,8 +1,0 @@
-.loading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 4px;
-  background: var(--main-gradient); /* Azul Tailwind */
-  z-index: 9999;
-}

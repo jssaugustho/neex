@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model TelegramUser {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime @default(now())
+  telegramId  String   @unique
+  language    String
+  payments    Payment[]
+}
+
+model Seller {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  payments Payment[]
+}
+
+enum PaymentStatus {
+  pending
+  expired
+  paid
+  liberated
+  canceled
+}
+
+model Payment {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  status PaymentStatus @default(pending)
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+  telegramUser    TelegramUser   @relation(fields: [telegramUserId], references: [id])
+  telegramUserId  String @db.ObjectId
+  seller    Seller   @relation(fields: [sellerId], references: [id])
+  sellerId  String @db.ObjectId
+  amount Int // armazenado em centavos
+  paymentMethod String
+  payload Json
+}

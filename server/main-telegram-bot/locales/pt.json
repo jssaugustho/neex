@@ -1,0 +1,18 @@
+{
+  "wait": "Aguarde um momento...",
+  "start": "🚀 *Transforme seu Marketing Digital AGORA\\!*\n\n🔥 Nosso grupo VIP é a porta de entrada para você dominar campanhas lucrativas e acelerar resultados, mesmo que esteja começando do zero\\!\n\n✅ O que você vai encontrar lá dentro:\n\\- 📚 *Cursos completos de tráfego pago e orgânico*\n\\- ✍️ *Copys testadas e validadas para alta conversão*\n\\- 🎨 *Criativos que já venderam milhões*\n\\- 💡 *Estratégias passo a passo para qualquer nicho*\n\n💣 *Não perca tempo ficando para trás enquanto outros já estão lucrando\\!*",
+  "cta-start-video": "[ASSISTA AO VÍDEO]",
+  "choose_plan": "Escolha um plano para continuar:",
+  "plans": {
+    "daily": "Plano Diário - R${price}",
+    "weekly": "Plano Semanal - R${price}",
+    "monthly": "Plano Mensal - R${price}",
+    "quarterly": "Plano Trimestral - R${price}"
+  },
+  "pay": "Pagar com Pix",
+  "back": "⬅ Voltar",
+  "payment_pending": "Seu pagamento está pendente. Use o código abaixo para pagar:",
+  "payment_success": "Pagamento aprovado! Você receberá o link do grupo VIP em instantes.",
+  "error": "Ocorreu um erro, tente novamente mais tarde.",
+  "cta-comprar": "💳 Comprar Acesso"
+}
