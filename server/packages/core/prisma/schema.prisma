@@ -1,0 +1,306 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  lastActivity            DateTime @default(now())
+  ip                      Ip       @relation(fields: [ipId], references: [id])
+  ipId                    String   @db.ObjectId
+  fingerprint             String
+  userAgent               String
+  locale                  String
+  timeZone                String
+  name                    String
+  token                   String   @default("")
+  refreshToken            String   @default("")
+  exponencialEmailExpires Int      @default(-1)
+  user                    User?    @relation("authenticatedUser", fields: [userId], references: [id])
+  userId                  String?  @db.ObjectId
+  unauthorizedUsers       User[]   @relation("unauthorizedSessions", fields: [unauthorizedUsersId], references: [id])
+  unauthorizedUsersId     String[] @db.ObjectId
+  passwds Passwd[]
+  // logoutToken String 
+}
+
+model Ip {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastActivity      DateTime  @default(now())
+  address           String    @unique
+  city              String
+  region            String
+  country           String
+  timeZone          String
+  ll                Float[]
+  session           Session[]
+  attempt           Attempt[]
+  authorizedUsers   User[]    @relation("authorizedIps", fields: [authorizedUsersId], references: [id])
+  authorizedUsersId String[]  @db.ObjectId
+}
+
+model Attempt {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  ip        Ip       @relation(fields: [ipId], references: [id])
+  ipId      String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  active    Boolean  @default(true)
+}
+
+model Verification {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  used      Boolean          @default(false)
+  token     String
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String           @db.ObjectId
+  type      VerificationType
+}
+
+model User {
+  id                     String         @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  active                 Boolean        @default(true)
+  email                  String         @unique
+  emailVerified          Boolean        @default(false)
+  name                   String
+  lastName               String         @default("")
+  phone                  String         @unique
+  gender Gender
+  role                   Role           @default(USER)
+  locale String
+  timeZone String
+  passwd                 Passwd[]      
+  verification           Verification[]
+  Session                Session[]      @relation("authenticatedUser")
+  Attempt                Attempt[]
+  authorizedIps          Ip[]           @relation("authorizedIps", fields: [authorizedIpsId], references: [id])
+  authorizedIpsId        String[]       @db.ObjectId
+  unauthorizedSessions   Session[]      @relation("unauthorizedSessions", fields: [unauthorizedSessionsId], references: [id])
+  unauthorizedSessionsId String[]       @db.ObjectId
+  accounts             Account[]
+  sellers Seller[]
+  supportedAccounts SupportRelation[]
+}
+
+model Passwd {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  active     Boolean
+  hash       String
+  user       User        @relation(fields: [userId], references: [id])
+  userId     String      @db.ObjectId
+  session Session @relation(fields: [sessionId], references: [id])
+  sessionId  String      @db.ObjectId
+}
+
+model TransacionalEmailQueue {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  to        String
+  subject   String
+  body      String
+  status    String       @default("pending") // pending, sent, failed
+  error     Json         @default("{}")
+  emailId   String       @default("")
+  createdAt DateTime     @default(now())
+}
+
+
+model Account {
+  id                     String         @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  user User @relation(fields: [userId], references: [id])
+  userId                 String         @db.ObjectId
+  seller Seller?
+  name String
+  description String
+  telegramBots           TelegramBot[]
+  products Product[]
+  supportedAccounts SupportRelation[]
+}
+
+model SupportRelation {
+  id                     String         @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  account Account @relation(fields: [accountId], references: [id])
+  accountId              String         @db.ObjectId
+  user User @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId  
+}
+
+model Seller {
+  id                     String         @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt              DateTime       @default(now())
+  stripeId       String   @unique   // ex: acct_1ABCXYZ...
+  user User       @relation(fields: [userId], references: [id])
+  userId          String   @db.ObjectId
+  type            String   // express | custom | standard
+  platformFee Float @default(0.40)
+  stripeChargesEnabled  Boolean  @default(false)
+  stripePayoutsEnabled  Boolean  @default(false)
+  stripeDetailsSubmitted Boolean @default(false)
+  stripeOnboardingLink String
+  account Account @relation(fields: [accountId], references: [id])
+  accountId         String   @unique @db.ObjectId
+}
+
+
+model TelegramBot {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  token      String      @unique
+  active     Boolean
+  groupId Int
+  account    Account     @relation(fields: [accountId], references: [id])
+  accountId  String      @unique @db.ObjectId
+  leads      Lead[]
+}
+
+model Lead {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  legalAge       Boolean
+  status LeadStatus @default(PENDING)
+  product Product? @relation(fields: [productId], references: [id])
+  productId      String?        @db.ObjectId
+  telegramBot    TelegramBot   @relation(fields: [telegramBotId], references: [id])
+  telegramBotId  String        @db.ObjectId
+  telegramUser   TelegramUser[]
+  stripePayments StripePayment[]
+}
+
+enum LeadStatus {
+  PENDING
+  ACTIVE
+  CHURN
+}
+
+model TelegramUser {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  telegramId String    @unique
+  username   String
+  language   String
+  chatId Int
+  messageId Int
+  lead Lead?  @relation(fields: [leadId], references: [id])
+  leadId String?   @db.ObjectId
+}
+
+model Cart {
+  id         String         @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  products   Product[] @relation("cartProducts", fields: [productsId], references: [id])
+  productsId String[]   @db.ObjectId
+}
+
+model PixPayment {
+  id         String         @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  product    Product        @relation(fields: [productId], references: [id])
+  productId  String         @db.ObjectId
+  status     PaymentStatus  @default(PENDING)
+  expiresIn  Int
+  qrCode     String
+}
+
+model StripePayment {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  product Product @relation(fields: [productId], references: [id])
+  productId String   @db.ObjectId
+  lead Lead @relation(fields: [leadId], references: [id])
+  leadId String @db.ObjectId
+  status PaymentStatus @default(PENDING)
+  expiresIn Int
+  link String?
+}
+
+model Product {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  account Account? @relation(fields: [accountId], references: [id])
+  accountId String @db.ObjectId
+  active Boolean @default(true)
+  prices    Price[] 
+  description String
+  slug String
+  pixPayments PixPayment[]
+  stripePayments StripePayment[]
+  carts Cart[] @relation("cartProducts", fields: [cartsId], references: [id])
+  cartsId String[] @db.ObjectId
+  leads Lead[]
+
+}
+
+model Price {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  currency  String   
+  amount    Int      
+  locale    String?  
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String   @db.ObjectId
+
+  @@unique([currency, productId])
+}
+
+enum PaymentStatus {
+  SUCCESS
+  PENDING
+  FAILED
+  PROCESSING
+  TRANSFERRED
+  CANCELED
+}
+
+enum Role {
+  ADMIN
+  SUPPORT
+  USER
+}
+
+enum Gender {
+  Male
+  Female
+  Other
+}
+
+enum VerificationType {
+  WELCOME_EMAIL
+  PRE_AUTHENTICATION
+  VERIFICATION
+  VERIFY_SESSION
+  RECOVERY
+  SET_NEW_PASSWD
+  LOGOUT_ALL_SESSIONS
+  LOGOUT_SESSION
+}

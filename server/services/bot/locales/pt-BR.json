@@ -1,0 +1,32 @@
+{
+  "wait": "Aguarde um momento...",
+  "waitVideo": "Carregando video...",
+  "start": "💋 Quer entrar no meu <b>mundo secreto</b>?\n\n✨ Fotos e vídeos íntimos, segredos picantes e momentos que não aparecem em lugar nenhum...\n\n👉 Toque em <i>Sou maior de 18 anos ✅</i> e descubra tudo o que eu escondo atrás da porta do VIP.",
+  "legalAge": "✅ Sou maior de 18 e quero entrar",
+  "cta-start-video": "[ASSISTA AO VÍDEO]",
+  "choosePlan": "Moeda selecionada: <b>${currency}</b> \n\n👇 <b>Escolha um plano para continuar:</b>",
+  "chooseCurrency": "👇 <b>Selecione a moeda para continuar:</b>",
+  "plans": {
+    "weekly": "Semanal - R$${price}",
+    "year": "Anual - R$${price}",
+    "monthly": "Mensal - R$${price}",
+    "contact": "Fale comigo - R$${price}"
+  },
+  "currencies": {
+    "eur": "💶 EUR (Euro)",
+    "usd": "💵 USD (Dólar)",
+    "brl": "🇧🇷 BRL (Real)"
+  },
+  "changeCurrency": "🌍 Alterar moeda",
+  "pay": "Pagar com Pix",
+  "back": "⬅ Voltar",
+  "payment_pending": "Seu pagamento está pendente. Use o código abaixo para pagar:",
+  "payment_success": "Pagamento aprovado! Você receberá o link do grupo VIP em instantes.",
+  "error": "Ocorreu um erro, tente novamente mais tarde.",
+  "stripe": "💳 Pagar com Cartão",
+  "chooseMethod": "💳 <b>Escolha sua forma de pagamento</b>\nMoeda: ${currency}\n\n💰 <b>R$${price}</b>",
+  "paymentLinkDescription": "<b>🚀 Clique no botão abaixo para ser redirecionado ao checkout do Stripe e efetuar seu pagamento!</b> 💳\n\n<b>✅ Assim que o pagamento for confirmado, você receberá o link de acesso aos conteúdos.</b>\n\n${currency}\n💰 <b>R$${price}</b>",
+  "openPaymentLink": "🔗 Abrir link de pagamento",
+  "routeError": "Erro: rota necessita de parâmetros.",
+  "defaultProductName": "Acesso exclusivo | Neex CRM."
+}

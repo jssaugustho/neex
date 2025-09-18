@@ -9,19 +9,19 @@
     "url": "git+https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria..git"
   },
   "author": "José Augustho",
-  "license": "ISC",
   "workspaces": [
-    "core",
-    "core-api",
-    "main-telegram-bot",
-    "transacional-email-cron"
+    "packages/core",
+    "services/bot",
+    "services/api",
+    "services/webhooks",
+    "services/transacional-email-cron",
+    "scripts/onboard"
   ],
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "aws-sdk": "^2.1692.0",
-    "luxcrm": "file:",
-    "sharp": "^0.34.2"
+    "neex": "file:"
   }
 }

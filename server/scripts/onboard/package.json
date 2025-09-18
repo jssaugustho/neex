@@ -1,0 +1,33 @@
+{
+  "name": "@neex/onboard",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Core API.",
+  "main": "server.ts",
+  "scripts": {
+    "dev": "tsx --no-cache ./index.ts"
+  },
+  "author": "jssaugustho",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria./issues"
+  },
+  "homepage": "https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria.#readme",
+  "dependencies": {
+    "@neex/core": "*",
+    "@neex/onboard": "file:",
+    "@types/inquirer": "^9.0.9",
+    "inquirer": "^12.9.4",
+    "mongoose": "^8.18.0",
+    "prisma": "^6.14.0",
+    "react": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/swagger-ui-express": "^4.1.8",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

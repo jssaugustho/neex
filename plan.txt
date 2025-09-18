@@ -1,0 +1,167 @@
+MVP – 02/09 → 15/09 (2h/dia, 2 blocos 1h)
+
+02-09  
+( ) Manhã 1h: Implementar Pix No Bot em BRL 
+( ) Noite 1h: Serviço dos webhook dos pagamentos e envio de metadata nos processos.
+
+03-09  
+( ) Manhã 1h: Ajustes JWT / tokens  
+( ) Noite 1h: Testes integrados login + registro  
+
+04-09  
+( ) Manhã 1h: Ajustes bot internacional (receber mensagens)  
+( ) Noite 1h: Testar interações do bot e logs  
+
+05-09  
+( ) Manhã 1h: Refinar respostas do bot e placeholders  
+( ) Noite 1h: Teste de fluxo completo de interação  
+
+06-09  
+( ) Manhã 1h: Deploy Fly.io machines para criar novos bots  
+( ) Noite 1h: Configuração de variáveis de ambiente no Fly.io  
+
+07-09  
+( ) Manhã 1h: Testar deploy automatizado de bots  
+( ) Noite 1h: Ajustes e logs do sistema de deploy  
+
+08-09  
+( ) Manhã 1h: Implementar fluxo de redefinição de senha  
+( ) Noite 1h: Revisar templates e testes de e-mails transacionais  
+
+09-09  
+( ) Manhã 1h: Ajustes de links de redefinição de senha  
+( ) Noite 1h: Testar envio automático de e-mails transacionais  
+
+10-09  
+( ) Manhã 1h: Configurar fila de e-mails Redis + persistência no Fly.io  
+( ) Noite 1h: Testes de envio em lote e confirmação de persistência  
+
+11-09  
+( ) Manhã 1h: Cron de envio de e-mails agendados / fila Redis  
+( ) Noite 1h: Integração com banco de dados persistente e logs  
+
+12-09  
+( ) Manhã 1h: Cron de gerenciamento de usuários no Telegram  
+( ) Noite 1h: Teste de agendamento de retargeting por fuso horário  
+
+13-09  
+( ) Manhã 1h: Ajustes retargeting + cron por fuso horário  
+( ) Noite 1h: Testes de envio programado, validação de horários  
+
+14-09  
+( ) Manhã 1h: Cron de verificação se o bot está online  
+( ) Noite 1h: Integrar alertas de status do bot na fila de e-mails  
+
+15-09  
+( ) Manhã 1h: Testes finais de todos os fluxos do MVP  
+( ) Noite 1h: Ajustes finais, validação geral, entrega do MVP  
+
+---
+
+Pós-MVP – 16/09 → 15/11 (2h/dia, 2 blocos 1h)
+
+16-09 → 05-10  
+( ) Manhã 1h: Criar banco vetorial (Pinecone/FAISS/Weaviate)  
+( ) Noite 1h: Transformar dados da criadora em embeddings (regras, orientações, histórico de vendas)  
+
+06-10 → 25-10  
+( ) Manhã 1h: Dashboard completo: leads, transações, métricas, filtros  
+( ) Noite 1h: UI/UX, exportação de dados e ajustes de interface  
+
+26-10 → 15-11  
+( ) Manhã 1h: Integração IA + Bot: pré-atendimento, upsells, prompts +18  
+( ) Noite 1h: Testes de fluxo completo, ajustes de prompts e regras da criadora, validação de upsells de chamadas de vídeo
+
+Pós-MVP – 16/09 → 15/11 (2h/dia, 2 blocos 1h)
+
+16-09  
+( ) Manhã 1h: Configurar projeto para banco vetorial  
+( ) Noite 1h: Instalar SDK/cliente Pinecone/FAISS/Weaviate  
+
+17-09  
+( ) Manhã 1h: Mapear regras e orientações da criadora  
+( ) Noite 1h: Preparar histórico de vendas e interações bem-sucedidas  
+
+18-09  
+( ) Manhã 1h: Criar script de geração de embeddings das regras da criadora  
+( ) Noite 1h: Criar embeddings do histórico de interações  
+
+19-09  
+( ) Manhã 1h: Indexar embeddings no banco vetorial  
+( ) Noite 1h: Testar consultas básicas no banco vetorial  
+
+20-09  
+( ) Manhã 1h: Criar função de busca por contexto relevante para IA  
+( ) Noite 1h: Integrar função de busca ao bot (pré-atendimento)  
+
+21-09  
+( ) Manhã 1h: Ajustar prompts da IA para pré-atendimento +18  
+( ) Noite 1h: Testes de conversa simulando usuário real  
+
+22-09  
+( ) Manhã 1h: Criar pipeline de atualização de embeddings com novas interações  
+( ) Noite 1h: Testes de atualização automática após vendas/novos dados  
+
+23-09  
+( ) Manhã 1h: Criar sistema de upsells (chamada de vídeo, conteúdo exclusivo)  
+( ) Noite 1h: Integração do cálculo de valor estimado com IA  
+
+24-09  
+( ) Manhã 1h: Testar fluxo completo de upsell  
+( ) Noite 1h: Ajustes de prompts e regras de comportamento da criadora  
+
+25-09  
+( ) Manhã 1h: Criar endpoints de registro de leads no backend  
+( ) Noite 1h: Testar envio de leads para dashboard  
+
+26-09  
+( ) Manhã 1h: Criar página base do dashboard (Next.js)  
+( ) Noite 1h: Conectar endpoints de leads e transações  
+
+27-09  
+( ) Manhã 1h: Implementar métricas básicas: vendas diárias e semanais  
+( ) Noite 1h: Implementar métricas por produto e upsells  
+
+28-09  
+( ) Manhã 1h: Implementar filtros e pesquisa no dashboard  
+( ) Noite 1h: Ajustes de layout e UX  
+
+29-09  
+( ) Manhã 1h: Exportação de dados do dashboard (CSV/JSON)  
+( ) Noite 1h: Testes de dashboard completo  
+
+30-09 → 05-10  
+( ) Manhã 1h: Revisar todas as integrações IA + embeddings + bot  
+( ) Noite 1h: Testes de pré-atendimento, upsells e agendamento de chamadas  
+
+06-10 → 10-10  
+( ) Manhã 1h: Ajustar prompts finais da IA e comportamento do bot  
+( ) Noite 1h: Testar interações complexas simulando múltiplos usuários  
+
+11-10 → 15-10  
+( ) Manhã 1h: Integração final do fluxo de pagamentos e upsells no bot  
+( ) Noite 1h: Testes de fluxo completo: usuário → IA → pagamento → entrega  
+
+16-10 → 20-10  
+( ) Manhã 1h: Revisar logs e histórico no banco vetorial  
+( ) Noite 1h: Ajustes de performance e consultas do banco vetorial  
+
+21-10 → 25-10  
+( ) Manhã 1h: Implementar alertas e notificações para interações importantes  
+( ) Noite 1h: Testes de alertas em tempo real e fila de e-mails  
+
+26-10 → 30-10  
+( ) Manhã 1h: Testar escalabilidade do bot + múltiplas criadoras  
+( ) Noite 1h: Ajustes de performance e otimização de prompts  
+
+31-10 → 05-11  
+( ) Manhã 1h: Testes de regressão do dashboard e dados históricos  
+( ) Noite 1h: Testes finais de métricas, leads e transações  
+
+06-11 → 10-11  
+( ) Manhã 1h: Testes finais IA + pré-atendimento + upsells  
+( ) Noite 1h: Revisar regras da criadora e limites de atendimento  
+
+11-11 → 15-11  
+( ) Manhã 1h: Validação final de fluxo completo (bot + IA + pagamentos + dashboard)  
+( ) Noite 1h: Correções finais, ajustes de UX e entrega do Pós-MVP

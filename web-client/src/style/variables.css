@@ -1,0 +1,29 @@
+:root[data-theme="light"] {
+  --main-gradient: linear-gradient(88deg, #ff0062 5.61%, #f732ab 94.39%);
+  --primary-text-color: #00010b;
+  --accent-text-color: #ff0062;
+  --common-text-color: #4b4a4a;
+  --sub-text-color: #6b6b6b;
+  --background-color: #e4e2e2;
+  --contrast-color: #f5f5f5;
+  --hover-color: #dadada;
+  --error-red: rgb(255, 0, 89);
+  --error-yellow: rgb(199, 134, 37);
+  --error-green: rgb(37, 199, 37);
+  --accent-brightness: 95%;
+}
+
+:root[data-theme="dark"] {
+  --main-gradient: linear-gradient(45deg, #ff0062 5.61%, #f732ab 94.39%);
+  --primary-text-color: #f5f5f5;
+  --accent-text-color: #ff0062;
+  --common-text-color: #d1d1d1;
+  --sub-text-color: #929292;
+  --background-color: #0e0a0c;
+  --contrast-color: #14151e;
+  --hover-color: #583e47;
+  --error-red: rgb(255, 0, 89);
+  --error-yellow: rgb(245, 166, 47);
+  --error-green: rgb(37, 199, 37);
+  --accent-brightness: 140%;
+}

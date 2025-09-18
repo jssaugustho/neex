@@ -1,0 +1,29 @@
+[
+  {
+    "slug": "weekly",
+    "description": "plans.weekly",
+    "prices": {
+      "brl": { "amount": 1900, "locale": "pt-br" },
+      "eur": { "amount": 900, "locale": "de-de" },
+      "usd": { "amount": 900, "locale": "en-us" }
+    }
+  },
+  {
+    "slug": "monthly",
+    "description": "plans.monthly",
+    "prices": {
+      "brl": { "amount": 4900, "locale": "pt-br" },
+      "eur": { "amount": 2900, "locale": "de-de" },
+      "usd": { "amount": 2900, "locale": "en-us" }
+    }
+  },
+  {
+    "slug": "year",
+    "description": "plans.year",
+    "prices": {
+      "brl": { "amount": 9700, "locale": "pt-br" },
+      "eur": { "amount": 3900, "locale": "de-de" },
+      "usd": { "amount": 3900, "locale": "en-us" }
+    }
+  }
+]
