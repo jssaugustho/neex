@@ -1,10 +1,9 @@
 import Neex from "@neex/core";
 
 import inquirer from "inquirer";
-import PasswdValidator from "../validators/PasswdValidator";
-import PhoneType from "../validators/PhoneType";
-import session from "../lib/session";
-import writeInEnv from "../lib/environment";
+import PasswdValidator from "../validators/PasswdValidator.js";
+import session from "../lib/session.js";
+import writeInEnv from "../lib/environment.js";
 
 const { User, Cryptography } = Neex();
 

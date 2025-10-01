@@ -59,12 +59,30 @@ class Seller {
 
     Email.sendTransacionalEmail(
       userLoaded.email,
-      "Ative sua conta de pagamentos. | Neex Club",
+      "Ative sua conta de pagamentos. | Neex Club ©",
       <ActivateStripe user={userLoaded} url={onboardingLink.url} />,
       log,
     );
 
     return seller;
+  }
+
+  async updateSeller(
+    stripeId: string,
+    details_submited: boolean,
+    charges_enabled: boolean,
+    payouts_enabled: boolean,
+  ) {
+    return await Prisma.seller.update({
+      where: {
+        id: stripeId,
+      },
+      data: {
+        stripeDetailsSubmitted: details_submited,
+        stripeChargesEnabled: charges_enabled,
+        stripePayoutsEnabled: payouts_enabled,
+      },
+    });
   }
 }
 

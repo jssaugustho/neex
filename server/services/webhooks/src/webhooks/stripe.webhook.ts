@@ -8,22 +8,16 @@ import {
 } from "@prisma/client";
 import Neex from "@neex/core";
 import Stripe from "stripe";
-import TelegramBot from "packages/core/src/core/TelegramBot/TelegramBot.js";
+import TelegramBot, {
+  iTelegramBotPayload,
+} from "packages/core/src/core/TelegramBot/TelegramBot.js";
 import { iLeadPayload } from "packages/core/src/core/Lead/Lead.js";
+import Seller from "packages/core/src/core/Seller/Seller.js";
+import { iPaymentMetadata } from "packages/core/src/core/StripePayments/StripePayments.js";
 
 const stripe = new Stripe(process.env.STRIPE_KEY);
 
-const { Logger, StripePayments, Prisma } = Neex();
-
-type iPaymentMetadata = {
-  telegramBotId: string;
-  telegramUserId: string;
-  paymentId: string;
-  productId: string;
-  leadId: string;
-  locale: string;
-  currency: string;
-};
+const { Logger, StripePayments, Prisma, Errors } = Neex();
 
 async function stripeWebhook(req: Request, res: Response) {
   const sig = req.headers["stripe-signature"] as string;
@@ -44,17 +38,41 @@ async function stripeWebhook(req: Request, res: Response) {
   switch (event.type) {
     case "payment_intent.succeeded": {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      const { leadId, paymentId, productId, telegramBotId, locale, currency } =
-        paymentIntent.metadata as iPaymentMetadata;
+      const {
+        accountId,
+        sellerId,
+        leadId,
+        paymentId,
+        productId,
+        telegramBotId,
+        locale,
+        currency,
+        email,
+      } = paymentIntent.metadata as iPaymentMetadata;
 
       const telegramBot = (await Prisma.telegramBot.findUniqueOrThrow({
         where: {
           id: telegramBotId,
         },
-      })) as iTelegramBot;
+        include: {
+          managementBot: true,
+          account: true,
+        },
+      })) as iTelegramBotPayload;
 
-      if (!telegramBot)
+      if (!telegramBot) {
+        await Errors.notifyError(
+          "telegramBot not found.",
+          "WEBHOOK",
+          {},
+          telegramBot,
+          {
+            paymentId,
+          },
+        );
+
         return res.status(400).send(`Webhook Error: telegramBot not found.`);
+      }
 
       const telegramUser = (await Prisma.telegramUser.findFirst({
         where: {
@@ -62,10 +80,23 @@ async function stripeWebhook(req: Request, res: Response) {
         },
       })) as iTelegramUser;
 
-      if (!telegramUser)
+      if (!telegramUser) {
+        await Errors.notifyError(
+          "telegramUser not found.",
+          "WEBHOOK",
+          {},
+          telegramBot,
+          {
+            paymentId,
+          },
+        );
+
         return res.status(400).send(`Webhook Error: telegramUser not found.`);
+      }
 
       await StripePayments.notifyPayment(
+        accountId,
+        sellerId,
         paymentId,
         telegramBotId,
         telegramBot.groupId,
@@ -73,16 +104,19 @@ async function stripeWebhook(req: Request, res: Response) {
         telegramUser.messageId,
         locale,
         currency,
-      ).catch((err) => {
-        Logger.info(
+        email,
+      ).catch(async (err) => {
+        await Errors.notifyError(
+          "Notify payment error.",
+          "WEBHOOK",
+          err,
+          telegramBot,
           {
             paymentId,
             groupId: telegramBot.groupId,
             chatId: telegramUser.chatId,
             messageId: telegramUser.messageId,
-            err,
           },
-          "Erro ao notificar pagamento.",
         );
       });
 
@@ -103,22 +137,20 @@ async function stripeWebhook(req: Request, res: Response) {
     case "account.updated": {
       const account = event.data.object as Stripe.Account;
 
-      console.log("ℹ️ Conta atualizada:", account.id);
+      Logger.info(
+        {
+          account,
+          type: "account.updated",
+        },
+        "Account updated.",
+      );
 
-      if (account.details_submitted) {
-        console.log("📄 KYC enviado para:", account.id);
-        // 👉 Atualizar DB: details_submitted = true
-      }
-
-      if (account.charges_enabled) {
-        console.log("💳 Pagamentos habilitados para:", account.id);
-        // 👉 Atualizar DB: charges_enabled = true
-      }
-
-      if (account.payouts_enabled) {
-        console.log("💸 Payouts habilitados para:", account.id);
-        // 👉 Atualizar DB: payouts_enabled = true
-      }
+      await Seller.updateSeller(
+        account.id,
+        account.details_submitted,
+        account.charges_enabled,
+        account.payouts_enabled,
+      );
 
       break;
     }

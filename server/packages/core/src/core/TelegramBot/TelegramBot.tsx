@@ -4,27 +4,46 @@ import {
   User as iUser,
   TelegramBot as iTelegramBot,
   Account as iAccount,
+  TelegramManagementBot as iTelegramManagementBot,
 } from "@prisma/client";
 import Prisma from "../Prisma/Prisma.js";
-import { connect } from "http2";
+
+export type iTelegramBotPayload = iPrisma.TelegramBotGetPayload<{
+  include: {
+    managementBot: true;
+    account: true;
+  };
+}>;
 
 class TelegramBot {
   async createBot(
     botToken: string,
+    mgmtBotToken: string,
     groupId: number,
     accountId: string,
-  ): Promise<iTelegramBot> {
+    notificationsGroupId: number,
+  ): Promise<iTelegramBotPayload> {
     return new Promise(async (resolve, reject) => {
       let telegramBot = await Prisma.telegramBot.create({
         data: {
           active: false,
           token: botToken,
           groupId,
+          notificationsGroupId,
           account: {
             connect: {
               id: accountId,
             },
           },
+          managementBot: {
+            connect: {
+              token: mgmtBotToken,
+            },
+          },
+        },
+        include: {
+          account: true,
+          managementBot: true,
         },
       });
 
@@ -32,7 +51,7 @@ class TelegramBot {
     });
   }
 
-  async startBot(telegramBotId: string): Promise<iTelegramBot> {
+  async startBot(telegramBotId: string): Promise<iTelegramBotPayload> {
     return new Promise(async (resolve, reject) => {
       let telegramBot = await Prisma.telegramBot.update({
         where: {
@@ -43,6 +62,7 @@ class TelegramBot {
         },
         include: {
           account: true,
+          managementBot: true,
         },
       });
 
@@ -50,7 +70,7 @@ class TelegramBot {
     });
   }
 
-  async stopBot(botToken: string): Promise<iTelegramBot> {
+  async stopBot(botToken: string): Promise<iTelegramBotPayload> {
     return new Promise(async (resolve, reject) => {
       let bot = Prisma.telegramBot.update({
         where: {
@@ -58,6 +78,10 @@ class TelegramBot {
         },
         data: {
           active: false,
+        },
+        include: {
+          account: true,
+          managementBot: true,
         },
       });
 

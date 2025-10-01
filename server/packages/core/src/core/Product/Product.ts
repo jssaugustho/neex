@@ -15,6 +15,7 @@ export type iProductPayload = iPrisma.ProductGetPayload<{
 }>;
 
 type iProductConfig = {
+  order: number;
   slug: string;
   description: string;
   prices: Record<
@@ -35,6 +36,7 @@ class Product {
       // 1️⃣ Cria o produto
       const newProduct = await Prisma.product.create({
         data: {
+          order: product.order,
           slug: product.slug,
           description: product.description,
           active: true,
@@ -68,6 +70,9 @@ class Product {
           account: {
             id: account.id,
           },
+        },
+        orderBy: {
+          order: "asc",
         },
         include: {
           prices: true,

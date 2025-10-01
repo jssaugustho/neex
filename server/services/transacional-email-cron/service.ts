@@ -1,7 +1,10 @@
+import dotenv from "dotenv";
 import { Resend } from "resend";
 
 import cron from "node-cron";
 import LuxCRMCore from "@neex/core";
+
+dotenv.config();
 
 const { Prisma, Logger } = LuxCRMCore();
 
@@ -16,7 +19,17 @@ cron.schedule("*/20 * * * * *", () => {
     Prisma.transacionalEmailQueue
       .findMany({
         where: {
-          status: "pending",
+          OR: [
+            {
+              status: "pending",
+            },
+            {
+              status: "failed",
+              attempts: {
+                lte: 5,
+              },
+            },
+          ],
         },
         orderBy: {
           createdAt: "asc",
@@ -37,7 +50,7 @@ cron.schedule("*/20 * * * * *", () => {
             });
 
             const { data, error } = await resend.emails.send({
-              from: `Lux CRM © <${process.env.EMAIL_USER}>`,
+              from: `Neex Club © <${process.env.EMAIL_USER}>`,
               to: email.to,
               subject: email.subject,
               html: email.body,
@@ -47,18 +60,22 @@ cron.schedule("*/20 * * * * *", () => {
               const upEmail = await Prisma.transacionalEmailQueue.update({
                 where: {
                   id: email.id,
-                  error: error as object,
                 },
                 data: {
+                  error: error as object,
                   status: "failed",
+                  attempts: {
+                    increment: 1,
+                  },
                 },
               });
-              Logger.info(
+              Logger.error(
                 {
                   email: upEmail.to,
                   subject: upEmail.subject,
                   status: upEmail.status,
                   type: "Transacional",
+                  error,
                 },
                 "Error sending email.",
               );

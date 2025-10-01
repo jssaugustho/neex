@@ -5,6 +5,7 @@ import createUser from "./createUser.js";
 import createSeller from "./createSeller.js";
 import createBot from "./createBot.js";
 import createProducts from "./createProducts.js";
+import createMGMTBot from "./createNotificationsBot.js";
 
 const { Prisma } = Neex();
 
@@ -17,7 +18,9 @@ export default async function onboardingAction(): Promise<void> {
 
   const seller = await createSeller(user.id, account.id);
 
-  const bot = await createBot(account.id);
+  const mgmtBot = await createMGMTBot();
+
+  const bot = await createBot(account.id, mgmtBot.token);
 
   const products = await createProducts(account);
 }

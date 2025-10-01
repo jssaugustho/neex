@@ -100,6 +100,7 @@ model User {
   accounts             Account[]
   sellers Seller[]
   supportedAccounts SupportRelation[]
+  managementBots TelegramManagementBot[]
 }
 
 model Passwd {
@@ -120,6 +121,7 @@ model TransacionalEmailQueue {
   subject   String
   body      String
   status    String       @default("pending") // pending, sent, failed
+  attempts Int @default(0)
   error     Json         @default("{}")
   emailId   String       @default("")
   createdAt DateTime     @default(now())
@@ -173,10 +175,43 @@ model TelegramBot {
   updatedAt  DateTime    @updatedAt
   token      String      @unique
   active     Boolean
-  groupId Int
+  groupId Int 
+  notificationsGroupId Int
   account    Account     @relation(fields: [accountId], references: [id])
   accountId  String      @unique @db.ObjectId
   leads      Lead[]
+  managementBot TelegramManagementBot @relation(fields: [managementBotId], references: [id])
+  managementBotId String @db.ObjectId
+  errors ErrorLogs[]
+}
+
+model ErrorLogs {
+  id                     String         @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  type ErrorType
+  bot TelegramBot? @relation(fields: [botId], references: [id])
+  botId String @db.ObjectId
+  error Json @default("{}")
+  info Json @default("{}")
+}
+
+enum ErrorType {
+  WEBHOOK
+  BOT
+}
+
+model TelegramManagementBot {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime    @default(now())
+  notificationsGroupId Int
+  errorsGroupId Int
+  updatedAt  DateTime    @updatedAt
+  token      String      @unique
+  active     Boolean
+  user User @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+  bots TelegramBot[]
 }
 
 model Lead {
@@ -248,6 +283,7 @@ model Product {
   id         String      @id @default(auto()) @map("_id") @db.ObjectId
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+  order Int
   account Account? @relation(fields: [accountId], references: [id])
   accountId String @db.ObjectId
   active Boolean @default(true)

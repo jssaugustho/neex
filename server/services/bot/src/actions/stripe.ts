@@ -38,6 +38,7 @@ export default async function stripe(ctx: BotContext) {
     locale,
     config.BOT_ID,
     ctx.state.lead.telegramUserId,
+    ctx.state.user.email,
   );
 
   let price = await Product.getPriceByCurrency(state.product, currency);

@@ -7,6 +7,7 @@ import createUser from "./createUser.js";
 import createSeller from "./createSeller.js";
 import createBot from "./createBot.js";
 import createProducts from "./createProducts.js";
+import createMGMTBot from "./createNotificationsBot.js";
 
 const AsciiArt = `
   _   _ ______ ________   __   _____ _     _    _ ____  
@@ -49,16 +50,20 @@ export default async function startAction(): Promise<void> {
           name: "4 - Create seller",
         },
         {
+          value: "create-mgmt-bot",
+          name: "5 - Upsert Management Bot.",
+        },
+        {
           value: "create-bot",
-          name: "5 - Create bot",
+          name: "6 - Create bot",
         },
         {
           value: "create-products",
-          name: "6 - Create products",
+          name: "7 - Create products",
         },
         {
           value: "exit",
-          name: "7 - Exit",
+          name: "8 - Exit",
         },
       ],
     });
@@ -86,6 +91,9 @@ export default async function startAction(): Promise<void> {
       case "create-products":
         await createProducts();
         break;
+
+      case "create-mgmt-bot":
+        await createMGMTBot();
 
       case "exit":
         running = false;

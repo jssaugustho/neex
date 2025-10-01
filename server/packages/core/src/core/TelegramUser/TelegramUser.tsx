@@ -9,6 +9,8 @@ import Logger from "../Logger/Logger.js";
 
 import { Markup, Telegraf } from "telegraf";
 import { getMessage } from "../../locales/getMessage.js";
+import { iTelegramBotPayload } from "../TelegramBot/TelegramBot.js";
+import { iStripePayment } from "../StripePayments/StripePayments.js";
 
 export type iLeadPayload = iPrisma.LeadGetPayload<{
   include: { telegramUser: true; product: true };
@@ -20,7 +22,7 @@ class TelegramUser {
     language: string,
     username: string,
     requestId: string,
-    chatId: number,
+    privateGroupId: number,
     messageId: number,
   ): Promise<iTelegramUser> {
     return new Promise(async (resolve, reject) => {
@@ -35,19 +37,11 @@ class TelegramUser {
         `Upserting Telegram user...`,
       );
 
-      let telegramUser: iTelegramUser | null = null;
-
-      telegramUser = await Prisma.telegramUser.findUnique({
+      let telegramUser = await Prisma.telegramUser.findUnique({
         where: {
           telegramId,
         },
       });
-
-      let data = {
-        language,
-        telegramId,
-        username,
-      };
 
       if (!telegramUser)
         telegramUser = await Prisma.telegramUser.create({
@@ -55,7 +49,7 @@ class TelegramUser {
             language,
             telegramId,
             username,
-            chatId,
+            chatId: privateGroupId,
             messageId,
           },
         });
@@ -70,7 +64,7 @@ class TelegramUser {
         telegramId,
       },
       data: {
-        chatId,
+        chatId: chatId,
         messageId,
       },
     });
@@ -78,44 +72,40 @@ class TelegramUser {
 
   async sendGroupLink(
     botId: string,
-    groupId: number,
+    privateGroupId: number,
+    notificationsGroupId: number,
+    userNotificationsGroup: number,
     chatId: number,
     messageId: number,
     locale: string,
     currency: string,
+    amount: number,
+    email: string,
   ) {
     const telegramBot = (await Prisma.telegramBot
       .findUniqueOrThrow({
         where: {
           id: botId,
         },
+        include: {
+          managementBot: true,
+        },
       })
       .catch((e) => {
         Logger.info("Bot não encontrado no DB.");
-      })) as iTelegramBot;
+      })) as iTelegramBotPayload;
 
     const bot = new Telegraf(telegramBot.token);
 
-    // 1️⃣ Confirma se o grupo existe e se o bot vê ele
-    const chat = await bot.telegram.getChat(groupId);
+    const mgmtBot = new Telegraf(telegramBot.managementBot.token);
 
-    // 2️⃣ Confirma se o bot é admin do grupo
-    const admins = await bot.telegram.getChatAdministrators(groupId);
-    const botIsAdmin = admins.some(
-      async (a) => a.user.id === (await bot.telegram.getMe()).id,
-    );
-
-    if (!botIsAdmin) {
-      Logger.error(chat, "⚠️ Bot não é admin do grupo:");
-      return;
-    }
-
-    const link = await bot.telegram.createChatInviteLink(groupId, {
+    const link = await mgmtBot.telegram.createChatInviteLink(privateGroupId, {
       name: "Convite VIP",
       expire_date: Math.floor(Date.now() / 1000) + 3600, // expira em 1h
       member_limit: 1, // só funciona para uma pessoa
     });
 
+    //send invite link to seller bot message
     await bot.telegram.editMessageText(
       chatId,
       messageId,

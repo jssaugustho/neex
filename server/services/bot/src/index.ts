@@ -18,9 +18,15 @@ dotenv.config();
 
 const processId = uuidv4();
 
-const { Logger, TelegramBot } = Neex();
+const { Logger, TelegramBot, Prisma, Errors } = Neex();
 
-Logger.info(
+const actualBot = await Prisma.telegramBot.findUnique({
+  where: {
+    id: config.BOT_ID,
+  },
+});
+
+const ManagementBot = await Logger.info(
   {
     processId,
     botId: process.env.BOT_TOKEN,
@@ -48,11 +54,11 @@ bot.action(/^stripe\/(usd|eur|brl)\/([a-f0-9]{24})$/, stripe);
 
 bot.action("currency", currencyAction);
 
-await TelegramBot.startBot(config.BOT_ID);
+const botStarted = await TelegramBot.startBot(config.BOT_ID);
 
 bot.catch(async (err, ctx) => {
   await ctx.reply("Erro inesperado, tente novamente mais tarde.");
-  Logger.error(err);
+  await Errors.notifyError("Bot error.", "BOT", err, botStarted);
 });
 
 // Inicializa bot

@@ -122,7 +122,7 @@ class User {
             timeZone: session.timeZone,
           },
         })
-        .catch((err) => {
+        .catch(() => {
           return reject(
             new errors.InternalServerError("Cannot create new User"),
           );
@@ -215,7 +215,7 @@ class User {
 
       await Email.sendTransacionalEmail(
         user.email,
-        "Email verificado com sucesso | Lux CRM ©",
+        "Email verificado com sucesso | Neex Club",
         <EmailVerified user={user} />,
       );
     });

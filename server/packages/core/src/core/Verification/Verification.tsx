@@ -31,7 +31,7 @@ class Verification {
   async notificateEmailVerified(user: iUser) {
     return await Email.sendTransacionalEmail(
       user.email,
-      "Email Verificado Com Sucesso | Lux CRM ©",
+      "Email Verificado Com Sucesso | Neex Club ©",
       <EmailVerified user={user} />,
     ).catch((err) => {
       console.log(err);
@@ -271,12 +271,12 @@ class Verification {
 
     const subject =
       verification.type === "WELCOME_EMAIL"
-        ? "Seja bem vindo | Lux CRM ©"
+        ? "Seja bem vindo | Neex Club ©"
         : verification.type === "RECOVERY"
-          ? "Redefina a sua senha | Lux CRM ©"
+          ? "Redefina a sua senha | Neex Club ©"
           : verification.type === "VERIFY_SESSION"
-            ? "Autorize um novo dispositivo | Lux CRM ©"
-            : "Verifique o seu email | Lux CRM ©";
+            ? "Autorize um novo dispositivo | Neex Club ©"
+            : "Verifique o seu email | Neex Club ©";
 
     return await Email.sendTransacionalEmail(
       user.email,
@@ -291,7 +291,7 @@ class Verification {
   async sendWelcomeMessage(user: iUser, emailToken: string) {
     return await Email.sendTransacionalEmail(
       user.email,
-      "Verifique seu email | Lux CRM ©",
+      "Verifique seu email | Neex Club ©",
       <WelcomeMessage token={emailToken} user={user} />,
     ).catch((err) => {
       console.log(err);

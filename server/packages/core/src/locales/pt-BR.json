@@ -85,5 +85,12 @@
 
   "joinGroup": "Clique no link abaixo para entrar no grupo VIP.",
   "joinGroupCTA": "Entrar no grupo ➡️",
-  "retryStart": "Comprar novamente ⬅️"
+  "retryStart": "Comprar novamente ⬅️",
+
+  "telegramSellerNotification": "💸 <b>Venda confirmada!</b>\n\n⏰ {{time}}\n💰 {{price}}\n🌐 {{email}}\n 🏷️ {{account}}",
+
+  "telegramErrorNotification": "❌ <b>Erro detectado!</b>\n\n🏷️ Conta: <b>{{account}}</b>\n🤖 Bot ID: <b>{{botId}}</b>\n\n<pre>{{error}}</pre>",
+  "eur": "💶 EUR (Euro) {{price}}",
+  "usd": "💵 USD (Dólar) {{price}}",
+  "brl": "🇧🇷 BRL (Real) {{price}}"
 }

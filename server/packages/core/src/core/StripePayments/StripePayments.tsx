@@ -9,6 +9,9 @@ import Prisma from "../Prisma/Prisma.js";
 import Product, { iProductPayload } from "../Product/Product.js";
 import { iLeadPayload } from "../Lead/Lead.js";
 import TelegramUser from "../TelegramUser/TelegramUser.js";
+import { iTelegramBotPayload } from "../TelegramBot/TelegramBot.js";
+import ManagementBot from "../ManagementBot/ManagementBot.js";
+import { iAccountPayload } from "../Account/Account.js";
 
 const stripe = new Stripe(process.env.STRIPE_KEY);
 
@@ -19,7 +22,9 @@ export type iStripePayment = iPrisma.StripePaymentGetPayload<{
   };
 }>;
 
-type iPaymentMetadata = {
+export type iPaymentMetadata = {
+  accountId: string;
+  sellerId: string;
   telegramBotId: string;
   telegramUserId: string;
   paymentId: string;
@@ -27,6 +32,7 @@ type iPaymentMetadata = {
   leadId: string;
   locale: string;
   currency: string;
+  email: string;
 };
 
 class StripePayments {
@@ -73,6 +79,7 @@ class StripePayments {
     locale: string,
     telegramBotId: string,
     telegramUserId: string,
+    email: string,
   ): Promise<iStripePayment> {
     let unit_amount = await Product.getPriceByCurrency(product, currency);
 
@@ -100,6 +107,8 @@ class StripePayments {
     });
 
     let metadata: iPaymentMetadata = {
+      accountId: seller.accountId,
+      sellerId: seller.id,
       paymentId: stripePayment.id,
       productId: stripePayment.product.id,
       leadId: stripePayment.lead.id,
@@ -107,6 +116,7 @@ class StripePayments {
       telegramUserId: telegramUserId,
       locale,
       currency,
+      email,
     };
 
     const link = await stripe.checkout.sessions.create({
@@ -153,6 +163,8 @@ class StripePayments {
   }
 
   async notifyPayment(
+    accountId: string,
+    sellerId: string,
     paymentId: string,
     telegramBotId: string,
     groupId: number,
@@ -160,8 +172,19 @@ class StripePayments {
     messageId: number,
     locale: string,
     currency: string,
+    email: string,
   ) {
-    await Prisma.stripePayment.update({
+    const account = (await Prisma.account.findUnique({
+      where: {
+        id: accountId,
+      },
+      include: {
+        products: true,
+        user: true,
+      },
+    })) as iAccountPayload;
+
+    const payment = await Prisma.stripePayment.update({
       where: {
         id: paymentId,
       },
@@ -170,13 +193,48 @@ class StripePayments {
       },
     });
 
+    const product = (await Prisma.product.findUnique({
+      where: {
+        id: payment.productId,
+      },
+      include: {
+        prices: true,
+      },
+    })) as iProductPayload;
+
+    const price = await Product.getPriceByCurrency(product, currency);
+
+    const telegramBot = (await Prisma.telegramBot.findUnique({
+      where: {
+        id: telegramBotId,
+      },
+      include: {
+        managementBot: true,
+      },
+    })) as iTelegramBotPayload;
+
     await TelegramUser.sendGroupLink(
       telegramBotId,
       groupId,
+      telegramBot?.managementBot.notificationsGroupId,
+      telegramBot.notificationsGroupId,
       chatId,
       messageId,
       locale,
       currency,
+      price,
+      email,
+    );
+
+    await ManagementBot.notificateTelegram(
+      account,
+      telegramBotId,
+      telegramBot?.managementBot.notificationsGroupId,
+      telegramBot.notificationsGroupId,
+      locale,
+      currency,
+      price,
+      email,
     );
   }
 }

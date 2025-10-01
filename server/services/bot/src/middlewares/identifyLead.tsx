@@ -65,7 +65,15 @@ const identifyLead: MiddlewareFn<Context> = async (ctx, next) => {
     },
   });
 
-  ctx.state.account = await Account.getAccount(ctx.state.seller.accountId);
+  let account = await Account.getAccount(ctx.state.seller.accountId);
+
+  ctx.state.account = account;
+
+  ctx.state.user = await Prisma.user.findUnique({
+    where: {
+      id: account?.userId,
+    },
+  });
 
   ctx.state.telegramBot = await Prisma.telegramBot.findUnique({
     where: {
