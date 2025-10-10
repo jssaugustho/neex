@@ -3,6 +3,8 @@
     "order": 1,
     "slug": "weekly",
     "description": "plans.weekly",
+    "period": "WEEKLY",
+    "quantity": 1,
     "prices": {
       "brl": { "amount": 1900, "locale": "pt-br" },
       "eur": { "amount": 900, "locale": "de-de" },
@@ -13,6 +15,8 @@
     "order": 2,
     "slug": "monthly",
     "description": "plans.monthly",
+    "period": "MONTHLY",
+    "quantity": 1,
     "prices": {
       "brl": { "amount": 4900, "locale": "pt-br" },
       "eur": { "amount": 2900, "locale": "de-de" },
@@ -23,6 +27,8 @@
     "order": 3,
     "slug": "year",
     "description": "plans.year",
+    "period": "YEARLY",
+    "quantity": 1,
     "prices": {
       "brl": { "amount": 9700, "locale": "pt-br" },
       "eur": { "amount": 3900, "locale": "de-de" },

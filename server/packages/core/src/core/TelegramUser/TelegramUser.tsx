@@ -13,7 +13,7 @@ import { iTelegramBotPayload } from "../TelegramBot/TelegramBot.js";
 import { iStripePayment } from "../StripePayments/StripePayments.js";
 
 export type iLeadPayload = iPrisma.LeadGetPayload<{
-  include: { telegramUser: true; product: true };
+  include: { telegramUser: true; product: true; telegramBot: true };
 }>;
 
 class TelegramUser {

@@ -7,6 +7,7 @@ import Prisma from "../Prisma/Prisma.js";
 
 import { Prisma as iPrisma } from "@prisma/client";
 import { currencies } from "../../lib/currencies.js";
+import { PlanUnit } from "../Date/Date.js";
 
 export type iProductPayload = iPrisma.ProductGetPayload<{
   include: {
@@ -18,6 +19,8 @@ type iProductConfig = {
   order: number;
   slug: string;
   description: string;
+  period: PlanUnit;
+  quantity: number;
   prices: Record<
     string,
     {
@@ -40,6 +43,8 @@ class Product {
           slug: product.slug,
           description: product.description,
           active: true,
+          period: product.period,
+          quantity: product.quantity,
           account: {
             connect: { id: account.id },
           },

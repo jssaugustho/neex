@@ -76,7 +76,9 @@ async function stripeWebhook(req: Request, res: Response) {
 
       const telegramUser = (await Prisma.telegramUser.findFirst({
         where: {
-          leadId: leadId,
+          lead: {
+            id: leadId,
+          },
         },
       })) as iTelegramUser;
 
@@ -96,7 +98,7 @@ async function stripeWebhook(req: Request, res: Response) {
 
       await StripePayments.notifyPayment(
         accountId,
-        sellerId,
+        leadId,
         paymentId,
         telegramBotId,
         telegramBot.groupId,

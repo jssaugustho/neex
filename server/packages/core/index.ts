@@ -17,6 +17,7 @@ import StripePayments from "./src/core/StripePayments/StripePayments.js";
 import Account from "./src/core/Account/Account.js";
 import TelegramUser from "./src/core/TelegramUser/TelegramUser.js";
 import Errors from "./src/core/Error/Errors.js";
+import ManagementBot from "./src/core/ManagementBot/ManagementBot.js";
 
 function Neex() {
   return {
@@ -37,6 +38,7 @@ function Neex() {
     Seller: Seller,
     PagarMe: PagarMe,
     StripePayments: StripePayments,
+    ManagementBot,
     Errors: Errors,
     Logger: Logger,
   };

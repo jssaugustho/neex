@@ -18,6 +18,16 @@ export type iLeadPayload = iPrisma.LeadGetPayload<{
   include: { telegramUser: true; product: true };
 }>;
 
+const formatter = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
 class ManagementBot {
   async notificateTelegram(
     account: iAccountPayload,
@@ -43,16 +53,6 @@ class ManagementBot {
       })) as iTelegramBotPayload;
 
     const mgmtBot = new Telegraf(telegramBot.managementBot.token);
-
-    const formatter = new Intl.DateTimeFormat("pt-BR", {
-      timeZone: "America/Sao_Paulo",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
 
     //send notification to general notification group
     await mgmtBot.telegram.sendMessage(
@@ -96,6 +96,7 @@ class ManagementBot {
   async upsertManagementBot(
     botToken: string,
     notificationsGroupId: number,
+    errorsGroupId: number,
     userId: string,
   ): Promise<iTelegramManagementBot> {
     let bot = await Prisma.telegramManagementBot.findUnique({
@@ -107,6 +108,7 @@ class ManagementBot {
     if (!bot)
       bot = await Prisma.telegramManagementBot.create({
         data: {
+          errorsGroupId,
           active: true,
           token: botToken,
           notificationsGroupId,
@@ -119,6 +121,27 @@ class ManagementBot {
       });
 
     return bot;
+  }
+
+  async notifyChurn(lead: iLeadPayload, bot: iTelegramBotPayload) {
+    const telegrafBot = new Telegraf(bot.managementBot.token);
+
+    await telegrafBot.telegram.sendMessage(
+      bot.managementBot.errorsGroupId,
+      getMessage("telegramChurnNotification", "pt-br", {
+        account: bot.account.name,
+        botId: bot.id,
+        leadName: lead.telegramUser.username,
+        expiresAt: lead.expiresAt
+          ? formatter.format(lead.expiresAt)
+          : "indefinido.",
+      }),
+      {
+        parse_mode: "HTML",
+      },
+    );
+
+    Logger.info({ lead, bot }, "Lead churn.");
   }
 }
 

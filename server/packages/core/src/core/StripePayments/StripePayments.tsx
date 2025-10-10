@@ -12,6 +12,7 @@ import TelegramUser from "../TelegramUser/TelegramUser.js";
 import { iTelegramBotPayload } from "../TelegramBot/TelegramBot.js";
 import ManagementBot from "../ManagementBot/ManagementBot.js";
 import { iAccountPayload } from "../Account/Account.js";
+import { computeExpiryUTC } from "../Date/Date.js";
 
 const stripe = new Stripe(process.env.STRIPE_KEY);
 
@@ -164,7 +165,7 @@ class StripePayments {
 
   async notifyPayment(
     accountId: string,
-    sellerId: string,
+    leadId: string,
     paymentId: string,
     telegramBotId: string,
     groupId: number,
@@ -212,6 +213,16 @@ class StripePayments {
         managementBot: true,
       },
     })) as iTelegramBotPayload;
+
+    const lead = await Prisma.lead.update({
+      where: {
+        id: leadId,
+      },
+      data: {
+        status: "ACTIVE",
+        expiresAt: computeExpiryUTC(new Date(), product.period, 1),
+      },
+    });
 
     await TelegramUser.sendGroupLink(
       telegramBotId,

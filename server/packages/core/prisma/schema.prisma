@@ -222,9 +222,11 @@ model Lead {
   status LeadStatus @default(PENDING)
   product Product? @relation(fields: [productId], references: [id])
   productId      String?        @db.ObjectId
+  expiresAt      DateTime?
   telegramBot    TelegramBot   @relation(fields: [telegramBotId], references: [id])
   telegramBotId  String        @db.ObjectId
-  telegramUser   TelegramUser[]
+  telegramUser TelegramUser @relation(fields: [telegramUserId], references: [id])
+  telegramUserId String @unique @db.ObjectId
   stripePayments StripePayment[]
 }
 
@@ -243,8 +245,7 @@ model TelegramUser {
   language   String
   chatId Int
   messageId Int
-  lead Lead?  @relation(fields: [leadId], references: [id])
-  leadId String?   @db.ObjectId
+  lead Lead?  
 }
 
 model Cart {
@@ -290,12 +291,19 @@ model Product {
   prices    Price[] 
   description String
   slug String
+  period Period
+  quantity Int
   pixPayments PixPayment[]
   stripePayments StripePayment[]
   carts Cart[] @relation("cartProducts", fields: [cartsId], references: [id])
   cartsId String[] @db.ObjectId
   leads Lead[]
+}
 
+enum Period {
+  MONTHLY
+  YEARLY
+  WEEKLY
 }
 
 model Price {

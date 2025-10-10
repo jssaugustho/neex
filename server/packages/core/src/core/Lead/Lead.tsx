@@ -1,13 +1,14 @@
 import {
   Prisma as iPrisma,
   TelegramUser as iTelegramUser,
+  TelegramBot as iTelegramBot,
   Lead as iLead,
 } from "@prisma/client";
 import Prisma from "../Prisma/Prisma.js";
 import Logger from "../Logger/Logger.js";
 
 export type iLeadPayload = iPrisma.LeadGetPayload<{
-  include: { telegramUser: true; product: true };
+  include: { telegramUser: true; product: true; telegramBot: true };
 }>;
 
 class Lead {
@@ -29,12 +30,10 @@ class Lead {
       lead = await Prisma.lead.findFirst({
         where: {
           telegramUser: {
-            some: {
-              id: telegramUser.id,
-            },
+            id: telegramUser.id,
           },
         },
-        include: { telegramUser: true, product: true },
+        include: { telegramUser: true, product: true, telegramBot: true },
       });
 
       if (!lead)
@@ -52,7 +51,7 @@ class Lead {
               },
             },
           },
-          include: { telegramUser: true, product: true },
+          include: { telegramUser: true, product: true, telegramBot: true },
         });
 
       resolve(lead);
@@ -75,6 +74,7 @@ class Lead {
         include: {
           product: true,
           telegramUser: true,
+          telegramBot: true,
         },
       });
 

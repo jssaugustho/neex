@@ -15,6 +15,7 @@
     "services/api",
     "services/webhooks",
     "services/transacional-email-cron",
+    "services/billing-cron",
     "scripts/onboard"
   ],
   "devDependencies": {
