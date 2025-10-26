@@ -1,17 +1,14 @@
 import { Telegraf } from "telegraf";
-import dotenv from "dotenv";
 import { Resend } from "resend";
 
 import cron from "node-cron";
 
-import Neex from "@neex/core";
-import { iLeadPayload } from "packages/core/src/core/Lead/Lead.js";
+import { Neex } from "@neex/core";
 import { iTelegramBotPayload } from "packages/core/src/core/TelegramBot/TelegramBot.js";
-import { isExpired } from "packages/core/src/core/Date/Date.js";
+import { iLeadPayload } from "packages/core/src/core/Lead/Lead.js";
+import { isExpired } from "./lib/Date.js";
 
-dotenv.config();
-
-const { Prisma, Logger, ManagementBot } = Neex();
+const { Prisma, Logger, ManagementBot, Date } = Neex();
 
 const resend = new Resend(process.env.RESEND_API_TOKEN);
 
@@ -68,7 +65,7 @@ cron.schedule("*/15 * * * *", async () => {
 
               await ManagementBot.notifyChurn(lead, bot);
             } catch (err: any) {
-              Logger.warn({ lead }, "Can't ban lead.");
+              Logger.warn({ lead, err }, "Can't ban lead.");
             }
           } else {
             Logger.info({ lead }, "Active billing.");

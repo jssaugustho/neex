@@ -3,10 +3,28 @@
   "private": true,
   "version": "1.0.0",
   "description": "Lux CRM App.",
+  "type": "module",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria..git"
+  },
+  "scripts": {
+    "clear": "rmdir /s /q dist",
+    "build": "npx tsc --build --force",
+    "build:core": "npm run build -w packages/core",
+    "start:api": "npm start -w services/api",
+    "start:billing-cron": "npm start -w services/billing-cron",
+    "dev:api": "npm run dev -w services/api",
+    "build:api": "npm run build -w services/api",
+    "build:billing-cron": "npm run build -w services/billing-cron",
+    "dev:billing-cron": "npm run dev -w services/billing-cron",
+    "push:core": "npm run push -w packages/core",
+    "build:transacional-email-cron": "npm run build -w services/transacional-email-cron",
+    "start:transacional-email-cron": "npm start -w services/transacional-email-cron",
+    "dev:webhooks": "npm run dev -w services/webhooks",
+    "build:webhooks": "npm run build -w services/webhooks",
+    "start:webhooks": "npm run start -w services/webhooks"
   },
   "author": "José Augustho",
   "workspaces": [

@@ -2,7 +2,7 @@ import React from "react";
 
 //errors & response
 import errors from "../../errors/errors.js";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 //types
 import {

@@ -5,7 +5,7 @@ import iRequest from "../@types/iRequest/iRequest.js";
 //errors
 import errors from "../errors/errors.js";
 import response from "../response/response.js";
-import { getMessage } from "../locales/getMessage.js";
+import { getMessage } from "../lib/getMessage.js";
 
 async function validateSteps(req: iRequest, res: Response, next: NextFunction) {
   req.data.take = parseInt(req.query.take as string) || 100;
@@ -17,7 +17,7 @@ async function validateSteps(req: iRequest, res: Response, next: NextFunction) {
 async function verifyAdminAndSupport(
   req: iRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error");
 
@@ -25,7 +25,7 @@ async function verifyAdminAndSupport(
     throw new errors.AuthError(
       getMessage("requirePrivileges", req.session.locale, {
         privilege: getMessage("ownerSupportOrAdmin", req.session.locale),
-      })
+      }),
     );
   }
 

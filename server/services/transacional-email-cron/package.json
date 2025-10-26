@@ -4,11 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Lux CRM Core API.",
-  "main": "server.ts",
+  "main": "dist/service.js",
   "scripts": {
     "dev": "tsx watch --no-cache service.ts",
     "start": "node ./dist/service.js",
-    "build": "npx tsc --project tsconfig.json",
+    "build": "npx tsc --build --force",
     "clear": "rmdir /s /q dist"
   },
   "repository": {

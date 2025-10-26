@@ -1,20 +1,14 @@
-import dotenv from "dotenv";
 import { Context, Telegraf } from "telegraf";
-import express from "express";
-import bodyParser from "body-parser";
 import startAction from "./actions/start.js";
 import { v4 as uuidv4 } from "uuid";
 import identifyLead from "./middlewares/identifyLead.js";
 import currencyAction from "./actions/currency.js";
 import planos from "./actions/planos.js";
-
-import Neex from "@neex/core";
 import methods from "./actions/methods.js";
 import config from "./libs/config.js";
 import stripe from "./actions/stripe.js";
-import LeadContext from "./@types/context.js";
 
-dotenv.config();
+import { Neex } from "packages/core/dist/index.js";
 
 const processId = uuidv4();
 

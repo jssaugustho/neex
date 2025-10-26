@@ -12,7 +12,7 @@ import TelegramUser from "../TelegramUser/TelegramUser.js";
 import { iTelegramBotPayload } from "../TelegramBot/TelegramBot.js";
 import ManagementBot from "../ManagementBot/ManagementBot.js";
 import { iAccountPayload } from "../Account/Account.js";
-import { computeExpiryUTC } from "../Date/Date.js";
+import { computeExpiryUTC } from "../../lib/Date.js";
 
 const stripe = new Stripe(process.env.STRIPE_KEY);
 

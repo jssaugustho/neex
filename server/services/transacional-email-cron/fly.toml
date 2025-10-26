@@ -1,0 +1,21 @@
+# fly.toml app configuration file generated for neex-api on 2025-10-22T01:20:23-03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'neex-transacional-email-cron'
+primary_region = 'gru'
+
+
+[build]
+  dockerfile = './Dockerfile'
+
+[services]
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  memory = "256MB"
+  cpu_kind = 'shared'
+  cpus = 1

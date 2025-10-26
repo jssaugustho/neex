@@ -1,12 +1,9 @@
-import dotenv from "dotenv";
+import { Neex } from "@neex/core";
 import { Resend } from "resend";
 
 import cron from "node-cron";
-import LuxCRMCore from "@neex/core";
 
-dotenv.config();
-
-const { Prisma, Logger } = LuxCRMCore();
+const { Prisma, Logger } = Neex();
 
 const resend = new Resend(process.env.RESEND_API_TOKEN);
 
@@ -41,7 +38,6 @@ cron.schedule("*/20 * * * * *", () => {
           emails.forEach(async (email) => {
             await Prisma.transacionalEmailQueue.update({
               where: {
-                status: "pending",
                 id: email.id,
               },
               data: {

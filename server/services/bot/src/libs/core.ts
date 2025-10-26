@@ -1,4 +1,4 @@
-import Neex from "@neex/core";
+import { Neex } from "@neex/core";
 
 const NeexCore = Neex();
 

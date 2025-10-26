@@ -1,4 +1,4 @@
-import Neex from "@neex/core";
+import { Neex } from "@neex/core";
 
 import startAction from "./src/actions/startAction.js";
 

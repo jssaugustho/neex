@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import "express-async-errors";
 
 import express from "express";
@@ -8,8 +7,6 @@ import errorHandler from "./errors/errorHandler.js";
 
 import Core from "./core/core.js";
 import webhooks from "./routes/webhooks.route.js";
-
-dotenv.config();
 
 const { Logger } = Core;
 

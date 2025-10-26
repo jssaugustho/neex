@@ -1,4 +1,4 @@
-import Neex from "@neex/core";
+import { Neex } from "@neex/core";
 
 import createAccount from "./createAccount.js";
 import createUser from "./createUser.js";

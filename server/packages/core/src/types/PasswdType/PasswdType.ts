@@ -1,16 +1,12 @@
 //types
 import iValidateString from "../../@types/iValidateString/iValidateString.js";
+import Cryptography from "../../core/Cryptography/Cryptography.js";
 
 //errors
 import errors from "../../errors/errors.js";
-import response from "../../response/response.js";
 
 //core
-import { getMessage } from "../../locales/getMessage.js";
-
-import Core from "../../core/core.js";
-
-const { Cryptography } = Core;
+import { getMessage } from "../../lib/getMessage.js";
 
 class PasswdType {
   value: string;

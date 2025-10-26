@@ -1,8 +1,11 @@
-import ptBR from "./pt-BR.json" with { type: "json" };
+import enUS from "../locales/en-US.js";
+import ptBR from "../locales/pt-BR.js";
 
 const messages = {
   "pt-BR": ptBR,
   "pt-br": ptBR,
+  "en-US": enUS,
+  "en-us": enUS,
 };
 
 export function getMessage(

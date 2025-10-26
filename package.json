@@ -1,0 +1,33 @@
+{
+  "name": "neex",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Lux CRM App.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria..git"
+  },
+  "scripts": {
+    "build": "npm run build:core && npm run build:api",
+    "build:core": "npm run build -w packages/core",
+    "build:api": "npm run build -w services/api"
+  },
+  "author": "José Augustho",
+  "workspaces": [
+    "packages/core",
+    "services/bot",
+    "services/api",
+    "services/webhooks",
+    "services/transacional-email-cron",
+    "services/billing-cron",
+    "scripts/onboard"
+  ],
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "neex": "file:"
+  }
+}

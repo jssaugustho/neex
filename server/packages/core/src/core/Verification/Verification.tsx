@@ -8,7 +8,7 @@ import {
 //external libs
 import jwt from "jsonwebtoken";
 import errors from "../../errors/errors.js";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 import Token from "../Token/Token.js";
 import User from "../User/User.js";
@@ -18,14 +18,13 @@ import Email from "../Email/Email.js";
 import React from "react";
 import WelcomeMessage from "../Email/models/WelcomeMessage.js";
 import EmailVerified from "../Email/models/EmailVerified.js";
-import AuthenticationEmail from "../Email/models/AuthenticationEmail.js";
+
 import RecoveryEmail from "../Email/models/RecoveryEmail.js";
 import VerificationEmail from "../Email/models/VerificationEmail.js";
 
 import Prisma from "../Prisma/Prisma.js";
 import VerifySessionEmail from "../Email/models/VerifySessionEmail.js";
 import iSessionPayload from "../../@types/iSessionPayload/iSessionPayload.js";
-import Logger from "../Logger/Logger.js";
 
 class Verification {
   async notificateEmailVerified(user: iUser) {

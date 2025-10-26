@@ -1,0 +1,74 @@
+const ptBR = {
+  invalidSession: "Sessão inválida.",
+  sessionNotFound: "Sessão não encontrada.",
+  noSessionsFound: "Nenhuma sessão encontrada.",
+  sessionFound: "Sessão encontrada.",
+  sessionsFound: "{{count}} sessões encontradas.",
+
+  noInactivatedSessions: "Nenhuma sessão encontrada.",
+  inactivatedSession: "Logout realizado com sucesso.",
+  inactivatedSessions: "{{count}} sessões inativadas com sucesso.",
+
+  inactiveSession: "Sessão inativa.",
+
+  noBlockedSession: "Nenhuma sessão bloqueada.",
+  blockSession: "Sessão bloqueada com sucesso.",
+  blockSessions: "{{count}} sessões bloqueadas com sucesso.",
+  blockedSession: "Sessão inativa.",
+
+  logoutSession: "Logout realizado com sucesso.",
+
+  noUnauthorizedIp: "Nenhuma autorização revogada.",
+  unauthorizedIp: "Autorização do endereço IP revogada.",
+  unauthorizedIps: "{{count}} endereços IP tiveram as autorizações revogadas.",
+  ipNotFound: "Endereço IP não encontrado.",
+
+  userNotFound: "Usuário não encontrado.",
+  noUsersFound: "Nenhum usuário encontrado.",
+  userFound: "Usuário encontrado.",
+  usersFound: "{{count}} usuários encontrados.",
+
+  newUserCreated: "Novo usuário criado com sucesso.",
+
+  emailVerified: "E-mail verificado com sucesso.",
+  emailNotVerified: "E-mail não verificado.",
+  needEmail2fa: "Verifique o seu email.",
+
+  waitToResendEmail: "Aguarde o prazo de reenvio do e-mail.",
+
+  invalidToken: "Token inválido",
+
+  invalidRefreshToken: "Refresh token inválido",
+
+  successAuthentication: "Autenticação bem-sucedida.",
+  successLogin: "Login realizado com sucesso.",
+  failAuthentication: "Falha na autenticação.",
+  wrongPassword: "Senha incorreta.",
+
+  unauthorized: "Não autorizado.",
+  attemptLimit: "Limite de tentativas atingido.",
+  requirePrivilege: "Requer privilégios: {{privilege}}.",
+  ownerSupportOrAdmin: "Proprietário, suporte ou administrador.",
+
+  obrigatoryHeaders: "Cabeçalhos HTTP inválidos.",
+  obrigatoryParams: "Parâmetros obrigatórios não informados.",
+
+  invalidParams: "Parâmetros inválidos.",
+  invalidQuery: "Consulta inválida.",
+  invalidEmail: "E-mail inválido.",
+  invalidPhone: "Número de celular inválido.",
+  invalidPassword: "Senha inválida.",
+  emailInUse: "E-mail já está em uso.",
+  phoneInUse: "Número de celular já está em uso.",
+  invalidHeaders: "Cabeçalhos HTTP inválidos.",
+  easyPassword: "Senha fraca.",
+
+  sendedEmail: "Email enviado.",
+  emailAlreadyVerified: "E-mail já verificado.",
+
+  requiresOldPasswd: "Senha antiga incorreta.",
+  tokenVerified: "Token verificado com sucesso.",
+  changedPasswd: "Senha redefinida com sucesso.",
+} as const;
+
+export default ptBR;

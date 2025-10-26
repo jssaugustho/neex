@@ -1,11 +1,11 @@
-import dotenv from "dotenv";
-import App from "./src/App.js";
-import Core from "./src/core/core.js";
-
-dotenv.config();
+import { config } from "dotenv";
+import App from "./App.js";
+import Core from "./core/core.js";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
 process.env.TZ = "AMERICA/SAO_PAULO";
-let port = process.env.CORE_API_PORT;
+let port = process.env.API_PORT;
 
 const { Logger } = Core;
 

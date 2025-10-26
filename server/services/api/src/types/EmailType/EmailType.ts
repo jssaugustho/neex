@@ -5,7 +5,7 @@ import iValidateString from "../../@types/iValidateString/iValidateString.js";
 import errors from "../../errors/errors.js";
 
 //db
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 import Core from "../../core/core.js";
 
 const { Prisma } = Core;
@@ -39,15 +39,15 @@ class EmailType implements iValidateString {
         .catch((err) => {
           return reject(
             new errors.InternalServerError(
-              "Cannot verify disponibility of email."
-            )
+              "Cannot verify disponibility of email.",
+            ),
           );
         });
 
       //verify if email exists
       if (findEmail) {
         return reject(
-          new errors.UserError(getMessage("emailInUse", this.locale))
+          new errors.UserError(getMessage("emailInUse", this.locale)),
         );
       }
 

@@ -4,7 +4,7 @@ import RequestUserPayload from "../@types/iRequest/iRequest.js";
 
 //errors
 import errors from "../errors/errors.js";
-import { getMessage } from "../locales/getMessage.js";
+import { getMessage } from "../lib/getMessage.js";
 
 import Core from "../core/core.js";
 import { serve } from "swagger-ui-express";

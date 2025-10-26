@@ -9,7 +9,7 @@
     "dev": "tsx watch --no-cache server.ts",
     "clear": "rmdir /s /q dist",
     "start": "node ./dist/server.js",
-    "build": "npx tsc --project tsconfig.json && xcopy src/locales/*.json dist/src/locales/"
+    "build": "npx tsc --build --force"
   },
   "author": "jssaugustho",
   "license": "ISC",

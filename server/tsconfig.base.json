@@ -4,17 +4,31 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": ".",
     "strict": true,
     "allowJs": true,
     "checkJs": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
     "noEmit": false,
     "noImplicitAny": false,
     "resolveJsonModule": true,
-    "jsx": "react",
-    "baseUrl": "."
-  }
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "baseUrl": ".",
+    "emitDeclarationOnly": false,
+    "isolatedModules": false,
+    "skipLibCheck": true,
+    "noEmitOnError": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "incremental": true,
+
+    "paths": {
+      "@neex/core": ["../../dist/packages/core"]
+    }
+  },
+  "include": [],
+  "exclude": ["node_modules", "dist"]
 }

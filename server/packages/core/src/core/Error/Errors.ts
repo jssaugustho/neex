@@ -3,7 +3,7 @@ import Logger from "../Logger/Logger.js";
 import Prisma from "../Prisma/Prisma.js";
 
 import { iTelegramBotPayload } from "../TelegramBot/TelegramBot.js";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 class Errors {
   formatErrorForTelegram(err: any, context?: string): string {

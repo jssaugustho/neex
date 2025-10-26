@@ -1,7 +1,7 @@
 import inquirer from "inquirer";
+import { Neex } from "packages/core/dist/index.js";
 
-import Seller from "@neex/core/src/core/Seller/Seller";
-import writeInEnv from "../lib/environment";
+const { Seller } = Neex();
 
 async function createSeller(userIdLoaded?: string, accountIdLoaded?: string) {
   console.log("\n");
@@ -29,10 +29,6 @@ async function createSeller(userIdLoaded?: string, accountIdLoaded?: string) {
   console.log("\nRegistering new seller...");
 
   const seller = await Seller.createNewSeller(userId, accountId, false);
-
-  writeInEnv({
-    SELLER_ID: seller.id,
-  });
 
   console.log("Seller registered.");
 

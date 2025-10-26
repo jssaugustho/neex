@@ -2,7 +2,7 @@ import { User as iUser, Session as iSession, Ip as iIp } from "@prisma/client";
 
 //errors
 import errors from "../../errors/errors.js";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 //types
 import iSessionPayload from "../../@types/iSessionPayload/iSessionPayload.js";

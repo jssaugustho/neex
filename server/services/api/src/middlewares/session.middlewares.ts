@@ -14,7 +14,7 @@ import ObjectIdType from "../types/ObjectIdType/ObjectIdType.js";
 import UserAgentType from "../types/UserAgentType/UserAgentType.js";
 import LocaleType from "../types/LocaleType/LocaleType.js";
 import TimeZoneType from "../types/TimeZoneType/TimeZoneType.js";
-import { getMessage } from "../locales/getMessage.js";
+import { getMessage } from "../lib/getMessage.js";
 import iSessionPayload from "../@types/iSessionPayload/iSessionPayload.js";
 import Core from "../core/core.js";
 

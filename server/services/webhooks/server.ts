@@ -5,7 +5,7 @@ import Core from "./src/core/core.js";
 dotenv.config();
 
 process.env.TZ = "AMERICA/SAO_PAULO";
-let port = process.env.CORE_API_PORT;
+let port = process.env.WEBHOOKS_PORT;
 
 const { Logger } = Core;
 

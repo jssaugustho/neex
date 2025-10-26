@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import "express-async-errors";
 
 import express from "express";
@@ -17,9 +16,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swaggerSpec.js";
 import verificationRoute from "./routes/verification.route.js";
 import Core from "./core/core.js";
-import webhooks from "./routes/webhooks.route.js";
-
-dotenv.config();
+import getEnvironment from "./lib/getEnvironment.js";
 
 const { Logger } = Core;
 
@@ -27,10 +24,10 @@ class App {
   app = express();
 
   constructor() {
+    getEnvironment(process.env);
+
     //fingerprint
     this.app.disable("x-powered-by");
-
-    this.app.post("/webhooks/", webhooks);
 
     //usar json
     this.app.use(express.json());
@@ -56,7 +53,7 @@ class App {
     if (process.env.NODE_ENV === "development") {
       Logger.info("Starting in development mode");
       Logger.info(
-        `Documentation http://localhost:${process.env.CORE_API_PORT}/docs`,
+        `Documentation http://localhost:${process.env.API_PORT}/docs`,
       );
       this.app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     }

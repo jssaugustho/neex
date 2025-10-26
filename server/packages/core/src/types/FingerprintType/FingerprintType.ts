@@ -1,7 +1,6 @@
 import iValidateString from "../../@types/iValidateString/iValidateString.js";
 import errors from "../../errors/errors.js";
-import { getMessage } from "../../locales/getMessage.js";
-import response from "../../response/response.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 class FingerprintType implements iValidateString {
   regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;

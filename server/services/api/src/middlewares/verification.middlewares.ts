@@ -12,7 +12,7 @@ import EmailType from "../types/EmailType/EmailType.js";
 import TokenType from "../types/TokenType/TokenType.js";
 
 //db
-import { getMessage } from "../locales/getMessage.js";
+import { getMessage } from "../lib/getMessage.js";
 import Core from "../core/core.js";
 
 const { Verification, User, Prisma, Logger, Session } = Core;
@@ -152,7 +152,7 @@ async function sendVerifySessionEmail(
     statusCode: 200,
     output: {
       status: "Ok",
-      message: getMessage("sendedEmail", req.session.locale),
+      message: getMessage("sendedEmail", req.session.locale || "pt-br"),
       info: {
         timeLeft,
         pretty,

@@ -8,7 +8,7 @@ import Prisma from "../Prisma/Prisma.js";
 import Logger from "../Logger/Logger.js";
 
 import { Markup, Telegraf } from "telegraf";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 import { iTelegramBotPayload } from "../TelegramBot/TelegramBot.js";
 import { iStripePayment } from "../StripePayments/StripePayments.js";
 

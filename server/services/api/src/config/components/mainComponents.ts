@@ -1,6 +1,6 @@
 import swaggerJSDoc from "swagger-jsdoc";
 
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 const swaggerComponents: swaggerJSDoc.Components = {
   schemas: {

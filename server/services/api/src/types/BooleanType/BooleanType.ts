@@ -5,7 +5,7 @@ import iValidateString from "../../@types/iValidateString/iValidateString.js";
 //errors
 import errors from "../../errors/errors.js";
 import response from "../../response/response.js";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 class BooleanType {
   regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;

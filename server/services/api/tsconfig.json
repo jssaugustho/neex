@@ -2,7 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": "src"
   },
-  "include": ["src", "env.d.ts", "server.ts"]
+  "references": [
+    {
+      "path": "../../packages/core"
+    }
+  ],
+  "include": ["src", "src/env.d.ts", "src/server.ts"]
 }

@@ -1,6 +1,6 @@
 //errors & response
 import errors from "../../errors/errors.js";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 //external libs
 import jwt from "jsonwebtoken";

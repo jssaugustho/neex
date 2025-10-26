@@ -15,7 +15,7 @@ declare namespace NodeJS {
     REMEMBER_EXPIRES_IN: string;
     NOT_REMEMBER_EXPIRES_IN: string;
 
-    EMAIL_USER: string;
+    SMTP_USER: string;
     RESEND_API_TOKEN: string;
 
     PAGAR_ME_KEY: string;
@@ -25,5 +25,6 @@ declare namespace NodeJS {
     NEEX_DEV_SESSION_ID: string;
 
     WEB_CLIENT_URL: string;
+    ENV_FILE: string;
   }
 }

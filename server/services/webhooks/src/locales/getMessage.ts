@@ -7,7 +7,7 @@ const messages = {
 export function getMessage(
   key: string,
   locale = "pt-BR",
-  variables: Record<string, string | number> = {}
+  variables: Record<string, string | number> = {},
 ) {
   const message =
     messages[locale][key] ||
@@ -18,6 +18,6 @@ export function getMessage(
 
   return Object.entries(variables).reduce(
     (msg, [variable, value]) => msg.replace(`{{${variable}}}`, String(value)),
-    message
+    message,
   );
 }

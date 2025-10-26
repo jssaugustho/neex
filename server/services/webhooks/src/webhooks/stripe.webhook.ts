@@ -1,23 +1,15 @@
 // src/webhooks/stripe.ts
 import { Request, Response } from "express";
 
-import {
-  Prisma as iPrisma,
-  TelegramBot as iTelegramBot,
-  TelegramUser as iTelegramUser,
-} from "@prisma/client";
-import Neex from "@neex/core";
+import { TelegramUser as iTelegramUser } from "@prisma/client";
 import Stripe from "stripe";
-import TelegramBot, {
-  iTelegramBotPayload,
-} from "packages/core/src/core/TelegramBot/TelegramBot.js";
-import { iLeadPayload } from "packages/core/src/core/Lead/Lead.js";
-import Seller from "packages/core/src/core/Seller/Seller.js";
-import { iPaymentMetadata } from "packages/core/src/core/StripePayments/StripePayments.js";
+import Core from "../core/core.js";
+import { iPaymentMetadata } from "packages/core/dist/core/StripePayments/StripePayments.js";
+import { iTelegramBotPayload } from "packages/core/dist/core/TelegramBot/TelegramBot.js";
 
 const stripe = new Stripe(process.env.STRIPE_KEY);
 
-const { Logger, StripePayments, Prisma, Errors } = Neex();
+const { Logger, StripePayments, Prisma, Errors, Seller } = Core;
 
 async function stripeWebhook(req: Request, res: Response) {
   const sig = req.headers["stripe-signature"] as string;
@@ -40,7 +32,6 @@ async function stripeWebhook(req: Request, res: Response) {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       const {
         accountId,
-        sellerId,
         leadId,
         paymentId,
         productId,

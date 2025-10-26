@@ -1,8 +1,7 @@
 import iValidateString from "../../@types/iValidateString/iValidateString.js";
-import prisma from "../../controllers/db.controller.js";
+import Prisma from "../../core/Prisma/Prisma.js";
 import errors from "../../errors/errors.js";
-import { getMessage } from "../../locales/getMessage.js";
-import response from "../../response/response.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 class PhoneType implements iValidateString {
   regex = /^\(?\d{2}\)?\s?(?:9\d{4}|\d{4})-?\d{4}$/;
@@ -35,12 +34,12 @@ class PhoneType implements iValidateString {
     if (this.onlyNumbers.length === 11) {
       return `(${this.onlyNumbers.slice(0, 2)}) ${this.onlyNumbers.slice(
         2,
-        7
+        7,
       )}-${this.onlyNumbers.slice(7)}`;
     } else if (this.onlyNumbers.length === 10) {
       return `(${this.onlyNumbers.slice(0, 2)}) ${this.onlyNumbers.slice(
         2,
-        6
+        6,
       )}-${this.onlyNumbers.slice(6)}`;
     } else {
       throw new errors.UserError(getMessage("invalidParams", this.locale));
@@ -50,7 +49,7 @@ class PhoneType implements iValidateString {
   avaible(): Promise<Boolean> {
     return new Promise(async (resolve, reject) => {
       //query user data
-      let findEmail = await prisma.user
+      let findEmail = await Prisma.user
         .findUnique({
           where: {
             phone: this.pretty,
@@ -59,15 +58,15 @@ class PhoneType implements iValidateString {
         .catch((err) => {
           return reject(
             new errors.InternalServerError(
-              "Cannot verify disponibility of phone."
-            )
+              "Cannot verify disponibility of phone.",
+            ),
           );
         });
 
       //verify if email exists
       if (findEmail) {
         return reject(
-          new errors.UserError(getMessage("phoneInUse", this.locale))
+          new errors.UserError(getMessage("phoneInUse", this.locale)),
         );
       }
 

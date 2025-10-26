@@ -6,7 +6,7 @@ import errors from "../../errors/errors.js";
 import response from "../../response/response.js";
 
 //core
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 import Core from "../../core/core.js";
 

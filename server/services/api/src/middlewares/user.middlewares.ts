@@ -11,7 +11,7 @@ import PhoneType from "../types/PhoneType/PhoneType.js";
 
 //errors
 import errors from "../errors/errors.js";
-import { getMessage } from "../locales/getMessage.js";
+import { getMessage } from "../lib/getMessage.js";
 
 //validate
 import RoleType from "../types/RoleType/RoleType.js";
@@ -36,7 +36,7 @@ async function validateRegisterParams(
     throw err;
   });
 
-  let phone = new PhoneType(req.body.phone, req.session.locale);
+  let phone = new PhoneType(req.body.phone);
 
   await phone.avaible().catch((err) => {
     throw err;
@@ -72,6 +72,8 @@ async function registerNewUser(
     req.data.lastName,
     req.data.phone,
     req.data.passwd,
+    req.data.gender,
+    true,
   ).catch(next)) as iUser;
 
   req.response = {
@@ -267,7 +269,7 @@ async function validateUpdateParams(
   }
 
   if (req.body.phone) {
-    let phone = new PhoneType(req.body.phone, req.session.locale);
+    let phone = new PhoneType(req.body.phone);
 
     await phone.avaible().catch((err) => {
       throw err;

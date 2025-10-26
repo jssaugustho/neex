@@ -2,7 +2,7 @@ import iValidateString from "../../@types/iValidateString/iValidateString.js";
 
 //errorss
 import errors from "../../errors/errors.js";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 import Core from "../../core/core.js";
 
@@ -67,7 +67,7 @@ class PhoneType implements iValidateString {
 
       //verify if email exists
       if (findEmail) {
-        this.valid = false;
+        resolve(false);
       }
 
       //check if email exists

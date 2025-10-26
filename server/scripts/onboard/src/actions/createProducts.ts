@@ -1,13 +1,19 @@
-import Neex from "@neex/core";
+import { Neex } from "@neex/core";
 import inquirer from "inquirer";
 
 import products from "../config/products.json" with { type: "json" };
 
-import { Account as iAccount, Product as iProduct } from "@prisma/client";
+import { Account as iAccount } from "@prisma/client";
+import {
+  iProductConfig,
+  iProductPayload,
+} from "packages/core/dist/core/Product/Product.js";
 
 const { Product, Prisma } = Neex();
 
-async function createProducts(account?: iAccount): Promise<iProduct[] | null> {
+async function createProducts(
+  account?: iAccount,
+): Promise<iProductPayload[] | null> {
   console.log("\n");
 
   let atualAccount: iAccount | null = account || null;
@@ -34,7 +40,7 @@ async function createProducts(account?: iAccount): Promise<iProduct[] | null> {
   console.log("\nCreating products...");
 
   const newProducts = await Product.createProducts(
-    products,
+    products as iProductConfig[],
     atualAccount as iAccount,
   );
 

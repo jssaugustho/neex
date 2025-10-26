@@ -1,4 +1,4 @@
-import Neex from "@neex/core";
+import { Neex } from "@neex/core";
 
 import inquirer from "inquirer";
 import PasswdValidator from "../validators/PasswdValidator.js";

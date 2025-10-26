@@ -1,8 +1,7 @@
-import Neex from "@neex/core";
+import { Neex } from "@neex/core";
 import inquirer from "inquirer";
 
 import { User as iUser } from "@prisma/client";
-import writeInEnv from "../lib/environment";
 
 const { Account } = Neex();
 
@@ -35,10 +34,6 @@ async function createAccount(user?: iUser) {
   console.log("\nCreating account...");
 
   const account = await Account.createAccount(name, description, userId);
-
-  writeInEnv({
-    ACCOUNT_ID: account.id,
-  });
 
   console.log("Account created.");
 

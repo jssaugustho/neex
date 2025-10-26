@@ -5,7 +5,7 @@ import RequestUserPayload from "../@types/iRequest/iRequest.js";
 //errors
 import response from "../response/response.js";
 import errors from "../errors/errors.js";
-import { getMessage } from "../locales/getMessage.js";
+import { getMessage } from "../lib/getMessage.js";
 
 //core
 import Core from "../core/core.js";
@@ -15,7 +15,7 @@ const { Ip, Session } = Core;
 async function logoutSession(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session Error");
   if (!req.userData) throw new errors.InternalServerError("Userdata Error");
@@ -35,7 +35,7 @@ async function logoutSession(
 async function logoutSessions(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session not found");
 
@@ -57,7 +57,7 @@ async function logoutSessions(
 async function blockSession(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.UserError(response.sessionNotFound());
   if (!req.userData) throw new errors.UserError(response.userNotFound());
@@ -77,7 +77,7 @@ async function blockSession(
 async function blockSessions(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session not found");
 
@@ -107,7 +107,7 @@ async function blockSessions(
 async function unauthorizeIp(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
   if (!req.userData) throw new errors.InternalServerError("User data error.");
@@ -128,7 +128,7 @@ async function unauthorizeIp(
 async function unauthorizeIps(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.session) throw new errors.InternalServerError("Session error.");
   if (!req.userData) throw new errors.InternalServerError("User data error.");
@@ -158,7 +158,7 @@ async function unauthorizeIps(
 async function responseRequests(
   req: RequestUserPayload,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.response)
     throw new errors.InternalServerError("Response not found.");

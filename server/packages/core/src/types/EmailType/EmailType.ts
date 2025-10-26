@@ -1,13 +1,11 @@
 //types
 import iValidateString from "../../@types/iValidateString/iValidateString.js";
+import Prisma from "../../core/Prisma/Prisma.js";
 
 //errors
 import errors from "../../errors/errors.js";
-import response from "../../response/response.js";
 
-//db
-import prisma from "../../controllers/db.controller.js";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 class EmailType implements iValidateString {
   regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
@@ -29,7 +27,7 @@ class EmailType implements iValidateString {
   avaible(): Promise<Boolean> {
     return new Promise(async (resolve, reject) => {
       //query user data
-      let findEmail = await prisma.user
+      let findEmail = await Prisma.user
         .findUnique({
           where: {
             email: this.value,
@@ -38,15 +36,15 @@ class EmailType implements iValidateString {
         .catch((err) => {
           return reject(
             new errors.InternalServerError(
-              "Cannot verify disponibility of email."
-            )
+              "Cannot verify disponibility of email.",
+            ),
           );
         });
 
       //verify if email exists
       if (findEmail) {
         return reject(
-          new errors.UserError(getMessage("emailInUse", this.locale))
+          new errors.UserError(getMessage("emailInUse", this.locale)),
         );
       }
 

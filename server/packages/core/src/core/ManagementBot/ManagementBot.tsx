@@ -9,7 +9,7 @@ import Prisma from "../Prisma/Prisma.js";
 import Logger from "../Logger/Logger.js";
 
 import { Telegraf } from "telegraf";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 import { iTelegramBotPayload } from "../TelegramBot/TelegramBot.js";
 import { iStripePayment } from "../StripePayments/StripePayments.js";
 import { iAccountPayload } from "../Account/Account.js";
@@ -119,6 +119,24 @@ class ManagementBot {
           },
         },
       });
+    else {
+      bot = await Prisma.telegramManagementBot.update({
+        where: {
+          id: bot.id,
+        },
+        data: {
+          errorsGroupId,
+          active: true,
+          token: botToken,
+          notificationsGroupId,
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      });
+    }
 
     return bot;
   }

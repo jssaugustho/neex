@@ -1,5 +1,5 @@
-import Neex from "@neex/core";
-import iSessionPayload from "@neex/core/src/@types/iSessionPayload/iSessionPayload";
+import { Neex } from "@neex/core";
+import iSessionPayload from "packages/core/dist/@types/iSessionPayload/iSessionPayload.js";
 
 const { Prisma } = Neex();
 

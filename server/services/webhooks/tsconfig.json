@@ -4,5 +4,5 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["src", "env.d.ts", "server.ts"]
+  "include": ["src", "env.d.ts", "server.ts", "src/locales/**.json"]
 }

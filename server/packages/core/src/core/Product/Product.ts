@@ -6,8 +6,7 @@ import {
 import Prisma from "../Prisma/Prisma.js";
 
 import { Prisma as iPrisma } from "@prisma/client";
-import { currencies } from "../../lib/currencies.js";
-import { PlanUnit } from "../Date/Date.js";
+import { PlanUnit } from "../../lib/Date.js";
 
 export type iProductPayload = iPrisma.ProductGetPayload<{
   include: {
@@ -15,7 +14,7 @@ export type iProductPayload = iPrisma.ProductGetPayload<{
   };
 }>;
 
-type iProductConfig = {
+export type iProductConfig = {
   order: number;
   slug: string;
   description: string;
@@ -34,7 +33,7 @@ class Product {
   async createProducts(
     products: iProductConfig[],
     account: iAccount,
-  ): Promise<iProduct[]> {
+  ): Promise<iProductPayload[]> {
     const newProducts = products.map(async (product) => {
       // 1️⃣ Cria o produto
       const newProduct = await Prisma.product.create({
@@ -48,6 +47,9 @@ class Product {
           account: {
             connect: { id: account.id },
           },
+        },
+        include: {
+          prices: true,
         },
       });
 

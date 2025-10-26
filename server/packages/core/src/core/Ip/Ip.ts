@@ -7,7 +7,7 @@ import {
 
 //errors
 import errors from "../../errors/errors.js";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 //types
 import iLookup from "../../@types/iLookup/iLookup.js";
@@ -68,7 +68,7 @@ class Ip {
             region: ip.region,
             country: ip.country,
           },
-          `Identified new address: ${ip.address}`
+          `Identified new address: ${ip.address}`,
         );
       } else {
         ip = (await Prisma.ip.update({
@@ -97,7 +97,7 @@ class Ip {
             region: ip.region,
             country: ip.country,
           },
-          `Identified existent address: ${ip.address}`
+          `Identified existent address: ${ip.address}`,
         );
       }
 
@@ -137,7 +137,7 @@ class Ip {
 
   unauthorizeIps(
     userData: iUser,
-    exception?: iSessionPayload
+    exception?: iSessionPayload,
   ): Promise<number> {
     return new Promise(async (resolve, reject) => {
       let query: any = {
@@ -189,8 +189,8 @@ class Ip {
           .catch(() => {
             return reject(
               new errors.InternalServerError(
-                "Cannot update session: " + session.id
-              )
+                "Cannot update session: " + session.id,
+              ),
             );
           });
 
@@ -209,8 +209,8 @@ class Ip {
             .catch(() => {
               return reject(
                 new errors.InternalServerError(
-                  "Cannot update session: " + session.id
-                )
+                  "Cannot update session: " + session.id,
+                ),
               );
             })) as iIpPayload;
 
@@ -223,7 +223,7 @@ class Ip {
           user: userData.id,
           email: userData.email,
         },
-        "Unauthorized all user IPs."
+        "Unauthorized all user IPs.",
       );
       return resolve(sessions.length);
     });
@@ -244,7 +244,7 @@ class Ip {
         })
         .catch((err) => {
           return reject(
-            new errors.InternalServerError("Cannot inactive session in DB.")
+            new errors.InternalServerError("Cannot inactive session in DB."),
           );
         })) as iSessionPayload[];
 
@@ -276,7 +276,7 @@ class Ip {
         })
         .catch(() => {
           return reject(
-            new errors.InternalServerError("Cannot update ip: " + ip.id)
+            new errors.InternalServerError("Cannot update ip: " + ip.id),
           );
         });
 
@@ -286,7 +286,7 @@ class Ip {
           user: user.id,
           email: user.email,
         },
-        "Unauthorized IP."
+        "Unauthorized IP.",
       );
 
       return resolve(ip);

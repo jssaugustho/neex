@@ -1,0 +1,24 @@
+# fly.toml app configuration file generated for neex-api on 2025-10-22T01:20:23-03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'neex-api'
+primary_region = 'gru'
+
+
+[build]
+  dockerfile = '.\Dockerfile'
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = "512MB"
+  cpu_kind = 'shared'
+  cpus = 1

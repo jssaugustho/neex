@@ -6,20 +6,20 @@ import jwt from "jsonwebtoken";
 
 import errors from "../../errors/errors.js";
 import { PrismaClient } from "@prisma/client/extension";
-import { getMessage } from "../../locales/getMessage.js";
+import { getMessage } from "../../lib/getMessage.js";
 
 class Token {
   loadPayload(
     token: string,
     load = "token",
-    locale = "pt-BR"
+    locale = "pt-BR",
   ): Promise<iTokenPayload> {
     return new Promise((resolve, reject) => {
       if (load === "token") {
         jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
           if (err)
             return reject(
-              new errors.TokenError(getMessage("invalidToken", locale))
+              new errors.TokenError(getMessage("invalidToken", locale)),
             );
           return resolve(payload as iTokenPayload);
         });
@@ -28,7 +28,7 @@ class Token {
         jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, payload) => {
           if (err)
             return reject(
-              new errors.AuthError(getMessage("invalidRefreshToken", locale))
+              new errors.AuthError(getMessage("invalidRefreshToken", locale)),
             );
           return resolve(payload as iTokenPayload);
         });
@@ -37,7 +37,7 @@ class Token {
         jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
           if (err)
             return reject(
-              new errors.AuthError(getMessage("invalidToken", locale))
+              new errors.AuthError(getMessage("invalidToken", locale)),
             );
           return resolve(payload as iTokenPayload);
         });
