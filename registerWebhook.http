@@ -1,0 +1,43 @@
+### =========================================
+### VARIÁVEIS (edite aqui)
+### =========================================
+@token = 8371252516:AAHWzK9s-2AMQrRiOtqnqfdR0ULT-y7DTgI
+@public = https://telegram.neex.club
+@tenant = 69010b830c9d1be622b456dd
+@secret = 729df17f-85c1-4931-8e16-0f8c30e78b5e
+
+### Caminho do webhook (precisa bater com o do seu server)
+@path = /webhooks/telegram/{{tenant}}
+
+### Base da API do Telegram
+@base = https://api.telegram.org/bot{{token}}
+
+### =========================================
+### 1) Registrar / Atualizar webhook (setWebhook)
+### =========================================
+POST {{base}}/setWebhook
+Content-Type: application/json
+
+{
+  "url": "{{public}}{{path}}",
+  "secret_token": "{{secret}}",
+  "allowed_updates": ["message", "callback_query"]
+}
+
+# Substitua CHAT_ID pelo chat do teste
+POST {{base}}/sendMessage
+Content-Type: application/json
+
+{
+  "chat_id": CHAT_ID,
+  "text": "Webhook configurado! ✅"
+}
+
+###
+
+POST {{base}}/deleteWebhook
+Content-Type: application/json
+
+{
+  "drop_pending_updates": true
+}
