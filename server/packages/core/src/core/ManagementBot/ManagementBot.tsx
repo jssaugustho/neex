@@ -4,6 +4,8 @@ import {
   TelegramBot as iTelegramBot,
   Lead as iLead,
   TelegramManagementBot as iTelegramManagementBot,
+  Services as iSesrvices,
+  Services,
 } from "@prisma/client";
 import Prisma from "../Prisma/Prisma.js";
 import Logger from "../Logger/Logger.js";
@@ -35,6 +37,7 @@ class ManagementBot {
     notificationsGroupId: number,
     userNotificationsGroupId: number,
     locale: string,
+    slug: string,
     currency: string,
     amount: number,
     email: string,
@@ -57,12 +60,12 @@ class ManagementBot {
     //send notification to general notification group
     await mgmtBot.telegram.sendMessage(
       notificationsGroupId,
-      getMessage("telegramSellerNotification", locale, {
+      getMessage("telegramSellerNotification", "pt-BR", {
         time: formatter.format(Date.now()),
-        price: getMessage(currency, locale, {
-          price: (amount / 100).toLocaleString("pt-BR", {
+        price: getMessage(currency, "pt-BR", {
+          price: (amount / 100).toLocaleString(locale, {
             style: "currency",
-            currency: "BRL",
+            currency,
           }),
         }),
         account: account.name,
@@ -76,12 +79,12 @@ class ManagementBot {
     //send notification to user notification group
     await mgmtBot.telegram.sendMessage(
       userNotificationsGroupId,
-      getMessage("telegramSellerNotification", locale, {
+      getMessage("telegramSellerNotification", "pt-BR", {
         time: formatter.format(Date.now()),
-        price: getMessage(currency, locale, {
-          price: (amount / 100).toLocaleString("pt-BR", {
+        price: getMessage(currency, "pt-BR", {
+          price: (amount / 100).toLocaleString(locale, {
             style: "currency",
-            currency: "BRL",
+            currency,
           }),
         }),
         account: account.name,
@@ -146,7 +149,7 @@ class ManagementBot {
 
     await telegrafBot.telegram.sendMessage(
       bot.managementBot.errorsGroupId,
-      getMessage("telegramChurnNotification", "pt-br", {
+      getMessage("telegramChurnNotification", "pt-BR", {
         account: bot.account.name,
         botId: bot.id,
         leadName: lead.telegramUser.username,
@@ -160,6 +163,21 @@ class ManagementBot {
     );
 
     Logger.info({ lead, bot }, "Lead churn.");
+  }
+
+  async notificateCrash(
+    mgmtBot: iTelegramManagementBot,
+    bot: Telegraf,
+    slug: string,
+  ) {
+    //send notification to user notification group
+    await bot.telegram.sendMessage(
+      mgmtBot.errorsGroupId,
+      getMessage("serviceCrash", "pt-BR", { slug }),
+      {
+        parse_mode: "HTML",
+      },
+    );
   }
 }
 

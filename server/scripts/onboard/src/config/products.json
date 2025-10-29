@@ -8,7 +8,12 @@
     "prices": {
       "brl": { "amount": 1900, "locale": "pt-br" },
       "eur": { "amount": 900, "locale": "de-de" },
-      "usd": { "amount": 900, "locale": "en-us" }
+      "usd": { "amount": 900, "locale": "en-us" },
+      "cad": { "amount": 1299, "locale": "en-ca" },
+      "gbp": { "amount": 799, "locale": "en-gb" },
+      "aud": { "amount": 1499, "locale": "en-au" },
+      "jpy": { "amount": 1380, "locale": "ja-jp" },
+      "krw": { "amount": 11900, "locale": "ko-kr" }
     }
   },
   {
@@ -20,7 +25,12 @@
     "prices": {
       "brl": { "amount": 4900, "locale": "pt-br" },
       "eur": { "amount": 2900, "locale": "de-de" },
-      "usd": { "amount": 2900, "locale": "en-us" }
+      "usd": { "amount": 2900, "locale": "en-us" },
+      "cad": { "amount": 3999, "locale": "en-ca" },
+      "gbp": { "amount": 2299, "locale": "en-gb" },
+      "aud": { "amount": 4499, "locale": "en-au" },
+      "jpy": { "amount": 4380, "locale": "ja-jp" },
+      "krw": { "amount": 39900, "locale": "ko-kr" }
     }
   },
   {
@@ -32,7 +42,12 @@
     "prices": {
       "brl": { "amount": 9700, "locale": "pt-br" },
       "eur": { "amount": 3900, "locale": "de-de" },
-      "usd": { "amount": 3900, "locale": "en-us" }
+      "usd": { "amount": 3900, "locale": "en-us" },
+      "cad": { "amount": 5299, "locale": "en-ca" },
+      "gbp": { "amount": 3099, "locale": "en-gb" },
+      "aud": { "amount": 5999, "locale": "en-au" },
+      "jpy": { "amount": 5980, "locale": "ja-jp" },
+      "krw": { "amount": 52900, "locale": "ko-kr" }
     }
   }
 ]

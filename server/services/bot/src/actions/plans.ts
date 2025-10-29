@@ -3,7 +3,7 @@ import { Context, Markup } from "telegraf";
 import t from "../libs/i18n.js";
 import NeexCore from "../libs/core.js";
 import LeadState from "../@types/context.js";
-import { currencies } from "../libs/currencies.js";
+import { getCountryBySlug } from "../libs/countries.js";
 
 const { Product, Logger } = NeexCore;
 
@@ -14,14 +14,13 @@ interface BotContext extends Context {
 export default async function planos(ctx: BotContext): Promise<void> {
   let state = ctx.state as LeadState;
 
-  const currency = ctx.match[1];
+  const slug = ctx.match[1];
 
-  let locale = Object.keys(currencies).find(
-    (locale) => currencies[locale].code === currency,
-  ) as string;
+  let localeInfo = getCountryBySlug(slug);
+
+  let { language, uiName, currency, locale } = localeInfo;
 
   let products = await Product.listProducts(state.account);
-  let currencyString = t(locale, `currencies.${currency}`);
 
   const response = await Promise.all(
     products.map(async (product) => {
@@ -32,20 +31,23 @@ export default async function planos(ctx: BotContext): Promise<void> {
           t(locale, product.description, {
             price: (price / 100).toFixed(2),
           }),
-          `methods/${currency}/${product.id}`,
+          `methods/${slug}/${product.id}`,
         ),
       ];
     }),
   );
 
-  await ctx.editMessageText(
-    t(locale, "choosePlan", { currency: currencyString }),
-    {
-      reply_markup: Markup.inlineKeyboard([
-        ...response,
-        [Markup.button.callback(t(locale, "changeCurrency"), "currency")],
-      ]).reply_markup,
-      parse_mode: "HTML",
-    },
-  );
+  await ctx.editMessageText(t(locale, "choosePlan", { country: uiName }), {
+    reply_markup: Markup.inlineKeyboard([
+      ...response,
+      [
+        Markup.button.callback(
+          `${t(locale, "changeCountry")} / Change Country`,
+          "country",
+        ),
+      ],
+      [Markup.button.callback(t(locale, "back"), `consent/${slug}`)],
+    ]).reply_markup,
+    parse_mode: "HTML",
+  });
 }

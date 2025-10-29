@@ -20,11 +20,19 @@
     "build:billing-cron": "npm run build -w services/billing-cron",
     "dev:billing-cron": "npm run dev -w services/billing-cron",
     "push:core": "npm run push -w packages/core",
+    "dev:transacional-email-cron": "npm run dev -w services/transacional-email-cron",
     "build:transacional-email-cron": "npm run build -w services/transacional-email-cron",
     "start:transacional-email-cron": "npm start -w services/transacional-email-cron",
     "dev:webhooks": "npm run dev -w services/webhooks",
     "build:webhooks": "npm run build -w services/webhooks",
-    "start:webhooks": "npm run start -w services/webhooks"
+    "start:webhooks": "npm run start -w services/webhooks",
+    "dev:bot": "npm run dev -w services/bot",
+    "build:bot": "npm run build -w services/bot/",
+    "start:bot": "npm start -w services/bot/",
+    "onboarding": "npm run dev -w scripts/onboard",
+    "dev:status-cron": "npm run dev -w services/status-cron",
+    "build:status-cron": "npm run build -w services/status-cron",
+    "start:status-cron": "npm start -w services/status-cron"
   },
   "author": "José Augustho",
   "workspaces": [
@@ -34,13 +42,15 @@
     "services/webhooks",
     "services/transacional-email-cron",
     "services/billing-cron",
-    "scripts/onboard"
+    "scripts/onboard",
+    "services/status-cron"
   ],
   "devDependencies": {
     "@types/node": "^24.3.0",
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "axios": "^1.13.1",
     "neex": "file:"
   }
 }

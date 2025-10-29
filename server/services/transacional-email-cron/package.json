@@ -6,7 +6,7 @@
   "description": "Lux CRM Core API.",
   "main": "dist/service.js",
   "scripts": {
-    "dev": "tsx watch --no-cache service.ts",
+    "dev": "tsx watch --no-cache src/service.ts",
     "start": "node ./dist/service.js",
     "build": "npx tsc --build --force",
     "clear": "rmdir /s /q dist"
@@ -26,6 +26,7 @@
     "@neex/transacional-email-cron": "file:",
     "@prisma/client": "^6.0.1",
     "dotenv": "^17.2.2",
+    "express": "^5.1.0",
     "node-cron": "^3.0.3",
     "resend": "^4.4.1"
   },

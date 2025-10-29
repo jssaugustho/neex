@@ -5,5 +5,9 @@ declare namespace NodeJS {
     EMAIL_USER: string;
     RESEND_API_TOKEN: string;
     DATABASE_URL: string;
+    API_URL: string;
+    WEB_CLIENT_URL: string;
+    TELEGRAM_WEBHOOK_URL: string;
+    EMAIL_QUEUE_URL: string;
   }
 }

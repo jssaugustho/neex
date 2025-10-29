@@ -78,6 +78,7 @@ class TelegramUser {
     chatId: number,
     messageId: number,
     locale: string,
+    slug: string,
     currency: string,
     amount: number,
     email: string,
@@ -123,7 +124,7 @@ class TelegramUser {
           [
             Markup.button.callback(
               getMessage("retryStart", locale),
-              `plans/${currency}`,
+              `plans/${slug}`,
             ),
           ],
         ]).reply_markup,

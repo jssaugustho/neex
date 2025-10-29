@@ -22,6 +22,7 @@ import { config } from "dotenv";
 
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import Services from "./core/Services/Services.js";
 
 export function Neex() {
   return {
@@ -45,6 +46,7 @@ export function Neex() {
     ManagementBot,
     Errors,
     Logger,
+    Services,
     Date,
   };
 }

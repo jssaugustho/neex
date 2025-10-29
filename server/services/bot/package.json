@@ -4,13 +4,13 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Core API.",
-  "main": "server.ts",
+  "main": "dist/server.ts",
+  "types": "dist/server.d.ts",
   "scripts": {
-    "dev": "tsx watch --no-cache ./src/index.ts",
+    "dev": "tsx watch --no-cache ./src/server.ts",
     "clear": "rmdir /s /q dist",
     "start": "node ./dist/server.js",
-    "createProducts": "node ./src/dev/createProducts.ts",
-    "build": "npx tsc --project tsconfig.json && xcopy src/locales/*.json dist/src/locales/"
+    "build": "npx tsc --build --force"
   },
   "author": "jssaugustho",
   "license": "ISC",
@@ -20,7 +20,7 @@
   "homepage": "https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria.#readme",
   "dependencies": {
     "@neex/bot": "file:",
-    "@neex/core": "*",
+    "@neex/core": "file:../../packages/core",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",

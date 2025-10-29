@@ -22,10 +22,12 @@ class TelegramBot {
     groupId: number,
     accountId: string,
     notificationsGroupId: number,
+    videoUrl: string,
   ): Promise<iTelegramBotPayload> {
     return new Promise(async (resolve, reject) => {
       let telegramBot = await Prisma.telegramBot.create({
         data: {
+          videoUrl,
           active: false,
           token: botToken,
           groupId,

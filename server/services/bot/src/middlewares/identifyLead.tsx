@@ -3,19 +3,23 @@ import { MiddlewareFn, Context } from "telegraf";
 import NeexCore from "../libs/core.js";
 
 import { v4 as uuidv4 } from "uuid";
-import config from "../libs/config.js";
-import { allowedLocales } from "../libs/i18n.js";
-import { currencies } from "../libs/currencies.js";
+
+import { getCountryByLocale } from "../libs/countries.js";
+import { iTelegramBotPayload } from "packages/core/src/core/TelegramBot/TelegramBot.js";
 
 const { Lead, TelegramUser, Logger, Prisma, Account } = NeexCore;
 
 const identifyLead: MiddlewareFn<Context> = async (ctx, next) => {
+  let telegramBot = ctx.state.telegramBot as iTelegramBotPayload;
+
   ctx.state.requestId = uuidv4();
   ctx.state.telegramId = String(ctx?.from?.id as number);
 
-  ctx.state.locale = allowedLocales.includes(ctx.from?.language_code || "")
-    ? ctx.from?.language_code
-    : "en-us";
+  let locale = getCountryByLocale(ctx.from?.language_code || "en-US");
+
+  ctx.state.locale = locale.locale;
+  ctx.state.currency = locale.currency;
+  ctx.state.slug = locale.slug;
 
   Logger.info(
     {
@@ -29,7 +33,6 @@ const identifyLead: MiddlewareFn<Context> = async (ctx, next) => {
   );
 
   ctx.state.username = ctx.from?.username || "anonymous";
-  ctx.state.currency = currencies[ctx.state.locale]?.code || "usd";
 
   Logger.info("Identified currency: " + ctx.state.currency);
 
@@ -42,7 +45,7 @@ const identifyLead: MiddlewareFn<Context> = async (ctx, next) => {
     ctx.message?.message_id || 0,
   );
 
-  ctx.state.lead = await Lead.upsert(ctx.state.telegramUser, config.BOT_ID);
+  ctx.state.lead = await Lead.upsert(ctx.state.telegramUser, telegramBot.id);
 
   ctx.state.product = await Prisma.product
     .findUniqueOrThrow({
@@ -57,7 +60,7 @@ const identifyLead: MiddlewareFn<Context> = async (ctx, next) => {
 
   ctx.state.seller = await Prisma.seller.findUnique({
     where: {
-      id: config.SELLER_ID,
+      accountId: telegramBot.accountId,
     },
     include: {
       account: true,
@@ -72,12 +75,6 @@ const identifyLead: MiddlewareFn<Context> = async (ctx, next) => {
   ctx.state.user = await Prisma.user.findUnique({
     where: {
       id: account?.userId,
-    },
-  });
-
-  ctx.state.telegramBot = await Prisma.telegramBot.findUnique({
-    where: {
-      id: config.BOT_ID,
     },
   });
 

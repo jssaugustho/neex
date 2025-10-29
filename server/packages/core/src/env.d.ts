@@ -25,6 +25,9 @@ declare namespace NodeJS {
     NEEX_DEV_SESSION_ID: string;
 
     WEB_CLIENT_URL: string;
+    TELEGRAM_WEBHOOK_URL: string;
+    TELEGRAM_WEBHOOK_PORT: string;
+    TELEGRAM_WEBHOOK_SECRET: string;
     ENV_FILE: string;
   }
 }

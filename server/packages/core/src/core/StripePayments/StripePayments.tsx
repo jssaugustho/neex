@@ -34,6 +34,7 @@ export type iPaymentMetadata = {
   locale: string;
   currency: string;
   email: string;
+  slug: string;
 };
 
 class StripePayments {
@@ -78,6 +79,7 @@ class StripePayments {
     seller: iSeller,
     currency: string,
     locale: string,
+    slug: string,
     telegramBotId: string,
     telegramUserId: string,
     email: string,
@@ -116,6 +118,7 @@ class StripePayments {
       telegramBotId: telegramBotId,
       telegramUserId: telegramUserId,
       locale,
+      slug,
       currency,
       email,
     };
@@ -142,9 +145,10 @@ class StripePayments {
       },
       payment_method_types: ["card"],
       mode: "payment",
-      success_url: process.env.BOT_URL,
-      cancel_url: process.env.BOT_URL,
+      success_url: "https://neex.club/",
+      cancel_url: "https://neex.club/support",
       expires_at: expiresIn,
+      locale: locale as Stripe.Checkout.Session.Locale,
     });
 
     stripePayment = await Prisma.stripePayment.update({
@@ -172,6 +176,7 @@ class StripePayments {
     chatId: number,
     messageId: number,
     locale: string,
+    slug: string,
     currency: string,
     email: string,
   ) {
@@ -232,6 +237,7 @@ class StripePayments {
       chatId,
       messageId,
       locale,
+      slug,
       currency,
       price,
       email,
@@ -243,6 +249,7 @@ class StripePayments {
       telegramBot?.managementBot.notificationsGroupId,
       telegramBot.notificationsGroupId,
       locale,
+      slug,
       currency,
       price,
       email,

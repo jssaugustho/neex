@@ -20,14 +20,20 @@ export default async function startAction(ctx: Context): Promise<void> {
     `Lead starting bot...`,
   );
 
-  await ctx.replyWithVideo({ source: process.env.VIDEO_URL! });
+  await ctx.replyWithVideo(state.telegramBot.videoUrl);
 
   const message = await ctx.replyWithHTML(t(state.locale, "start"), {
     reply_markup: Markup.inlineKeyboard([
       [
         Markup.button.callback(
           t(state.locale, "legalAge"),
-          `plans/${state.currency}`,
+          `plans/${state.slug}`,
+        ),
+      ],
+      [
+        Markup.button.callback(
+          `${t(state.locale, "changeCountry")} / Change Country`,
+          "country",
         ),
       ],
     ]).reply_markup,

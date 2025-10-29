@@ -1,0 +1,28 @@
+{
+  "wait": "잠시만 기다려 주세요...",
+  "waitVideo": "동영상 로딩 중...",
+  "start": "💋 내 <b>비밀스러운 세계</b>로 들어올래?\n\n✨ 어디에서도 볼 수 없는 친밀한 사진과 영상, 아찔한 비밀들…\n\n👉 <i>만 18세 이상입니다 ✅</i> 를 눌러 VIP 문 뒤에 숨겨둔 모든 것을 확인해봐.",
+  "legalAge": "✅ 만 18세 이상이며 입장하겠습니다",
+  "cta-start-video": "[영상 보기]",
+  "choosePlan": "선택한 국가: <b>${country}</b>\n\n👇 <b>계속하려면 플랜을 선택하세요:</b>",
+  "chooseCountry": "👇 <b>계속하려면 국가를 선택하세요:</b>",
+  "plans": {
+    "weekly": "주간 - ₩ ${price}",
+    "year": "연간 - ₩ ${price}",
+    "monthly": "월간 - ₩ ${price}",
+    "contact": "문의하기 - ₩ ${price}"
+  },
+  "changeCountry": "🌍 국가 변경",
+  "pay": "Pix로 결제",
+  "back": "⬅ 뒤로",
+  "payment_pending": "결제가 보류 중입니다. 아래 코드를 사용하여 결제하세요:",
+  "payment_success": "결제가 승인되었습니다! 곧 VIP 그룹 링크를 보내드립니다.",
+  "error": "오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+  "stripe": "💳 카드로 결제 (Stripe)",
+  "pix": "🔗 Pix로 결제",
+  "chooseMethod": "💳 <b>결제 수단을 선택하세요</b>\n통화: ${currency}\n\n💰 <b>₩ ${price}</b>",
+  "paymentLinkDescription": "<b>🚀 아래 버튼을 눌러 Stripe 결제 페이지로 이동해 결제를 완료해 주세요!</b> 💳\n\n<b>✅ 결제가 확인되면 액세스 링크를 보내드립니다.</b>\n\n${currency}\n💰 <b>₩ ${price}</b>",
+  "openPaymentLink": "🔗 결제 링크 열기",
+  "routeError": "오류: 라우트에 파라미터가 필요합니다.",
+  "defaultProductName": "독점 액세스 | Neex CRM."
+}

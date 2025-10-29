@@ -39,6 +39,7 @@ async function stripeWebhook(req: Request, res: Response) {
         locale,
         currency,
         email,
+        slug,
       } = paymentIntent.metadata as iPaymentMetadata;
 
       const telegramBot = (await Prisma.telegramBot.findUniqueOrThrow({
@@ -96,6 +97,7 @@ async function stripeWebhook(req: Request, res: Response) {
         telegramUser.chatId,
         telegramUser.messageId,
         locale,
+        slug,
         currency,
         email,
       ).catch(async (err) => {

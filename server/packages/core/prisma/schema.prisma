@@ -127,6 +127,23 @@ model TransacionalEmailQueue {
   createdAt DateTime     @default(now())
 }
 
+model Services {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  name String
+  description String
+  slug String @unique
+  notified Boolean @default(false)
+  status ServiceStatus @default(PENDING)
+}
+
+enum ServiceStatus {
+  CRASHED
+  RUNNING
+  PENDING
+}
+
 
 model Account {
   id                     String         @id @default(auto()) @map("_id") @db.ObjectId
@@ -175,6 +192,8 @@ model TelegramBot {
   updatedAt  DateTime    @updatedAt
   token      String      @unique
   active     Boolean
+  videoUrl String
+  secretToken String @default(uuid()) @unique
   groupId Int 
   notificationsGroupId Int
   account    Account     @relation(fields: [accountId], references: [id])

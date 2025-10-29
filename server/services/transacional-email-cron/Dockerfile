@@ -43,4 +43,6 @@ COPY --from=build /app/services/transacional-email-cron/package.json ./services/
 
 COPY --from=build /app/package.json ./package.json
 
+EXPOSE 3000
+
 CMD ["npm", "run", "start:transacional-email-cron"]

@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
-import App from "./src/App.js";
-import Core from "./src/core/core.js";
+import App from "./App.js";
+import Core from "./core/core.js";
 
 dotenv.config();
 

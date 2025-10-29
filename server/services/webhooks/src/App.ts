@@ -19,6 +19,11 @@ class App {
 
     this.app.use("/webhooks", webhooks);
 
+    this.app.get("/health", (req, res) => {
+      Logger.info("Health check.");
+      return res.status(200).send({ message: "Ok" });
+    });
+
     this.app.use(
       cors({
         origin: ["http://localhost:4000"],

@@ -43,6 +43,6 @@ COPY --from=build /app/services/webhooks/package.json ./services/webhooks/
 
 COPY --from=build /app/package.json ./package.json
 
-EXPOSE 4000
+EXPOSE 4001
 
 CMD ["npm", "run", "start:webhooks"]

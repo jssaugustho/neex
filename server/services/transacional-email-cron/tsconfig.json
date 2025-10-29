@@ -9,5 +9,5 @@
       "path": "../../packages/core"
     }
   ],
-  "include": ["src", "src/env.d.ts", "src/service.ts"]
+  "include": ["src", "src/env.ds.ts", "src/service1.ts"]
 }

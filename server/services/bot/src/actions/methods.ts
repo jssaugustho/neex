@@ -3,13 +3,11 @@ import { Lead as iLead } from "@prisma/client";
 import { Context, Markup } from "telegraf";
 import t, { SupportedLocales } from "../libs/i18n.js";
 import NeexCore from "../libs/core.js";
-import Product, {
-  iProductPayload,
-} from "packages/core/src/core/Product/Product.js";
+import { iProductPayload } from "@neex/core/src/core/Product/Product.js";
 import LeadState from "../@types/context.js";
-import { currencies } from "../libs/currencies.js";
+import { getCountryByLocale, getCountryBySlug } from "../libs/countries.js";
 
-const { Lead, Logger, Prisma } = NeexCore;
+const { Lead, Logger, Prisma, Product } = NeexCore;
 
 interface BotContext extends Context {
   match: RegExpExecArray;
@@ -18,29 +16,20 @@ interface BotContext extends Context {
 export default async function methods(ctx: BotContext): Promise<void> {
   const state = ctx.state as LeadState;
 
-  const currency = ctx.match[1] as "usd" | "eur" | "brl";
+  const slug = ctx.match[1];
   const productId = ctx.match[2];
 
-  let locale = Object.keys(currencies).find(
-    (locale) => currencies[locale].code === currency,
-  ) as string;
+  let localeInfo = getCountryBySlug(slug);
 
-  if (!productId || !currency) {
-    ctx.editMessageText(t(state.locale, "routeError"), {
-      reply_markup: Markup.inlineKeyboard([
-        [Markup.button.callback(t(state.locale, "back"), `plans/${currency}`)],
-      ]).reply_markup,
-      parse_mode: "HTML",
-    });
-    return;
-  }
+  let { language, uiName, currency, locale, currencyName, paymentMethods } =
+    localeInfo;
 
   Logger.info(
     {
       productId,
       requestId: state.requestId,
       leadId: state.lead.id,
-      currency,
+      currency: currency,
     },
     "User set the plan.",
   );
@@ -58,30 +47,45 @@ export default async function methods(ctx: BotContext): Promise<void> {
 
   ctx.state.lead = await Lead.setPlan(state.lead.id, productId);
 
-  function getStripeButton(locale: SupportedLocales, currency: string) {
+  function getStripeButton(
+    locale: SupportedLocales,
+    slug: string,
+    productId: string,
+  ) {
     return [
-      [
-        Markup.button.callback(
-          t(locale, "stripe"),
-          `stripe/${currency}/${productId}`,
-        ),
-      ],
+      Markup.button.callback(
+        t(locale, "stripe"),
+        `stripe/${slug}/${productId}`,
+      ),
     ];
   }
 
-  let response: any = getStripeButton(locale, currency);
+  function getPixButton(
+    locale: SupportedLocales,
+    slug: string,
+    productId: string,
+  ) {
+    return [
+      Markup.button.callback(t(locale, "pix"), `pix/${slug}/${productId}`),
+    ];
+  }
 
-  let currencyString = t(locale, `currencies.${currency}`);
+  let response: any[] = paymentMethods.map((method) => {
+    if (method.slug === "stripe")
+      return getStripeButton(locale, slug, productId);
+
+    if (method.slug === "pix") return getPixButton(locale, slug, productId);
+  });
 
   await ctx.editMessageText(
     t(locale, "chooseMethod", {
-      currency: currencyString,
+      currency: currencyName,
       price: (price / 100).toFixed(2),
     }),
     {
       reply_markup: Markup.inlineKeyboard([
         ...response,
-        [Markup.button.callback(t(locale, "back"), `plans/${currency}`)],
+        [Markup.button.callback(t(locale, "back"), `plans/${slug}`)],
       ]).reply_markup,
       parse_mode: "HTML",
     },

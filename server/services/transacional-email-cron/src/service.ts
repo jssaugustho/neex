@@ -1,3 +1,4 @@
+import express from "express";
 import { Neex } from "@neex/core";
 import { Resend } from "resend";
 
@@ -99,4 +100,15 @@ cron.schedule("*/20 * * * * *", () => {
       });
     isRunning = false;
   }
+});
+
+const app = express();
+
+app.get("/health", (req, res) => {
+  Logger.info("Health check");
+  return res.status(200).send({ message: "Ok" });
+});
+
+app.listen(3000, () => {
+  Logger.info("Health listening on: " + process.env.EMAIL_QUEUE_URL);
 });

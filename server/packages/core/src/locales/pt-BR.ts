@@ -95,6 +95,8 @@ const ptBR = {
   telegramErrorNotification:
     "❌ <b>Erro detectado!</b>\n\n🏷️ Conta: <b>{{account}}</b>\n🤖 Bot ID: <b>{{botId}}</b>\n\n<pre>{{error}}</pre>",
 
+  serviceCrash: "❌ <b>[CRÍTICO]</b> Serviço indisponível: {{slug}}",
+
   telegramChurnNotification:
     "⚠️ <b>Assinatura expirada detectada!</b>\n\n🏷️ Vendedor: <b>{{account}}</b>\n🤖 Bot ID: <b>{{botId}}</b>\n👤 Username: <b>{{leadName}}</b>\n📅 Expirou em: <b>{{expiresAt}}</b>\n\n🧹 O usuário foi removido do grupo automaticamente.",
 

@@ -1,0 +1,28 @@
+{
+  "wait": "Please wait a moment...",
+  "waitVideo": "Loading video...",
+  "start": "💋 Want to enter my <b>secret world</b>?\n\n✨ Intimate photos and videos, spicy secrets, and moments you won’t find anywhere else...\n\n👉 Tap <i>I’m over 18 ✅</i> and discover everything I hide behind the VIP door.",
+  "legalAge": "✅ I’m over 18 and want in",
+  "cta-start-video": "[WATCH THE VIDEO]",
+  "choosePlan": "Selected country: <b>${country}</b> \n\n👇 <b>Choose a plan to continue:</b>",
+  "chooseCountry": "👇 <b>Select your country to continue:</b>",
+  "plans": {
+    "weekly": "Weekly - £ ${price}",
+    "year": "Yearly - £ ${price}",
+    "monthly": "Monthly - £ ${price}",
+    "contact": "Contact me - £ ${price}"
+  },
+  "changeCountry": "🌍 Change country",
+  "pay": "Pay with Pix",
+  "back": "⬅ Back",
+  "payment_pending": "Your payment is pending. Use the code below to pay:",
+  "payment_success": "Payment approved! You will receive the VIP group link in moments.",
+  "error": "An error occurred, please try again later.",
+  "stripe": "💳 Pay with Card (Stripe)",
+  "pix": "🔗 Pay with Pix",
+  "chooseMethod": "💳 <b>Choose your payment method</b>\nCurrency: ${currency}\n\n💰 <b>£ ${price}</b>",
+  "paymentLinkDescription": "<b>🚀 Click the button below to be redirected to Stripe checkout and complete your payment!</b> 💳\n\n<b>✅ Once the payment is confirmed, you’ll receive the access link.</b>\n\n${currency}\n💰 <b>£ ${price}</b>",
+  "openPaymentLink": "🔗 Open payment link",
+  "routeError": "Error: route requires parameters.",
+  "defaultProductName": "Exclusive access | Neex CRM."
+}

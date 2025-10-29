@@ -1,13 +1,8 @@
+import { Telegraf } from "telegraf";
 import { Neex } from "@neex/core";
 import inquirer from "inquirer";
 
-import {
-  User as iUser,
-  Account as iAccount,
-  Seller as iSeller,
-  TelegramBot as iTelegramBot,
-} from "@prisma/client";
-import writeInEnv from "../lib/environment.js";
+import { TelegramBot as iTelegramBot } from "@prisma/client";
 
 const { TelegramBot, Prisma } = Neex();
 
@@ -17,65 +12,79 @@ async function createBot(
 ): Promise<iTelegramBot> {
   console.log("\n");
 
-  const { notificationsGroupId, mgmtToken, accountId, token, groupId } =
-    await inquirer.prompt<{
-      accountId: string;
-      token: string;
-      groupId: string;
-      mgmtToken: string;
-      notificationsGroupId: string;
-    }>([
-      {
-        type: "input",
-        name: "accountId",
-        message: "Account ID:",
-        default: accountIdLoaded || "",
-        required: true,
-      },
-      {
-        type: "input",
-        name: "token",
-        message: "Telegram Bot Token:",
-        required: true,
-      },
-      {
-        type: "input",
-        name: "mgmtToken",
-        message: "Management Bot Token:",
-        default: mgmtBotToken || "",
-        required: true,
-      },
-      {
-        type: "input",
-        name: "groupId",
-        message: "Group ID:",
-        required: true,
-      },
-      {
-        type: "input",
-        name: "notificationsGroupId",
-        message: "Botifications Group ID:",
-        required: true,
-      },
-    ]);
+  const {
+    notificationsGroupId,
+    mgmtToken,
+    accountId,
+    token,
+    groupId,
+    videoUrl,
+  } = await inquirer.prompt<{
+    accountId: string;
+    token: string;
+    groupId: string;
+    mgmtToken: string;
+    notificationsGroupId: string;
+    videoUrl: string;
+  }>([
+    {
+      type: "input",
+      name: "accountId",
+      message: "Account ID:",
+      default: accountIdLoaded || "",
+      required: true,
+    },
+    {
+      type: "input",
+      name: "token",
+      message: "Telegram Bot Token:",
+      required: true,
+    },
+    {
+      type: "input",
+      name: "mgmtToken",
+      message: "Management Bot Token:",
+      default: mgmtBotToken || "",
+      required: true,
+    },
+    {
+      type: "input",
+      name: "groupId",
+      message: "Group ID:",
+      required: true,
+    },
+    {
+      type: "input",
+      name: "notificationsGroupId",
+      message: "Botifications Group ID:",
+      required: true,
+    },
+    {
+      type: "input",
+      name: "videoUrl",
+      message: "Video URL:",
+      required: true,
+    },
+  ]);
 
   console.log("\nStarting a new bot...");
 
-  const bot = await TelegramBot.createBot(
+  const telegramBot = await TelegramBot.createBot(
     token,
     mgmtToken,
     parseInt(groupId),
     accountId,
     parseInt(notificationsGroupId),
+    videoUrl,
   );
 
-  writeInEnv({
-    BOT_ID: bot.id,
-  });
+  const bot = new Telegraf(token);
+
+  bot.telegram.setWebhook(`${telegramBot.secretToken}$${telegramBot.id}`);
 
   console.log("Bot Started.");
 
-  return bot;
+  return telegramBot;
 }
 
 export default createBot;

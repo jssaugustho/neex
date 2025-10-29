@@ -1,0 +1,28 @@
+{
+  "wait": "少々お待ちください…",
+  "waitVideo": "動画を読み込み中...",
+  "start": "💋 私の<b>秘密の世界</b>に入りたい？\n\n✨ ここでしか見られない親密な写真・動画、ちょっとスパイシーな秘密…\n\n👉 <i>18歳以上です ✅</i> をタップして、VIPの扉の向こうに隠しているすべてを確かめてね。",
+  "legalAge": "✅ 18歳以上で、入りたい",
+  "cta-start-video": "[動画を見る]",
+  "choosePlan": "選択した国：<b>${country}</b>\n\n👇 <b>続行するプランを選んでください：</b>",
+  "chooseCountry": "👇 <b>続行する国を選択してください：</b>",
+  "plans": {
+    "weekly": "週額 - ¥ ${price}",
+    "year": "年額 - ¥ ${price}",
+    "monthly": "月額 - ¥ ${price}",
+    "contact": "連絡する - ¥ ${price}"
+  },
+  "changeCountry": "🌍 国を変更",
+  "pay": "Pix で支払う",
+  "back": "⬅ 戻る",
+  "payment_pending": "お支払いは保留中です。下のコードでお支払いください：",
+  "payment_success": "支払いが承認されました！まもなくVIPグループのリンクをお送りします。",
+  "error": "エラーが発生しました。後でもう一度お試しください。",
+  "stripe": "💳 カードで支払う（Stripe）",
+  "pix": "🔗 Pix で支払う",
+  "chooseMethod": "💳 <b>お支払い方法を選択</b>\n通貨：${currency}\n\n💰 <b>¥ ${price}</b>",
+  "paymentLinkDescription": "<b>🚀 下のボタンをタップすると、Stripeチェックアウトに移動してお支払いできます！</b> 💳\n\n<b>✅ お支払いが確認され次第、アクセス用リンクをお送りします。</b>\n\n${currency}\n💰 <b>¥ ${price}</b>",
+  "openPaymentLink": "🔗 支払いリンクを開く",
+  "routeError": "エラー：ルートにパラメータが必要です。",
+  "defaultProductName": "限定アクセス | Neex CRM."
+}

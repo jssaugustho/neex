@@ -99,34 +99,31 @@ class User {
     log = true,
   ): Promise<iUser> {
     return new Promise(async (resolve, reject) => {
-      const user = (await Prisma.user
-        .create({
-          data: {
-            email,
-            name,
-            lastName,
-            phone,
-            passwd: {
-              create: {
-                active: true,
-                hash: passwd,
-                session: {
-                  connect: {
-                    id: session.id,
-                  },
+      const user = await Prisma.user.create({
+        data: {
+          email,
+          name,
+          lastName,
+          phone,
+          passwd: {
+            create: {
+              active: true,
+              hash: passwd,
+              session: {
+                connect: {
+                  id: session.id,
                 },
               },
             },
-            gender,
-            locale: session.locale,
-            timeZone: session.timeZone,
           },
-        })
-        .catch(() => {
-          return reject(
-            new errors.InternalServerError("Cannot create new User"),
-          );
-        })) as iUser;
+          gender,
+          locale: session.locale,
+          timeZone: session.timeZone,
+        },
+      });
+
+      if (!user)
+        return reject(new errors.InternalServerError("Cannot create new User"));
 
       const verification = await Verification.generate2faLink(
         user,

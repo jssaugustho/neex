@@ -7,7 +7,7 @@ type Entry = {
   exp: number;
 };
 
-export class LruTtlCache {
+class BotCache {
   private map = new Map<string, Entry>();
 
   constructor(
@@ -75,3 +75,5 @@ export class LruTtlCache {
     this.map.clear();
   }
 }
+
+export default BotCache;
