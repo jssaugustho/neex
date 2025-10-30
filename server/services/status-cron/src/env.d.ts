@@ -11,5 +11,6 @@ declare namespace NodeJS {
     WEBHOOKS_URL: string;
     EMAIL_QUEUE_URL: string;
     MGMT_BOT_ID: string;
+    BILLING_CRON_URL: string;
   }
 }

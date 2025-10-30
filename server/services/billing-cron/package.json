@@ -22,10 +22,11 @@
   },
   "homepage": "https://github.com/jssaugustho/Marketing-Automation-and-CRM---Lux-Digital-Assessoria.#readme",
   "dependencies": {
-    "@neex/core": "file:../../packages/core",
     "@neex/billing-cron": "file:",
+    "@neex/core": "file:../../packages/core",
     "@prisma/client": "^6.0.1",
     "dotenv": "^17.2.2",
+    "express": "^5.1.0",
     "node-cron": "^3.0.3",
     "resend": "^4.4.1"
   },
